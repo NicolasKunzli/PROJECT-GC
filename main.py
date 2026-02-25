@@ -1,12 +1,11 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
+path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 
-
-
-path = "metadata/"
-centroid = pd.read_csv(path+"centroid_pos.csv")
-connections = pd.read_csv(path+"link_bboxes_clustered.csv")
+centroid = pd.read_csv(path+"\metadata\centroid_pos.csv")
+connections = pd.read_csv(path+"\metadata\link_bboxes_clustered.csv")
 
 positions = {
     row["id"]: (row["x"], row["y"])
@@ -26,5 +25,5 @@ plt.xlabel("X")
 plt.ylabel("Y")
 plt.title("Graph du réseau routier")
 plt.axis("equal")  # garder proportions correctes
-plt.savefig("figure/map")
+plt.savefig(path+"/figure/map")
 plt.show()
