@@ -1,1 +1,1 @@
-simbarca_upload file should be in the "Documents" folder, native to windows
+Le fichier "simbarca_upload" doit être dans le dossier windows "Documents" 
