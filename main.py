@@ -8,10 +8,14 @@ os.makedirs(figure_path, exist_ok=True)
 
 centroid = pd.read_csv(path+"\metadata\centroid_pos.csv")
 connections = pd.read_csv(path+"\metadata\link_bboxes_clustered.csv")
+interest = pd.read_csv(path+"\metadata\sections_of_interest.txt")
 
 
 plt.figure(figsize=(10, 10), dpi = 100)
-
+for id in interest:
+    print(id)
+    
+    
 for _, row in centroid.iterrows():
     plt.scatter(centroid["x"], centroid["y"], s=40, c = "blue")
 
