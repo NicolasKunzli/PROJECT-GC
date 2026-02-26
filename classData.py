@@ -14,7 +14,7 @@ class NewSim(SimBarcaForecast):
         """
         PLACEHOLDER
         """
-        pass
+        return len(self)
 
     def __getitem__(self, idx):
         """
@@ -30,7 +30,7 @@ class NewSim(SimBarcaForecast):
     
 NewSims = NewSim(split="train")
 
-a = NewSims.init_graph_structure()
+a = NewSims.__len__()
 print(a)
 b = NewSims.cluster_id
 print(np.shape(b))
