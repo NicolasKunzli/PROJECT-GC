@@ -3,6 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
+figure_path = os.path.join(path, "figure")
+os.makedirs(figure_path, exist_ok=True)
 
 centroid = pd.read_csv(path+"\metadata\centroid_pos.csv")
 connections = pd.read_csv(path+"\metadata\link_bboxes_clustered.csv")
