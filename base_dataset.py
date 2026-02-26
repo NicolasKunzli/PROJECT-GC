@@ -14,7 +14,7 @@ class BaseDataset(Dataset, ABC):
 
     In case of multiple input or output sources or a compound dataset, the attributes should be a list of values.
     """
-    x = 1
+
 
     input_steps: int
     pred_steps: int
