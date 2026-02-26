@@ -11,6 +11,11 @@ os.makedirs(figure_path, exist_ok=True)
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
 connections = pd.read_csv(os.path.join(path, "metadata", "link_bboxes_clustered.csv"))
 polygons = pd.read_json(os.path.join(path, "metadata", "intersec_polygon.json"))
+
+lane_info = pd.read_json(os.path.join(path, "metadata", "lane_info.json"))
+od = pd.read_json(os.path.join(path, "metadata", "od_pairs.json"))
+with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.read()
+
 with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:interest = [line.strip() for line in f.readlines()]
 
 
@@ -76,4 +81,7 @@ plt.title("")
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.savefig(path+"/figure/mappolygons")
-plt.show()
+#plt.show()
+plt.close()
+
+print(tts)
