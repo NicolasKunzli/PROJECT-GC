@@ -40,8 +40,8 @@ class SimbarcaBase(BaseDataset):
     One can easily reduce the number of samples by setting an later _sample_start_time or an earlier _sample_end_time, but remember to keep aligned with 3-min step size.
     E.g., you can start at 8:06 but not 8:07, because the step size is 3 minutes, and it starts from 7:45.
     """
-
-    data_root = "datasets/simbarca"
+    path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
+    data_root = path 
     metadata_folder = "{}/metadata".format(data_root)
     session_splits = "{}/train_test_split.json".format(metadata_folder)
     session_folder_pattern = "simulation_sessions/session_*"
@@ -174,7 +174,12 @@ class SimbarcaBase(BaseDataset):
             
         session_ids, demand_scales = [], []
         for f in sessions_in_split:
-            scale = json.load(open("{}/settings.json".format(f), 'r'))["global_scale"]
+            settings_path = f"{f}\\settings.json"
+
+            if os.path.exists(settings_path):
+                scale = json.load(open(settings_path, 'r'))["global_scale"]
+            else:
+                scale = 1.0
             session_id = session_number_from_path(f)
             session_ids.append(session_id)
             demand_scales.append(scale)
