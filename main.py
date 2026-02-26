@@ -14,7 +14,7 @@ with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:
 
 plt.figure(figsize=(10, 10), dpi = 100)
 for id in interest:
-    print(id)
+    id
 
 for _, row in centroid.iterrows():
     plt.scatter(centroid["x"], centroid["y"], s=40, c = "blue")
@@ -25,19 +25,18 @@ for _, row in connections.iterrows():
     plt.plot(x_vals, y_vals, c="red", linewidth = row["num_lanes"]/2)
 
 
-plt.show()
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.title("")
 plt.axis("equal")
 plt.savefig(path+"/figure/map")
-plt.show()
+#plt.show()
 
 #Visualisation of the simulations data
 
-df = pd.read_pickle("/Users/arthus.duval/Documents/simbarca_upload/simulation_sessions/session_000/timeseries/agg_timeseries.pkl")
-print(df.head())
-print(df)
+df = pd.read_pickle(path + "/simulation_sessions/session_000/timeseries/agg_timeseries.pkl")
+
+print(df.keys())
 
 
 #Visualisation of the polygons  
@@ -61,4 +60,4 @@ plt.gca().set_aspect("equal")
 plt.title("Intersection Polygons")
 plt.xlabel("X")
 plt.ylabel("Y")
-
+plt.show()
