@@ -9,9 +9,10 @@ figure_path = os.path.join(path, "figure")
 os.makedirs(figure_path, exist_ok=True)
 
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
+links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv"))
 connections = pd.read_csv(os.path.join(path, "metadata", "link_bboxes_clustered.csv"))
-polygons = pd.read_json(os.path.join(path, "metadata", "intersec_polygon.json"))
 
+polygons = pd.read_json(os.path.join(path, "metadata", "intersec_polygon.json"))
 lane_info = pd.read_json(os.path.join(path, "metadata", "lane_info.json"))
 od = pd.read_json(os.path.join(path, "metadata", "od_pairs.json"))
 with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.read()
@@ -46,10 +47,10 @@ def poly():
 plt.figure(figsize=(10, 10), dpi = 100)
 centr()
 conn()
+plt.gca().set_aspect("equal")
 plt.xlabel("X")
 plt.ylabel("Y")
-plt.title("")
-plt.axis("equal")
+plt.title("Centroid + Links")
 plt.savefig(path+"/figure/map")
 #plt.show()
 plt.close()
@@ -59,10 +60,10 @@ plt.close()
 
 df = pd.read_pickle(path + "/simulation_sessions/session_000/timeseries/agg_timeseries.pkl")
 
-print(df.keys())
+print(f"The keys of the file agg_timeseries.pkl :{df.keys()}")
 
 
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(10, 10), dpi = 100)
 poly()
 plt.gca().set_aspect("equal")
 plt.title("Intersection Polygons")
@@ -72,16 +73,37 @@ plt.savefig(path+"/figure/polygons")
 #plt.show()
 plt.close()
 
-plt.figure(figsize=(10, 10))
+plt.figure(figsize=(10, 10), dpi = 100)
 centr()
 conn()
 poly()
 plt.gca().set_aspect("equal")
-plt.title("")
+plt.title("Centroid + Links + Intersection Polygons")
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.savefig(path+"/figure/mappolygons")
 #plt.show()
 plt.close()
 
-print(tts)
+
+""" print("")
+print(f"The keys of the file centroid_pos.csv : {centroid.keys()}")
+print("")
+print(f"The keys of the file link_bboxes_clustered.csv : {connections.keys()}")
+print("")
+print(f"The keys of the file link_bboxes.csv : {links.keys()}")
+print("")
+print(f"The keys of the file intersec_polygon.json : {polygons.keys()}")
+print("")
+print(f"The keys of the file lane_info.json : {lane_info.keys()}")
+print("")
+print(f"The keys of the file od_pairs.json : {od.keys()}")
+print("") """
+
+ce = [np.min(centroid["id"]), np.max(centroid["id"])]
+print(f"Centroid id range : {ce}")
+
+li = [np.min(links["id"]),np.max(links["id"])]
+print(f"Links id range : {li}")
+
+print(od)
