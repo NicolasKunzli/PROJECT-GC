@@ -55,21 +55,29 @@ print(DL.num_lanes.shape)
 print("")
 print(DL.adjacency.shape)
 print("")
-print(DL.section_ids_sorted.shape)
+print(DL.segment_lengths.shape)
 print("")
 print(len(DL.section_id_to_index))
 
 
-plt.figure(figsize=(10, 10), dpi = 300)
+plt.figure(figsize=(10, 10), dpi = 250)
 
-plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=25, c = "blue")
+plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=15, c = "blue")
 
-for i in range(DL.adjacency.shape[0]):
+""" for i in range(DL.adjacency.shape[0]):
     for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part sine the matrix is symetric
         if DL.adjacency[i,j] == 1:
             x = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
-            y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]    
-            plt.plot(x, y, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4)
+            y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]
+
+            plt.plot(x, y, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4) """
+            
+DL.link_bboxes = pd.read_csv(os.path.join(DL.metadata_folder, "link_bboxes_clustered.csv"))     
+
+for _, row in links.iterrows():
+    x = [row["from_x"], row["to_x"]]
+    y = [row["from_y"], row["to_y"]]     
+    plt.plot(x, y, c='red', linewidth=1)
 
 for section_id, data in DL.intersection_polygon.items():
     poly = data["polygon"]
