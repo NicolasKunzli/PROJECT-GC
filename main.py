@@ -51,13 +51,14 @@ DL.init_graph_structure
 print(DL.node_coordinates.shape)
 print(DL.num_lanes.shape)
 
+
+
 plt.figure(figsize=(10, 10), dpi = 100)
 
-plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=20, c = "blue")
+plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=25, c = "blue")
 
-num_sections = DL.adjacency.shape[0]
-for i in range(num_sections):
-    for j in range(i+1, num_sections):  # upper triangle pour éviter doublons
+for i in range(DL.adjacency.shape[0]):
+    for j in range(i+1, DL.adjacency.shape[0]):
         if DL.adjacency[i,j] == 1:
             x_coords = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
             y_coords = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]    
@@ -74,7 +75,7 @@ for section_id, data in DL.intersection_polygon.items():
     
 plt.plot()
 plt.gca().set_aspect("equal")
-plt.title("Centroid + Links + Intersection Polygons")
+plt.title("Nodes + Links + Intersection Polygons")
 plt.xlabel("X")
 plt.ylabel("Y")
 plt.savefig("graph.png")
