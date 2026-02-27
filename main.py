@@ -1,8 +1,11 @@
 import os
 import json
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from DataLoad import DataLoader
 
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 figure_path = os.path.join(path, "figure")
@@ -19,73 +22,6 @@ with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.r
 
 with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:interest = [line.strip() for line in f.readlines()]
 
-
-
-
-    
-def centr():
-    for _, row in centroid.iterrows():
-        plt.scatter(centroid["x"], centroid["y"], s=40, c = "blue")
-
-def conn():
-    for _, row in connections.iterrows():
-        x_vals = [row["from_x"], row["to_x"]]
-        y_vals = [row["from_y"], row["to_y"]]
-        plt.plot(x_vals, y_vals, c="red", linewidth = row["num_lanes"]/2)
-        
-def poly():   
-    for section_id, data in polygons.items():
-        poly = data["polygon"]
-    
-        # Extract x and y
-        x = [p[0] for p in poly] + [poly[0][0]]  # close polygon
-        y = [p[1] for p in poly] + [poly[0][1]]
-    
-        plt.plot(x, y, c = "green")
-        
-        
-plt.figure(figsize=(10, 10), dpi = 100)
-centr()
-conn()
-plt.gca().set_aspect("equal")
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.title("Centroid + Links")
-plt.savefig(path+"/figure/map")
-#plt.show()
-plt.close()
-
-
-#Visualisation of the simulations data
-
-df = pd.read_pickle(path + "/simulation_sessions/session_000/timeseries/agg_timeseries.pkl")
-
-print(f"The keys of the file agg_timeseries.pkl :{df.keys()}")
-
-
-plt.figure(figsize=(10, 10), dpi = 100)
-poly()
-plt.gca().set_aspect("equal")
-plt.title("Intersection Polygons")
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.savefig(path+"/figure/polygons")
-#plt.show()
-plt.close()
-
-plt.figure(figsize=(10, 10), dpi = 100)
-centr()
-conn()
-poly()
-plt.gca().set_aspect("equal")
-plt.title("Centroid + Links + Intersection Polygons")
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.savefig(path+"/figure/mappolygons")
-#plt.show()
-plt.close()
-
-
 """ print("")
 print(f"The keys of the file centroid_pos.csv : {centroid.keys()}")
 print("")
@@ -100,10 +36,46 @@ print("")
 print(f"The keys of the file od_pairs.json : {od.keys()}")
 print("") """
 
-ce = [np.min(centroid["id"]), np.max(centroid["id"])]
+
+""" ce = [np.min(centroid["id"]), np.max(centroid["id"])]
 print(f"Centroid id range : {ce}")
 
 li = [np.min(links["id"]),np.max(links["id"])]
 print(f"Links id range : {li}")
 
-print(od)
+print(od) """
+
+DL = DataLoader()
+DL.init_graph_structure
+
+print(DL.node_coordinates.shape)
+print(DL.num_lanes.shape)
+
+plt.figure(figsize=(10, 10), dpi = 100)
+
+plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=20, c = "blue")
+
+num_sections = DL.adjacency.shape[0]
+for i in range(num_sections):
+    for j in range(i+1, num_sections):  # upper triangle pour éviter doublons
+        if DL.adjacency[i,j] == 1:
+            x_coords = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
+            y_coords = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]    
+            plt.plot(x_coords, y_coords, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4)
+
+for section_id, data in DL.intersection_polygon.items():
+    poly = data["polygon"]
+    
+    # Extract x and y
+    x = [p[0] for p in poly] + [poly[0][0]]  # close polygon
+    y = [p[1] for p in poly] + [poly[0][1]]
+    
+    plt.plot(x, y, c = "black")
+    
+plt.plot()
+plt.gca().set_aspect("equal")
+plt.title("Centroid + Links + Intersection Polygons")
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.savefig("graph.png")
+plt.close()

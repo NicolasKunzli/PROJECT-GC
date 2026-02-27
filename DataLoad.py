@@ -14,7 +14,7 @@ logger = logging.getLogger("default")
 
 class DataLoader():
 
-    data_root = os.path.normpath(os.path.join(os.path.dirname(__file__),".", "data"))
+    data_root = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
     metadata_folder = os.path.join(data_root, "metadata")
     session_splits = os.path.join(metadata_folder, "train_test_split.json")
     session_folder_pattern = "simulation_sessions/session_*"
