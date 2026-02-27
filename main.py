@@ -5,6 +5,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 from DataLoad import DataLoader
 
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
@@ -13,7 +14,7 @@ os.makedirs(figure_path, exist_ok=True)
 
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
 links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv"))
-connections = pd.read_csv(os.path.join(path, "metadata", "link_bboxes_clustered.csv"))
+connections = pd.read_csv(os.path.join(path, "metadata", "connections.csv"))
 
 polygons = pd.read_json(os.path.join(path, "metadata", "intersec_polygon.json"))
 lane_info = pd.read_json(os.path.join(path, "metadata", "lane_info.json"))
@@ -25,7 +26,7 @@ with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:
 """ print("")
 print(f"The keys of the file centroid_pos.csv : {centroid.keys()}")
 print("")
-print(f"The keys of the file link_bboxes_clustered.csv : {connections.keys()}")
+print(f"The keys of the file connections.csv : {connections.keys()}")
 print("")
 print(f"The keys of the file link_bboxes.csv : {links.keys()}")
 print("")
@@ -49,28 +50,31 @@ DL = DataLoader()
 DL.init_graph_structure
 
 print(DL.node_coordinates.shape)
+print("")
 print(DL.num_lanes.shape)
+print("")
+print(DL.adjacency.shape)
+print("")
+print(DL.section_ids_sorted.shape)
+print("")
+print(len(DL.section_id_to_index))
 
 
-
-plt.figure(figsize=(10, 10), dpi = 100)
+plt.figure(figsize=(10, 10), dpi = 300)
 
 plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=25, c = "blue")
 
 for i in range(DL.adjacency.shape[0]):
-    for j in range(i+1, DL.adjacency.shape[0]):
+    for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part sine the matrix is symetric
         if DL.adjacency[i,j] == 1:
-            x_coords = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
-            y_coords = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]    
-            plt.plot(x_coords, y_coords, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4)
+            x = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
+            y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]    
+            plt.plot(x, y, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4)
 
 for section_id, data in DL.intersection_polygon.items():
     poly = data["polygon"]
-    
-    # Extract x and y
-    x = [p[0] for p in poly] + [poly[0][0]]  # close polygon
+    x = [p[0] for p in poly] + [poly[0][0]]
     y = [p[1] for p in poly] + [poly[0][1]]
-    
     plt.plot(x, y, c = "black")
     
 plt.plot()
