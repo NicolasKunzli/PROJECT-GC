@@ -65,7 +65,7 @@ plt.figure(figsize=(10, 10), dpi = 250)
 plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=15, c = "blue")
 
 """ for i in range(DL.adjacency.shape[0]):
-    for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part sine the matrix is symetric
+    for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part since the matrix is symetric
         if DL.adjacency[i,j] == 1:
             x = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
             y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]
