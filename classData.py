@@ -1,7 +1,7 @@
 from simbarca_base import SimbarcaBase, SimBarcaForecast
 import numpy as np
 
-class NewSim(SimBarcaForecast):
+class NewClass(SimBarcaForecast):
     """
     We define the abstract methods needed for the other classes
     
@@ -14,7 +14,7 @@ class NewSim(SimBarcaForecast):
         """
         PLACEHOLDER
         """
-        return len(self)
+        pass 
 
     def __getitem__(self, idx):
         """
@@ -28,9 +28,9 @@ class NewSim(SimBarcaForecast):
         """
         return None
     
-NewSims = NewSim(split="train")
+NewClass = NewClass(split="train")
 
-a = NewSims.__len__()
+a = NewClass.init_graph_structure()
 print(a)
-b = NewSims.cluster_id
+b = NewClass.cluster_id
 print(np.shape(b))
