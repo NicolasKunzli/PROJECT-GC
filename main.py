@@ -4,13 +4,22 @@ import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
 import numpy as np
 import sys
 from DataLoad import DataLoader
+import imageio
+import re
 
+
+### Loading files
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 figure_path = os.path.join(path, "figure")
+localfigure = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure")
+
 os.makedirs(figure_path, exist_ok=True)
+os.makedirs(localfigure, exist_ok=True)
 
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
 links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv"))
@@ -46,23 +55,16 @@ print(f"Links id range : {li}")
 
 print(od) """
 
+### Instance of the class
 DL = DataLoader()
 DL.init_graph_structure
 
-print(DL.node_coordinates.shape)
-print("")
-print(DL.num_lanes.shape)
-print("")
-print(DL.adjacency.shape)
-print("")
-print(DL.segment_lengths.shape)
-print("")
-print(len(DL.section_id_to_index))
 
+### Creating the figure
+fig, ax = plt.subplots(dpi = 250)
 
-plt.figure(figsize=(10, 10), dpi = 250)
-
-plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=15, c = "blue")
+### Plotting nodes
+ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
 
 """ for i in range(DL.adjacency.shape[0]):
     for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part since the matrix is symetric
@@ -71,24 +73,114 @@ plt.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=15, c = "blue"
             y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]
 
             plt.plot(x, y, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4) """
-            
-DL.link_bboxes = pd.read_csv(os.path.join(DL.metadata_folder, "link_bboxes_clustered.csv"))     
 
-for _, row in links.iterrows():
+norm = mcolors.Normalize(
+    np.nanmin(DL._vdist_3min[0,:]),
+    np.nanmax(DL._vdist_3min[0,:])
+)
+
+cmap = cm.get_cmap("coolwarm")
+
+### Plotting the links
+for i, row in links.iterrows():
     x = [row["from_x"], row["to_x"]]
     y = [row["from_y"], row["to_y"]]     
-    plt.plot(x, y, c='red', linewidth=1)
+    z = cmap(norm(DL._vdist_3min[0,0,i]))
+    ax.plot(x, y, c=z, linewidth=1)
 
+### Plotting the intersetion polygons
 for section_id, data in DL.intersection_polygon.items():
     poly = data["polygon"]
     x = [p[0] for p in poly] + [poly[0][0]]
     y = [p[1] for p in poly] + [poly[0][1]]
-    plt.plot(x, y, c = "black")
+    ax.plot(x, y, c = "grey", alpha = 0.5, zorder= -1)
     
-plt.plot()
-plt.gca().set_aspect("equal")
-plt.title("Nodes + Links + Intersection Polygons")
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.savefig("graph.png")
-plt.close()
+### Axis, labels, ration, sizes, ...
+ax.set_aspect("equal")
+ax.set_title("Nodes + Links + Intersection Polygons")
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+
+sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+sm.set_array(DL._vdist_3min[0, 0, :])
+fig.colorbar(sm, ax=ax, label="vdist (3min)")
+
+fig.savefig("graph.png")
+plt.close(fig)
+
+
+
+
+def numerical_sort(value):
+
+    numbers = re.findall(r'\d+', value)
+    return int(numbers[0]) if numbers else -1
+
+
+
+
+
+
+
+
+
+param1 = ["vdist_3min", "vtime_3min"]
+for p1 in param1:
+    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure", str(p1)), exist_ok=True)
+    
+i = -1    
+param = [DL._vdist_3min, DL._vtime_3min]
+for p in param:
+    i += 1
+    for t in range(p.shape[1]):
+
+        fig, ax = plt.subplots(dpi = 250)
+
+        ### Plotting nodes
+        ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
+
+        norm = mcolors.Normalize(
+            np.nanmin(p[0,:]),
+            np.nanmax(p[0,:])
+        )
+
+        cmap = cm.get_cmap("coolwarm")
+
+        ### Plotting the links
+        for j, row in links.iterrows():
+            x = [row["from_x"], row["to_x"]]
+            y = [row["from_y"], row["to_y"]]     
+            z = cmap(norm(p[0,t,j]))
+            ax.plot(x, y, c=z, linewidth=1)
+
+        ### Plotting the intersetion polygons
+        for section_id, data in DL.intersection_polygon.items():
+            poly = data["polygon"]
+            x = [p[0] for p in poly] + [poly[0][0]]
+            y = [p[1] for p in poly] + [poly[0][1]]
+            ax.plot(x, y, c = "purple", alpha = 0.5, zorder= -1)
+            
+        ### Axis, labels, ratio, sizes, ...
+        ax.set_aspect("equal")
+        ax.set_title(f"{param1[i]} : T = {t}")
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+
+        sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+        sm.set_array(p[0, t, :])
+        fig.colorbar(sm, ax=ax, label=str(param1[i]))
+
+        fig.savefig(f"figure/{param1[i]}/graph{str(t)}.png")
+        print(f"T = {t}")
+        plt.close(fig)
+        
+    files = sorted([f for f in os.listdir(f"figure/{param1[i]}") if f.endswith(".png")])
+    files = sorted(files, key=numerical_sort)
+    
+    images = []
+    for filename in files:
+        print(filename)
+        filepath = os.path.join(f"figure/{param1[i]}", filename)
+        images.append(imageio.imread(filepath))
+
+    imageio.mimsave(os.path.join(f"{param1[i]}.gif"), images, fps=5)
