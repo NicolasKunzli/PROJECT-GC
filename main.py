@@ -32,34 +32,11 @@ with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.r
 
 with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:interest = [line.strip() for line in f.readlines()]
 
-""" print("")
-print(f"The keys of the file centroid_pos.csv : {centroid.keys()}")
-print("")
-print(f"The keys of the file connections.csv : {connections.keys()}")
-print("")
-print(f"The keys of the file link_bboxes.csv : {links.keys()}")
-print("")
-print(f"The keys of the file intersec_polygon.json : {polygons.keys()}")
-print("")
-print(f"The keys of the file lane_info.json : {lane_info.keys()}")
-print("")
-print(f"The keys of the file od_pairs.json : {od.keys()}")
-print("") """
-
-
-""" ce = [np.min(centroid["id"]), np.max(centroid["id"])]
-print(f"Centroid id range : {ce}")
-
-li = [np.min(links["id"]),np.max(links["id"])]
-print(f"Links id range : {li}")
-
-print(od) """
-
-
-
 ### Instance of the class
 DL = DataLoader()
 DL.init_graph_structure
+
+
 
 
 
@@ -67,27 +44,76 @@ DL.init_graph_structure
 fig, ax = plt.subplots(dpi = 250)
 
 ### Plotting nodes
-ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
+ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=1, zorder = 1)
 
 ### Plotting the links
-for i, row in links.iterrows():
-    x = [row["from_x"], row["to_x"]]
-    y = [row["from_y"], row["to_y"]]     
-    ax.plot(x, y, c="red", linewidth=1, zorder = 2)
+def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None, cmap = None):
+    """
+    ax : The current figure
+    grad : bool
+    color : Plot color
+    zorder : The layer on which the links are plot
     
+    The folowing are considered only if grad == True
+    norm : The color scale, see mcolors.Normalize()
+    p : The current parameter
+    t = The current time frame
+    cmap : The color map, see plt.get_cmap(")
+    
+    """   
+    if not grad:
+        for i, row in links.iterrows():
+            x = np.array([row["from_x"], row["to_x"]])
+            y = np.array([row["from_y"], row["to_y"]])
+            x /= 1000
+            y /= 1000     
+            ax.plot(x, y, c=color, linewidth=1, zorder = zorder) 
+        return
+            
+    if norm is None or p is None or t is None:
+        raise ValueError("norm, p and t are not given. grad should be False")  
+          
+    elif grad :
+        for j, row in links.iterrows():
+            x = np.array([row["from_x"], row["to_x"]])
+            y = np.array([row["from_y"], row["to_y"]])
+            x /= 1000
+            y /= 1000 
+            if pd.isna(p[0,t,j]):  
+                z = "lime"
+            else:
+                if cmap is None:
+                    raise ValueError("Colormap is missing")
+                else:
+                    z = cmap(norm(p[0,t,j]))
+            ax.plot(x, y, c=z, linewidth=1)
+        return
+link(ax)        
     
 ### Plotting the intersetion polygons
-for section_id, data in DL.intersection_polygon.items():
-    poly = data["polygon"]
-    x = [p[0] for p in poly] + [poly[0][0]]
-    y = [p[1] for p in poly] + [poly[0][1]]
-    ax.plot(x, y, c = "blue", alpha = 1, zorder= 3)
+def polyg(ax, color = "blue", alpha= 1, zorder=3):
+    """
+    ax : The current figure
+    color : Plot color
+    zorder : The layer on which the links are plot
+    """
+    for section_id, data in DL.intersection_polygon.items():
+        poly = data["polygon"]
+        x = np.array([p[0] for p in poly] + [poly[0][0]])
+        y = np.array([p[1] for p in poly] + [poly[0][1]])
+        x /= 1000
+        y /= 1000
+        ax.plot(x, y, c = color, alpha= alpha, zorder = zorder)
+    return
+
+polyg(ax)
     
 ### Axis, labels, ration, sizes, ...
 ax.set_aspect("equal")
-ax.set_title("Nodes + Links + Intersection Polygons")
-ax.set_xlabel("X [m]")
-ax.set_ylabel("Y [m]")
+ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
+ax.set_xlabel("X [km]", fontsize=10)
+ax.set_ylabel("Y [km]", fontsize=10)
+ax.tick_params(axis='both', labelsize=8)
 
 fig.savefig("graph.png")
 plt.close(fig)
@@ -106,6 +132,7 @@ cmap = plt.get_cmap("coolwarm")
 
 # Dl._vdist_3min[simulation number, timestamp, link id]
 # DL.segment_lengths[link id]
+
 def gradient_gif(param: list, param_name:list, fps : int):
     """
     Creates a gif made of the graphs ... for each parameter
@@ -127,42 +154,35 @@ def gradient_gif(param: list, param_name:list, fps : int):
             fig, ax = plt.subplots(dpi = 250)
 
             ### Plotting nodes
-            ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
+            ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=0.5, zorder = -2)
             
+        
             # Normalized color gradient based on the min and max values of p
             norm = mcolors.Normalize(
                 np.nanmin(p[0,:]),
                 np.nanmax(p[0,:])
             )
+            
             # Chosing the colors
             cmap = cm.get_cmap("coolwarm")
 
             ### Plotting the links
-            for j, row in links.iterrows():
-                x = [row["from_x"], row["to_x"]]
-                y = [row["from_y"], row["to_y"]]  
-                if pd.isna(p[0,t,j]):  
-                    z = "orange"
-                else:
-                    z = cmap(norm(p[0,t,j]))
-                ax.plot(x, y, c=z, linewidth=1)
+            link(ax, grad=True, norm = norm, p = p, t = t, cmap = cmap)
 
             ### Plotting the intersetion polygons
-            for section_id, data in DL.intersection_polygon.items():
-                poly = data["polygon"]
-                x = [p[0] for p in poly] + [poly[0][0]]
-                y = [p[1] for p in poly] + [poly[0][1]]
-                ax.plot(x, y, c = "purple", alpha = 0.5, zorder= -1)
+            polyg(ax, "black", 1,1)
+                
                 
             ### Axis, labels, ratio, sizes, ...
             ax.set_aspect("equal")
-            ax.set_title(f"{param_name[i]} @ {fps} fps : T = {t}")
-            ax.set_xlabel("X [m]")
-            ax.set_ylabel("Y [m]")
+            ax.set_title(f"{param_name[i]} @ {fps} fps : t = {t}", fontsize=10)
+            ax.set_xlabel("X [m]", fontsize=10)
+            ax.set_ylabel("Y [m]", fontsize=10)
+            ax.tick_params(axis='both', labelsize=8)
 
             sm = cm.ScalarMappable(norm=norm, cmap=cmap)
             sm.set_array(p[0, t, :])
-            fig.colorbar(sm, ax=ax, label=str(param_name[i]))
+            fig.colorbar(sm, ax=ax, label=str(param_name[i]), location="right")
 
             fig.savefig(f"figure/{param_name[i]}/graph{str(t)}.png")
             print(f"T = {t}")
@@ -180,8 +200,24 @@ def gradient_gif(param: list, param_name:list, fps : int):
             images.append(imageio.imread(filepath))
 
         imageio.mimsave(os.path.join(f"{param_name[i]}.gif"), images, fps=fps)
+    return
 
-param = [DL._vdist_3min, DL._vtime_3min]
-param_name = ["vdist_3min", "vtime_3min"]
+param = [
+    DL._vdist_3min/DL.segment_lengths, 
+    DL._vtime_3min/180,
+    DL._vdist_3min, 
+    DL._vtime_3min
+    ]
+
+param_name = [
+    "vdist_3min_over_segment_lengths", 
+    "vtime_3min_over_3min", 
+    "vdist_3min", 
+    "vtime_3min"
+    ]
+
+# "vdist_3min_over_segment_lengths" is the amount of travels per link. Ex: 175 means that vehicles have travelled 175 times the link length
+# "vtime_3min_over_3min" is the amount of vehicle on average on the link during the 3 mins. Ex: 40 means that there are on average 40 vehicles on the link
+
 fps = 0.5
 gradient_gif(param, param_name, fps)
