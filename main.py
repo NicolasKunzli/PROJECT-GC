@@ -55,132 +55,133 @@ print(f"Links id range : {li}")
 
 print(od) """
 
+
+
 ### Instance of the class
 DL = DataLoader()
 DL.init_graph_structure
+
 
 
 ### Creating the figure
 fig, ax = plt.subplots(dpi = 250)
 
 ### Plotting nodes
-ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
-
-""" for i in range(DL.adjacency.shape[0]):
-    for j in range(i+1, DL.adjacency.shape[1]): #we only take the upper triangular part since the matrix is symetric
-        if DL.adjacency[i,j] == 1:
-            x = [DL.node_coordinates[i,0], DL.node_coordinates[j,0]]
-            y = [DL.node_coordinates[i,1], DL.node_coordinates[j,1]]
-
-            plt.plot(x, y, c='red', linewidth=(DL.num_lanes[i] + DL.num_lanes[j])/4) """
-
-norm = mcolors.Normalize(
-    np.nanmin(DL._vdist_3min[0,:]),
-    np.nanmax(DL._vdist_3min[0,:])
-)
-
-cmap = cm.get_cmap("coolwarm")
+ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
 
 ### Plotting the links
 for i, row in links.iterrows():
     x = [row["from_x"], row["to_x"]]
     y = [row["from_y"], row["to_y"]]     
-    z = cmap(norm(DL._vdist_3min[0,0,i]))
-    ax.plot(x, y, c=z, linewidth=1)
-
+    ax.plot(x, y, c="red", linewidth=1, zorder = 2)
+    
+    
 ### Plotting the intersetion polygons
 for section_id, data in DL.intersection_polygon.items():
     poly = data["polygon"]
     x = [p[0] for p in poly] + [poly[0][0]]
     y = [p[1] for p in poly] + [poly[0][1]]
-    ax.plot(x, y, c = "grey", alpha = 0.5, zorder= -1)
+    ax.plot(x, y, c = "blue", alpha = 1, zorder= 3)
     
 ### Axis, labels, ration, sizes, ...
 ax.set_aspect("equal")
 ax.set_title("Nodes + Links + Intersection Polygons")
-ax.set_xlabel("X")
-ax.set_ylabel("Y")
-
-sm = cm.ScalarMappable(norm=norm, cmap=cmap)
-sm.set_array(DL._vdist_3min[0, 0, :])
-fig.colorbar(sm, ax=ax, label="vdist (3min)")
+ax.set_xlabel("X [m]")
+ax.set_ylabel("Y [m]")
 
 fig.savefig("graph.png")
 plt.close(fig)
 
 
 
-
 def numerical_sort(value):
-
+    """
+    This function sorts files in the correct numerical order
+    """
     numbers = re.findall(r'\d+', value)
     return int(numbers[0]) if numbers else -1
+   
 
+cmap = plt.get_cmap("coolwarm")
 
-
-
-
-
-
-
-
-param1 = ["vdist_3min", "vtime_3min"]
-for p1 in param1:
-    os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure", str(p1)), exist_ok=True)
+# Dl._vdist_3min[simulation number, timestamp, link id]
+# DL.segment_lengths[link id]
+def gradient_gif(param: list, param_name:list, fps : int):
+    """
+    Creates a gif made of the graphs ... for each parameter
+    param : list of parameters 
+    fps : amount of images per second (higher fps = shorter gif)
+    """
     
-i = -1    
-param = [DL._vdist_3min, DL._vtime_3min]
-for p in param:
-    i += 1
-    for t in range(p.shape[1]):
-
-        fig, ax = plt.subplots(dpi = 250)
-
-        ### Plotting nodes
-        ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
-
-        norm = mcolors.Normalize(
-            np.nanmin(p[0,:]),
-            np.nanmax(p[0,:])
-        )
-
-        cmap = cm.get_cmap("coolwarm")
-
-        ### Plotting the links
-        for j, row in links.iterrows():
-            x = [row["from_x"], row["to_x"]]
-            y = [row["from_y"], row["to_y"]]     
-            z = cmap(norm(p[0,t,j]))
-            ax.plot(x, y, c=z, linewidth=1)
-
-        ### Plotting the intersetion polygons
-        for section_id, data in DL.intersection_polygon.items():
-            poly = data["polygon"]
-            x = [p[0] for p in poly] + [poly[0][0]]
-            y = [p[1] for p in poly] + [poly[0][1]]
-            ax.plot(x, y, c = "purple", alpha = 0.5, zorder= -1)
-            
-        ### Axis, labels, ratio, sizes, ...
-        ax.set_aspect("equal")
-        ax.set_title(f"{param1[i]} : T = {t}")
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-
-        sm = cm.ScalarMappable(norm=norm, cmap=cmap)
-        sm.set_array(p[0, t, :])
-        fig.colorbar(sm, ax=ax, label=str(param1[i]))
-
-        fig.savefig(f"figure/{param1[i]}/graph{str(t)}.png")
-        print(f"T = {t}")
-        plt.close(fig)
+    i = -1 
+    
+    for pn in param_name:
+        # We create a folder for each parameter to store our png
+        os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure", str(pn)), exist_ok=True)    
         
-    files = sorted([f for f in os.listdir(f"figure/{param1[i]}") if f.endswith(".png")])
-    files = sorted(files, key=numerical_sort)
-    
-    images = []
-    for filename in files:
-        print(filename)
-        filepath = os.path.join(f"figure/{param1[i]}", filename)
-        images.append(imageio.imread(filepath))
+    for p in param:
+        i += 1
+        
+        for t in range(p.shape[1]):
+            # We create a graph for each time t, for each parameter p
+            fig, ax = plt.subplots(dpi = 250)
 
-    imageio.mimsave(os.path.join(f"{param1[i]}.gif"), images, fps=5)
+            ### Plotting nodes
+            ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
+            
+            # Normalized color gradient based on the min and max values of p
+            norm = mcolors.Normalize(
+                np.nanmin(p[0,:]),
+                np.nanmax(p[0,:])
+            )
+            # Chosing the colors
+            cmap = cm.get_cmap("coolwarm")
+
+            ### Plotting the links
+            for j, row in links.iterrows():
+                x = [row["from_x"], row["to_x"]]
+                y = [row["from_y"], row["to_y"]]  
+                if pd.isna(p[0,t,j]):  
+                    z = "orange"
+                else:
+                    z = cmap(norm(p[0,t,j]))
+                ax.plot(x, y, c=z, linewidth=1)
+
+            ### Plotting the intersetion polygons
+            for section_id, data in DL.intersection_polygon.items():
+                poly = data["polygon"]
+                x = [p[0] for p in poly] + [poly[0][0]]
+                y = [p[1] for p in poly] + [poly[0][1]]
+                ax.plot(x, y, c = "purple", alpha = 0.5, zorder= -1)
+                
+            ### Axis, labels, ratio, sizes, ...
+            ax.set_aspect("equal")
+            ax.set_title(f"{param_name[i]} @ {fps} fps : T = {t}")
+            ax.set_xlabel("X [m]")
+            ax.set_ylabel("Y [m]")
+
+            sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array(p[0, t, :])
+            fig.colorbar(sm, ax=ax, label=str(param_name[i]))
+
+            fig.savefig(f"figure/{param_name[i]}/graph{str(t)}.png")
+            print(f"T = {t}")
+            plt.close(fig)
+        
+        ### We take the pngs created and sort them with the previous function numerical_sort()    
+        files = sorted([f for f in os.listdir(f"figure/{param_name[i]}") if f.endswith(".png")])
+        files = sorted(files, key=numerical_sort)
+        
+        ### We create now a gif with the pngs
+        images = []
+        for filename in files:
+            print(filename)
+            filepath = os.path.join(f"figure/{param_name[i]}", filename)
+            images.append(imageio.imread(filepath))
+
+        imageio.mimsave(os.path.join(f"{param_name[i]}.gif"), images, fps=fps)
+
+param = [DL._vdist_3min, DL._vtime_3min]
+param_name = ["vdist_3min", "vtime_3min"]
+fps = 0.5
+gradient_gif(param, param_name, fps)
