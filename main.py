@@ -17,9 +17,11 @@ import re
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 figure_path = os.path.join(path, "figure")
 localfigure = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure")
+localgif = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gif")
 
 os.makedirs(figure_path, exist_ok=True)
 os.makedirs(localfigure, exist_ok=True)
+os.makedirs(localgif, exist_ok=True)
 
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
 links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv"))
@@ -185,7 +187,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
             fig.colorbar(sm, ax=ax, label=str(param_name[i]), location="right")
 
             fig.savefig(f"figure/{param_name[i]}/graph{str(t)}.png")
-            print(f"T = {t}")
+            print(f"t = {t}")
             plt.close(fig)
         
         ### We take the pngs created and sort them with the previous function numerical_sort()    
@@ -199,7 +201,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
             filepath = os.path.join(f"figure/{param_name[i]}", filename)
             images.append(imageio.imread(filepath))
 
-        imageio.mimsave(os.path.join(f"{param_name[i]}.gif"), images, fps=fps)
+        imageio.mimsave(os.path.join(f"gif/{param_name[i]}.gif"), images, fps=fps)
     return
 
 param = [
