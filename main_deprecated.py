@@ -146,8 +146,6 @@ ax.tick_params(axis='both', labelsize=8)
 fig.savefig("graph.png")
 plt.close(fig)
 
-
-############################# GRADIENT MAP #############################
 def gradient_gif(param: list, param_name:list, fps : int):
     """
     Creates a gif made of the graphs of the gradient maps for each parameter
@@ -161,75 +159,59 @@ def gradient_gif(param: list, param_name:list, fps : int):
     for pn in param_name:
         # We create a folder for each parameter to store our png
         os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure", str(pn)), exist_ok=True)    
-      
-      
+        
     for p in param:
         i += 1
         
-        fig, ax = plt.subplots(dpi=150)
-        
-        ### Plotting nodes
-        ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=0.5, zorder = -2)
-        
-        ### Axis, labels, ratio, sizes, ...
-        ax.set_aspect("equal")
-        ax.set_title(f"{param_name[i]}")
-        ax.set_xlabel("X [m]", fontsize=10)
-        ax.set_ylabel("Y [m]", fontsize=10)
-        ax.tick_params(axis='both', labelsize=8)
-        
-        ### Normalized color gradient based on the min and max values of p
-        norm = mcolors.Normalize(
-            np.nanmin(p[0,:]),
-            np.nanmax(p[0,:])
-            ) 
-        
-        ### Gif folder
-        gif_folder = os.path.join(localgif)
-        os.makedirs(gif_folder, exist_ok=True)
-        gif_path = os.path.join(gif_folder, f"{param_name[i]}.gif")
+        for t in range(p.shape[1]):
+            # We create a graph for each time t, for each parameter p
+            fig, ax = plt.subplots(dpi = 250)
+
+            ### Plotting nodes
+            ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=0.5, zorder = -2)
+
+            ### Normalized color gradient based on the min and max values of p
+            norm = mcolors.Normalize(
+                np.nanmin(p[0,:]),
+                np.nanmax(p[0,:])
+            )
             
-        ### Chosing the colors
-        cmap = cm.get_cmap("coolwarm")
+            ### Chosing the colors
+            cmap = cm.get_cmap("coolwarm")
 
-        ### Plotting the intersetion polygons
-        polyg(ax, "black", 1, 1)
+            ### Plotting the links
+            link(ax, grad=True, norm = norm, p = p, t = t, cmap = cmap)
+
+            ### Plotting the intersetion polygons
+            polyg(ax, "black", 1, 1)
+                
+            ### Axis, labels, ratio, sizes, ...
+            ax.set_aspect("equal")
+            ax.set_title(f"{param_name[i]} @ {fps} fps : t = {t}", fontsize=10)
+            ax.set_xlabel("X [m]", fontsize=10)
+            ax.set_ylabel("Y [m]", fontsize=10)
+            ax.tick_params(axis='both', labelsize=8)
+
+            sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+            sm.set_array(p[0, t, :])
+            fig.colorbar(sm, ax=ax, label=str(param_name[i]), location="right")
+
+            fig.savefig(f"figure/{param_name[i]}/graph{str(t)}.png")
+            print(f"t = {t}")
+            plt.close(fig)
         
-        ### Plotting the links                
-        link_collections = []
-        for j, row in links.iterrows():
-            x = np.array([row["from_x"], row["to_x"]]) / 1000
-            y = np.array([row["from_y"], row["to_y"]]) / 1000
-            if pd.isna(p[0,0,j]):
-                color = "lime"
-            else:
-                color = cmap(norm(p[0,0,j]))
-            coll = ax.plot(x, y, c=color, linewidth=1)[0]  # plot retourne une liste de Line2D
-            link_collections.append(coll)
+        ### We take the pngs created and sort them with the previous function numerical_sort()    
+        files = sorted([f for f in os.listdir(f"figure/{param_name[i]}") if f.endswith(".png")])
+        files = sorted(files, key=numerical_sort)
+        
+        ### We create now a gif with the pngs
+        images = []
+        for filename in files:
+            print(filename)
+            filepath = os.path.join(f"figure/{param_name[i]}", filename)
+            images.append(imageio.imread(filepath))
 
-        ### Colorbar
-        sm = cm.ScalarMappable(norm=norm, cmap=cmap)
-        sm.set_array([])
-        fig.colorbar(sm, ax=ax, label=str(param_name[i]), location="right")
-
-        with imageio.get_writer(gif_path, mode='I', fps=fps) as writer:
-            for t in range(p.shape[1]):
-                ax.set_title(f"{param_name[i]} @ {fps} fps : t = {t}", fontsize=10)
-                for j, coll in enumerate(link_collections):
-                    if pd.isna(p[0,t,j]):
-                        color = "lime"
-                    else:
-                        color = cmap(norm(p[0,t,j]))
-                    coll.set_color(color)
-
-                fig.canvas.draw()
-                w, h = fig.canvas.get_width_height()
-                image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
-                image = image.reshape(h, w, 4)[:, :, :3]  # convertir RGBA → RGB
-                writer.append_data(image)
-                print(f"{param_name[i]} t={t}")
-
-        plt.close(fig)
+        imageio.mimsave(os.path.join(f"gif/{param_name[i]}.gif"), images, fps=fps)
     return
 
 param = [

@@ -157,7 +157,7 @@ sm = cm.ScalarMappable(norm=norm_nan, cmap=cmap_nan)
 sm.set_array(nan_frac)
 fig.colorbar(sm, ax=ax, label="Fraction missing")
 ax.set_aspect("equal")
-ax.set_title("Sensor Coverage Map\n(bright = more missing)")
+ax.set_title("Sensor Coverage Map\n(dark = more missing)")
 ax.set_xlabel("X"); ax.set_ylabel("Y")
 
 # right panel – highlight >50 % missing
