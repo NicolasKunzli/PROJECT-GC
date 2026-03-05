@@ -40,7 +40,6 @@ DL.init_graph_structure
 
 
 ############################# GENERAL COMMENTS #############################
-# Coordinates are divided by 1000 to avoid having scientific notation on the plots
 # Dl._vdist_3min[simulation number, timestamp, link id]
 # DL.segment_lengths[link id]
 
@@ -63,9 +62,7 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
     if not grad:
         for i, row in links.iterrows():
             x = np.array([row["from_x"], row["to_x"]])
-            y = np.array([row["from_y"], row["to_y"]])
-            x /= 1000
-            y /= 1000     
+            y = np.array([row["from_y"], row["to_y"]])   
             ax.plot(x, y, c=color, linewidth=1, zorder = zorder) 
         return
             
@@ -76,8 +73,6 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
         for j, row in links.iterrows():
             x = np.array([row["from_x"], row["to_x"]])
             y = np.array([row["from_y"], row["to_y"]])
-            x /= 1000
-            y /= 1000 
             if pd.isna(p[0,t,j]):  
                 z = "lime"
             else:
@@ -99,8 +94,6 @@ def polyg(ax, color = "blue", alpha= 1, zorder=3):
         poly = data["polygon"]
         x = np.array([p[0] for p in poly] + [poly[0][0]])
         y = np.array([p[1] for p in poly] + [poly[0][1]])
-        x /= 1000
-        y /= 1000
         ax.plot(x, y, c = color, alpha= alpha, zorder = zorder)
     return
 
@@ -128,7 +121,7 @@ def numerical_sort(file):
 fig, ax = plt.subplots(dpi = 250)
 
 ### Plotting nodes
-ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=1, zorder = 1)
+ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
 
 ### Plotting the links
 link(ax)        
@@ -168,7 +161,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
             fig, ax = plt.subplots(dpi = 250)
 
             ### Plotting nodes
-            ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=0.5, zorder = -2)
+            ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
 
             ### Normalized color gradient based on the min and max values of p
             norm = mcolors.Normalize(

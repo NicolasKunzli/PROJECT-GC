@@ -40,7 +40,6 @@ DL.init_graph_structure
 
 
 ############################# GENERAL COMMENTS #############################
-# Coordinates are divided by 1000 to avoid having scientific notation on the plots
 # Dl._vdist_3min[simulation number, timestamp, link id]
 # DL.segment_lengths[link id]
 
@@ -48,6 +47,7 @@ DL.init_graph_structure
 ############################# BASIC PLOT FUNCTIONS #############################
 def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None, cmap = None):
     """
+    THIS FUNCTION IS 
     ax : The current figure
     grad : bool
     color : Plot color
@@ -62,10 +62,10 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
     """   
     if not grad:
         for i, row in links.iterrows():
+
             x = np.array([row["from_x"], row["to_x"]])
-            y = np.array([row["from_y"], row["to_y"]])
-            x /= 1000
-            y /= 1000     
+            y = np.array([row["from_y"], row["to_y"]])   
+ 
             ax.plot(x, y, c=color, linewidth=1, zorder = zorder) 
         return
             
@@ -76,8 +76,6 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
         for j, row in links.iterrows():
             x = np.array([row["from_x"], row["to_x"]])
             y = np.array([row["from_y"], row["to_y"]])
-            x /= 1000
-            y /= 1000 
             if pd.isna(p[0,t,j]):  
                 z = "lime"
             else:
@@ -99,8 +97,6 @@ def polyg(ax, color = "blue", alpha= 1, zorder=3):
         poly = data["polygon"]
         x = np.array([p[0] for p in poly] + [poly[0][0]])
         y = np.array([p[1] for p in poly] + [poly[0][1]])
-        x /= 1000
-        y /= 1000
         ax.plot(x, y, c = color, alpha= alpha, zorder = zorder)
     return
 
@@ -128,7 +124,7 @@ def numerical_sort(file):
 fig, ax = plt.subplots(dpi = 250)
 
 ### Plotting nodes
-ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=1, zorder = 1)
+ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
 
 ### Plotting the links
 link(ax)        
@@ -162,14 +158,14 @@ def gradient_gif(param: list, param_name:list, fps : int):
         # We create a folder for each parameter to store our png
         os.makedirs(os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure", str(pn)), exist_ok=True)    
       
-      
     for p in param:
         i += 1
         
+        ### Subplot
         fig, ax = plt.subplots(dpi=150)
         
         ### Plotting nodes
-        ax.scatter(DL.node_coordinates[:,0]/1000, DL.node_coordinates[:,1]/1000, s=10, c = "black", alpha=0.5, zorder = -2)
+        ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=0.5, zorder = -2)
         
         ### Axis, labels, ratio, sizes, ...
         ax.set_aspect("equal")
@@ -188,23 +184,23 @@ def gradient_gif(param: list, param_name:list, fps : int):
         gif_folder = os.path.join(localgif)
         os.makedirs(gif_folder, exist_ok=True)
         gif_path = os.path.join(gif_folder, f"{param_name[i]}.gif")
-            
-        ### Chosing the colors
-        cmap = cm.get_cmap("coolwarm")
 
         ### Plotting the intersetion polygons
         polyg(ax, "black", 1, 1)
         
-        ### Plotting the links                
+        ### Chosing the colors
+        cmap = cm.get_cmap("coolwarm")
+        
+        ### Storing the links coordinates              
         link_collections = []
         for j, row in links.iterrows():
-            x = np.array([row["from_x"], row["to_x"]]) / 1000
-            y = np.array([row["from_y"], row["to_y"]]) / 1000
+            x = np.array([row["from_x"], row["to_x"]])
+            y = np.array([row["from_y"], row["to_y"]])
             if pd.isna(p[0,0,j]):
                 color = "lime"
             else:
                 color = cmap(norm(p[0,0,j]))
-            coll = ax.plot(x, y, c=color, linewidth=1)[0]  # plot retourne une liste de Line2D
+            coll = ax.plot(x, y, c=color, linewidth=1)[0]  
             link_collections.append(coll)
 
         ### Colorbar
@@ -212,21 +208,27 @@ def gradient_gif(param: list, param_name:list, fps : int):
         sm.set_array([])
         fig.colorbar(sm, ax=ax, label=str(param_name[i]), location="right")
 
+        ### Creating each frames
         with imageio.get_writer(gif_path, mode='I', fps=fps) as writer:
             for t in range(p.shape[1]):
+                
+                ### For every time measurement we rewrite the title to update the t value
                 ax.set_title(f"{param_name[i]} @ {fps} fps : t = {t}", fontsize=10)
+                
+                ### Updating the colors
                 for j, coll in enumerate(link_collections):
                     if pd.isna(p[0,t,j]):
                         color = "lime"
                     else:
                         color = cmap(norm(p[0,t,j]))
                     coll.set_color(color)
-
+                    
+                ### Actualize the canvas for each frame
                 fig.canvas.draw()
                 w, h = fig.canvas.get_width_height()
-                image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8)
-                image = image.reshape(h, w, 4)[:, :, :3]  # convertir RGBA → RGB
-                writer.append_data(image)
+                image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8) # Convert RGBA to RGB
+                image = image.reshape(h, w, 4)[:, :, :3] # Reshaping the image
+                writer.append_data(image) # Add the frame to the gif
                 print(f"{param_name[i]} t={t}")
 
         plt.close(fig)
