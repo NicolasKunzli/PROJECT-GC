@@ -135,8 +135,8 @@ polyg(ax)
 ### Axis, labels, ration, sizes, ...
 ax.set_aspect("equal")
 ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
-ax.set_xlabel("X [km]", fontsize=10)
-ax.set_ylabel("Y [km]", fontsize=10)
+ax.set_xlabel("X [m]", fontsize=10)
+ax.set_ylabel("Y [m]", fontsize=10)
 ax.tick_params(axis='both', labelsize=8)
 
 fig.savefig("graph.png")
