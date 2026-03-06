@@ -10,6 +10,7 @@ import numpy as np
 from DataLoad import DataLoader
 import imageio
 import re
+from sklearn.cluster import KMeans
 
 
 ############################# FILES/CLASS INSTANCES #############################
@@ -78,12 +79,7 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
     """   
     if not grad:
         for i, row in links.iterrows():
-            if row["out_ang"] > np.pi/2 or (row["out_ang"] < 0 and row["out_ang"]>= -np.pi/2):
-                x = np.array([row["to_x"], row["from_x"]])
-                y = np.array([row["from_y"], row["to_y"]])
-            else:   
-                x = np.array([row["from_x"], row["to_x"]])
-                y = np.array([row["from_y"], row["to_y"]])
+            x, y = sublink(row)
             ax.plot(x, y, c=color, linewidth=1, zorder = zorder) 
         return
             
@@ -138,28 +134,30 @@ def numerical_sort(file):
 
 
 ############################# CREATING THE BASELINE MAP #############################
-### Creating the figure
-fig, ax = plt.subplots(dpi = 250)
+def graph():    
+    ### Creating the figure
+    fig, ax = plt.subplots(dpi = 250)
 
-### Plotting nodes
-ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
+    ### Plotting nodes
+    ax.scatter(DL.node_coordinates[:,0], DL.node_coordinates[:,1], s=10, c = "black", alpha=1, zorder = 1)
 
-### Plotting the links
-link(ax)        
-    
-### Plotting the intersetion polygons
-polyg(ax)
-    
-### Axis, labels, ration, sizes, ...
-ax.set_aspect("equal")
-ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
-ax.set_xlabel("X [m]", fontsize=10)
-ax.set_ylabel("Y [m]", fontsize=10)
-ax.tick_params(axis='both', labelsize=8)
+    ### Plotting the links
+    link(ax)        
+        
+    ### Plotting the intersetion polygons
+    polyg(ax)
+        
+    ### Axis, labels, ration, sizes, ...
+    ax.set_aspect("equal")
+    ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis='both', labelsize=8)
 
-fig.savefig("graph.png")
-plt.close(fig)
+    fig.savefig("graph.png")
+    plt.close(fig)
 
+#graph()
 
 ############################# GRADIENT MAP #############################
 def gradient_gif(param: list, param_name:list, fps : int):
@@ -272,4 +270,61 @@ param_name = [
 # "vtime_3min_over_3min" is the amount of vehicle on average on the link during the 3 mins. Ex: 40 means that there are on average 40 vehicles on the link
 
 fps = 0.5
-gradient_gif(param, param_name, fps)
+
+#gradient_gif(param, param_name, fps)
+
+############################# KMEANS #############################
+os.makedirs(f"figure/clustering", exist_ok = True)
+
+
+def clustering(n_clusters, random_states, name):
+    """
+    n_clusters desired amount of cluster
+    randome_states : integer deciding the cluster spawn points
+    name : name given to the .png files
+    """
+    folder = f"figure/clustering/{name}"
+    os.makedirs(folder, exist_ok = True)
+    
+    ### Creating the figure
+    fig, ax = plt.subplots(dpi = 250)
+    
+    ### Axis, labels, ration, sizes, ...
+    ax.set_aspect("equal")
+    ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis='both', labelsize=8)
+    
+    for i in random_states:
+        i = int(i)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=i)
+        X = pd.DataFrame({
+        "x_c": np.array((links["from_x"]+links["to_x"])/2),
+        "y_c": np.array((links["from_y"]+links["to_y"])/2)
+    })
+        links["cluster"] = kmeans.fit_predict(X)
+        
+        
+
+
+        ### Plotting the links
+        for j, row in links.iterrows():
+            x, y = sublink(row)
+            color=plt.cm.viridis(row["cluster"]/n_clus)
+            ax.plot(x, y, c = color)      
+            
+        ### Plotting the intersetion polygons
+        #polyg(ax)
+            
+
+        fig.savefig(f"{folder}/{name}{i}.png")
+        print(f"Seed {i} DONE")
+    plt.close(fig)
+
+    
+
+n_clus = 8
+seeds = np.linspace(0,9,10)
+
+clustering(n_clus, seeds, "kmeans")
