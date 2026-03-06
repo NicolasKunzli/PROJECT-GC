@@ -228,6 +228,11 @@ def gradient_gif(param: list, param_name:list, fps : int):
                 w, h = fig.canvas.get_width_height()
                 image = np.frombuffer(fig.canvas.buffer_rgba(), dtype=np.uint8) # Convert RGBA to RGB
                 image = image.reshape(h, w, 4)[:, :, :3] # Reshaping the image
+                
+                # Creating a folder to store each frames
+                os.makedirs(f"figure/{param_name[i]}", exist_ok = True)
+                fig.savefig(f"figure/{param_name[i]}/graph{t}.png")
+                
                 writer.append_data(image) # Add the frame to the gif
                 print(f"{param_name[i]} t={t}")
 
