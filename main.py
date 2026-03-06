@@ -45,6 +45,22 @@ DL.init_graph_structure
 
 
 ############################# BASIC PLOT FUNCTIONS #############################
+def sublink(row):
+    """
+    Take row of links as such :
+    
+    for _, row in links.iterrows():
+    
+    gives back the correct x, y arrays
+    """
+    if row["out_ang"] > np.pi/2 or (row["out_ang"] < 0 and row["out_ang"]>= -np.pi/2):
+        x = np.array([row["to_x"], row["from_x"]])
+        y = np.array([row["from_y"], row["to_y"]])
+    else:   
+        x = np.array([row["from_x"], row["to_x"]])
+        y = np.array([row["from_y"], row["to_y"]])
+    return x,y
+
 def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None, cmap = None):
     """
     THIS FUNCTION IS 
@@ -62,10 +78,12 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
     """   
     if not grad:
         for i, row in links.iterrows():
-
-            x = np.array([row["from_x"], row["to_x"]])
-            y = np.array([row["from_y"], row["to_y"]])   
- 
+            if row["out_ang"] > np.pi/2 or (row["out_ang"] < 0 and row["out_ang"]>= -np.pi/2):
+                x = np.array([row["to_x"], row["from_x"]])
+                y = np.array([row["from_y"], row["to_y"]])
+            else:   
+                x = np.array([row["from_x"], row["to_x"]])
+                y = np.array([row["from_y"], row["to_y"]])
             ax.plot(x, y, c=color, linewidth=1, zorder = zorder) 
         return
             
@@ -194,8 +212,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
         ### Storing the links coordinates              
         link_collections = []
         for j, row in links.iterrows():
-            x = np.array([row["from_x"], row["to_x"]])
-            y = np.array([row["from_y"], row["to_y"]])
+            x, y = sublink(row)
             if pd.isna(p[0,0,j]):
                 color = "lime"
             else:
@@ -240,16 +257,12 @@ def gradient_gif(param: list, param_name:list, fps : int):
     return
 
 param = [
-    DL._vdist_3min/DL.segment_lengths, 
-    DL._vtime_3min/180,
     DL._vdist_3min, 
     DL._vtime_3min,
     DL._vdist_3min/DL._vtime_3min
     ]
 
 param_name = [
-    "vdist_3min_over_segment_lengths", 
-    "vtime_3min_over_3min", 
     "vdist_3min", 
     "vtime_3min",
     "vdist_3min_over_vtime_3min"
