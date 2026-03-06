@@ -243,14 +243,16 @@ param = [
     DL._vdist_3min/DL.segment_lengths, 
     DL._vtime_3min/180,
     DL._vdist_3min, 
-    DL._vtime_3min
+    DL._vtime_3min,
+    DL._vdist_3min/DL._vtime_3min
     ]
 
 param_name = [
     "vdist_3min_over_segment_lengths", 
     "vtime_3min_over_3min", 
     "vdist_3min", 
-    "vtime_3min"
+    "vtime_3min",
+    "vdist_3min_over_vtime_3min"
     ]
 
 # "vdist_3min_over_segment_lengths" is the amount of travels per link. Ex: 175 means that vehicles have travelled 175 times the link length
