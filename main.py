@@ -39,6 +39,9 @@ with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:
 DL = DataLoader()
 DL.init_graph_structure
 
+# Replace NaN values by 0
+DL._vdist_3min = np.nan_to_num(DL._vdist_3min, nan=0)
+DL._vtime_3min = np.nan_to_num(DL._vtime_3min, nan=0)
 
 ############################# GENERAL COMMENTS #############################
 # Dl._vdist_3min[simulation number, timestamp, link id]
