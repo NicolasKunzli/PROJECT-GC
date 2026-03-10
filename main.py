@@ -5,13 +5,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
-from matplotlib.collections import LineCollection
 import numpy as np
 from DataLoad import DataLoader
 import imageio
 import re
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from scipy import sparse
+from sklearn.cluster import AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler
 
 ############################# FILES/CLASS INSTANCES #############################
@@ -26,7 +25,7 @@ os.makedirs(localfigure, exist_ok=True)
 os.makedirs(localgif, exist_ok=True)
 
 centroid = pd.read_csv(os.path.join(path, "metadata", "centroid_pos.csv"))
-links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv"))
+links = pd.read_csv(os.path.join(path, "metadata", "link_bboxes.csv")).sort_values("id").reset_index(drop=True)
 connections = pd.read_csv(os.path.join(path, "metadata", "connections.csv"))
 
 polygons = pd.read_json(os.path.join(path, "metadata", "intersec_polygon.json"))
@@ -41,8 +40,8 @@ DL = DataLoader()
 DL.init_graph_structure
 
 # Replace NaN values by 0
-DL._vdist_3min = np.nan_to_num(DL._vdist_3min, nan=0)
-DL._vtime_3min = np.nan_to_num(DL._vtime_3min, nan=0)
+'''DL._vdist_3min = np.nan_to_num(DL._vdist_3min, nan=0)
+DL._vtime_3min = np.nan_to_num(DL._vtime_3min, nan=0)'''
 
 ############################# GENERAL COMMENTS #############################
 # Dl._vdist_3min[simulation number, timestamp, link id]
@@ -277,106 +276,143 @@ fps = 0.5
 
 #gradient_gif(param, param_name, fps)
 
-############################# KMEANS #############################
+############################# CLUSTERING #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
 
+NETWORK_CONNECTIVITY = sparse.csr_matrix(DL.adjacency)
 
-def clustering(n_clusters, random_states, name,feature_type):
+
+def mean_over_sessions(values):
+    valid_counts = np.sum(~np.isnan(values), axis=0)
+    summed = np.nansum(values, axis=0)
+    return np.divide(
+        summed,
+        valid_counts,
+        out=np.full(summed.shape, np.nan, dtype=float),
+        where=valid_counts > 0,
+    )
+
+
+def fill_profile_nans(profile):
+    filled = profile.copy()
+    time_medians = np.nanmedian(filled, axis=0)
+    time_medians = np.where(np.isnan(time_medians), 0.0, time_medians)
+    nan_rows, nan_cols = np.where(np.isnan(filled))
+    filled[nan_rows, nan_cols] = time_medians[nan_cols]
+    return filled
+
+
+def rowwise_zscore(profile):
+    mean = profile.mean(axis=1, keepdims=True)
+    std = profile.std(axis=1, keepdims=True)
+    std[std == 0] = 1.0
+    return (profile - mean) / std
+
+
+def profile_components(profile, n_components=3):
+    centered = profile - profile.mean(axis=0, keepdims=True)
+    u, s, _ = np.linalg.svd(centered, full_matrices=False)
+    n_comp = min(n_components, centered.shape[0], centered.shape[1])
+    return u[:, :n_comp] * s[:n_comp]
+
+
+def temporal_cluster_features(profile, peak_mode, spatial_weight=1.2):
+    filled = fill_profile_nans(profile)
+    peak_idx = np.argmin(filled, axis=1) if peak_mode == "min" else np.argmax(filled, axis=1)
+    peak_time = peak_idx / max(filled.shape[1] - 1, 1)
+
+    dynamic = np.column_stack([
+        filled.mean(axis=1),
+        filled.std(axis=1),
+        peak_time,
+        profile_components(rowwise_zscore(filled), n_components=3),
+    ])
+    spatial_features = DL.node_coordinates.astype(float)
+    return np.hstack([
+        StandardScaler().fit_transform(dynamic),
+        StandardScaler().fit_transform(spatial_features) * spatial_weight,
+    ])
+
+
+def build_cluster_features(feature_type):
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+
+    if feature_type == "geometric":
+        geometric = np.column_stack([
+            DL.node_coordinates[:, 0],
+            DL.node_coordinates[:, 1],
+            links["length"].to_numpy(dtype=float),
+            links["num_lanes"].to_numpy(dtype=float),
+        ])
+        return StandardScaler().fit_transform(geometric)
+
+    if feature_type == "speed":
+        speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan, dtype=float),
+            where=vtime != 0,
+        )
+        speed_profile = mean_over_sessions(speed).T
+        return temporal_cluster_features(speed_profile, peak_mode="min")
+
+    if feature_type == "distance":
+        distance = np.where(vdist != 0, vdist, np.nan)
+        distance_profile = np.log1p(mean_over_sessions(distance)).T
+        return temporal_cluster_features(distance_profile, peak_mode="max")
+
+    if feature_type == "time":
+        time_profile = np.log1p(mean_over_sessions(np.where(vtime != 0, vtime, np.nan))).T
+        return temporal_cluster_features(time_profile, peak_mode="max")
+
+    raise ValueError(f"Unknown feature_type: {feature_type}")
+
+
+def clustering(n_clusters, name, feature_type):
     n_clus = n_clusters
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
 
-    best_score, best_labels = -1, None
-    for i in random_states:
-        i = int(i)
-        kmeans = KMeans(n_clusters=n_clus, random_state=i, n_init=10)
-        
-        
-        vdist = DL._vdist_3min[0].mean(axis=0)
-        vtime = DL._vtime_3min[0].mean(axis=0)
-        # Avoid division by zero
-        speed = np.divide(vdist, vtime, out=np.zeros_like(vdist), where=vtime!=0)
+    X = build_cluster_features(feature_type)
+    labels = AgglomerativeClustering(
+        n_clusters=n_clus,
+        linkage="ward",
+        connectivity=NETWORK_CONNECTIVITY,
+    ).fit_predict(X)
 
-        # Choose clustering features
-        if feature_type == "geometric":
-            X = pd.DataFrame({
-                "x_c": (links["from_x"] + links["to_x"]) / 2,
-                "y_c": (links["from_y"] + links["to_y"]) / 2,
-                "length": links["length"],
-                "num_lanes": links["num_lanes"],
-            })
+    plot_links = links.copy()
+    plot_links["cluster"] = labels
+    cluster_sizes = np.bincount(labels, minlength=n_clus)
+    print(f"{name}: connected Ward clusters, size range {cluster_sizes.min()}-{cluster_sizes.max()}")
 
-        elif feature_type == "speed":
-            speed_matrix = np.divide(
-                DL._vdist_3min, DL._vtime_3min,
-                out=np.zeros_like(DL._vdist_3min), where=DL._vtime_3min != 0
-            )                                             # shape (S, T, N)
-            speed_all = np.nanmean(speed_matrix, axis=0)  # (T, N) all sessions
-            X = pd.DataFrame({
-                "mean_speed": np.nanmean(speed_all, axis=0),
-                "std_speed":  np.nanstd(speed_all,  axis=0),
-                "min_speed":  np.nanmin(speed_all,  axis=0),
-                "peak_time":  np.nanargmax(-speed_all, axis=0) / speed_all.shape[0],
-            })
-
-        elif feature_type == "distance":
-            vdist_all = np.nanmean(DL._vdist_3min, axis=0)  # (T, N) all sessions
-            X = pd.DataFrame({
-                "mean_vdist": np.nanmean(vdist_all, axis=0),
-                "std_vdist":  np.nanstd(vdist_all,  axis=0),
-                "max_vdist":  np.nanmax(vdist_all,  axis=0),
-            })
-
-        elif feature_type == "time":
-            vtime_all = np.nanmean(DL._vtime_3min, axis=0)  # (T, N) all sessions
-            X = pd.DataFrame({
-                "mean_vtime": np.nanmean(vtime_all, axis=0),
-                "std_vtime":  np.nanstd(vtime_all,  axis=0),
-                "max_vtime":  np.nanmax(vtime_all,  axis=0),
-            })
-            
-        scaler = StandardScaler()
-        X = scaler.fit_transform(X)
-
-        labels = kmeans.fit_predict(X)
-        score  = silhouette_score(X, labels)
-        if score > best_score:
-            best_score, best_seed, best_labels = score, i, labels
-
-    links["cluster"] = best_labels
-    print(f"Best seed: {best_seed}  |  Silhouette: {best_score:.3f}")
-
-    cmap_discrete = plt.cm.get_cmap("tab10", n_clus)
-
+    cmap_discrete = matplotlib.colormaps.get_cmap("tab10").resampled(n_clus)
+    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clus))
     fig, ax = plt.subplots(dpi=250)
     ax.set_aspect("equal")
-    ax.set_title(f"{name} clustering (k={n_clus})  seed={best_seed}  silhouette={best_score:.3f}", fontsize=9)
+    ax.set_title(f"{name} (connected Ward, k={n_clus})", fontsize=9)
     ax.set_xlabel("X [m]", fontsize=10)
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis='both', labelsize=8)
 
-    for j, row in links.iterrows():
+    for _, row in plot_links.iterrows():
         x, y = sublink(row)
-        color = cmap_discrete(row["cluster"])   # ← row is defined here, inside the loop
+        color = cluster_colors[int(row["cluster"])]
         ax.plot(x, y, c=color)
 
-    # ← legend goes here, AFTER the loop, BEFORE savefig
     handles = [
-        plt.Line2D([0], [0], color=cmap_discrete(k), lw=3, label=f"Cluster {k}")
+        plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
         for k in range(n_clus)
     ]
     ax.legend(handles=handles, fontsize=7, loc="upper right")
 
     fig.savefig(f"{folder}/{name}_best.png")
     plt.close(fig)
-
     print(f"Saved → {folder}/{name}_best.png")
 
-
 n_clus = 8
-seeds = np.linspace(0,9,10)
 
-clustering(n_clus, seeds, "geometric_clusters", "geometric")
-clustering(n_clus, seeds, "distance_clusters", "distance")
-clustering(n_clus, seeds, "time_clusters", "time")
-clustering(n_clus, seeds, "speed_clusters", "speed")
+clustering(n_clus, "geometric_clusters", "geometric")
+clustering(n_clus, "distance_clusters", "distance")
+clustering(n_clus, "time_clusters", "time")
+clustering(n_clus, "speed_clusters", "speed")
