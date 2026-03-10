@@ -12,6 +12,7 @@ import imageio
 import re
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 
 ############################# FILES/CLASS INSTANCES #############################
 ### Files
@@ -280,7 +281,7 @@ fps = 0.5
 os.makedirs(f"figure/clustering", exist_ok = True)
 
 
-def clustering(n_clusters, random_states, name):
+def clustering(n_clusters, random_states, name,feature_type):
     n_clus = n_clusters
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
@@ -289,10 +290,54 @@ def clustering(n_clusters, random_states, name):
     for i in random_states:
         i = int(i)
         kmeans = KMeans(n_clusters=n_clus, random_state=i, n_init=10)
-        X = pd.DataFrame({
-            "x_c": np.array((links["from_x"] + links["to_x"]) / 2),
-            "y_c": np.array((links["from_y"] + links["to_y"]) / 2)
-        })
+        
+        
+        vdist = DL._vdist_3min[0].mean(axis=0)
+        vtime = DL._vtime_3min[0].mean(axis=0)
+        # Avoid division by zero
+        speed = np.divide(vdist, vtime, out=np.zeros_like(vdist), where=vtime!=0)
+
+        # Choose clustering features
+        if feature_type == "geometric":
+            X = pd.DataFrame({
+                "x_c": (links["from_x"] + links["to_x"]) / 2,
+                "y_c": (links["from_y"] + links["to_y"]) / 2,
+                "length": links["length"],
+                "num_lanes": links["num_lanes"],
+            })
+
+        elif feature_type == "speed":
+            speed_matrix = np.divide(
+                DL._vdist_3min, DL._vtime_3min,
+                out=np.zeros_like(DL._vdist_3min), where=DL._vtime_3min != 0
+            )                                             # shape (S, T, N)
+            speed_all = np.nanmean(speed_matrix, axis=0)  # (T, N) all sessions
+            X = pd.DataFrame({
+                "mean_speed": np.nanmean(speed_all, axis=0),
+                "std_speed":  np.nanstd(speed_all,  axis=0),
+                "min_speed":  np.nanmin(speed_all,  axis=0),
+                "peak_time":  np.nanargmax(-speed_all, axis=0) / speed_all.shape[0],
+            })
+
+        elif feature_type == "distance":
+            vdist_all = np.nanmean(DL._vdist_3min, axis=0)  # (T, N) all sessions
+            X = pd.DataFrame({
+                "mean_vdist": np.nanmean(vdist_all, axis=0),
+                "std_vdist":  np.nanstd(vdist_all,  axis=0),
+                "max_vdist":  np.nanmax(vdist_all,  axis=0),
+            })
+
+        elif feature_type == "time":
+            vtime_all = np.nanmean(DL._vtime_3min, axis=0)  # (T, N) all sessions
+            X = pd.DataFrame({
+                "mean_vtime": np.nanmean(vtime_all, axis=0),
+                "std_vtime":  np.nanstd(vtime_all,  axis=0),
+                "max_vtime":  np.nanmax(vtime_all,  axis=0),
+            })
+            
+        scaler = StandardScaler()
+        X = scaler.fit_transform(X)
+
         labels = kmeans.fit_predict(X)
         score  = silhouette_score(X, labels)
         if score > best_score:
@@ -301,24 +346,37 @@ def clustering(n_clusters, random_states, name):
     links["cluster"] = best_labels
     print(f"Best seed: {best_seed}  |  Silhouette: {best_score:.3f}")
 
+    cmap_discrete = plt.cm.get_cmap("tab10", n_clus)
+
     fig, ax = plt.subplots(dpi=250)
     ax.set_aspect("equal")
-    ax.set_title(f"KMeans k={n_clus}  —  best seed {best_seed}  (silhouette={best_score:.3f})", fontsize=9)
+    ax.set_title(f"{name} clustering (k={n_clus})  seed={best_seed}  silhouette={best_score:.3f}", fontsize=9)
     ax.set_xlabel("X [m]", fontsize=10)
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis='both', labelsize=8)
 
     for j, row in links.iterrows():
         x, y = sublink(row)
-        color = plt.cm.viridis(row["cluster"] / max(n_clus - 1, 1))
+        color = cmap_discrete(row["cluster"])   # ← row is defined here, inside the loop
         ax.plot(x, y, c=color)
+
+    # ← legend goes here, AFTER the loop, BEFORE savefig
+    handles = [
+        plt.Line2D([0], [0], color=cmap_discrete(k), lw=3, label=f"Cluster {k}")
+        for k in range(n_clus)
+    ]
+    ax.legend(handles=handles, fontsize=7, loc="upper right")
 
     fig.savefig(f"{folder}/{name}_best.png")
     plt.close(fig)
+
     print(f"Saved → {folder}/{name}_best.png")
 
-    
+
 n_clus = 8
 seeds = np.linspace(0,9,10)
 
-clustering(n_clus, seeds, "kmeans")
+clustering(n_clus, seeds, "geometric_clusters", "geometric")
+clustering(n_clus, seeds, "distance_clusters", "distance")
+clustering(n_clus, seeds, "time_clusters", "time")
+clustering(n_clus, seeds, "speed_clusters", "speed")
