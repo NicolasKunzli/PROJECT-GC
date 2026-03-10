@@ -11,7 +11,7 @@ from DataLoad import DataLoader
 import imageio
 import re
 from sklearn.cluster import KMeans
-
+from sklearn.metrics import silhouette_score
 
 ############################# FILES/CLASS INSTANCES #############################
 ### Files
@@ -281,52 +281,43 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 
 
 def clustering(n_clusters, random_states, name):
-    """
-    n_clusters desired amount of cluster
-    randome_states : integer deciding the cluster spawn points
-    name : name given to the .png files
-    """
+    n_clus = n_clusters
     folder = f"figure/clustering/{name}"
-    os.makedirs(folder, exist_ok = True)
-    
-    ### Creating the figure
-    fig, ax = plt.subplots(dpi = 250)
-    
-    ### Axis, labels, ration, sizes, ...
+    os.makedirs(folder, exist_ok=True)
+
+    best_score, best_labels = -1, None
+    for i in random_states:
+        i = int(i)
+        kmeans = KMeans(n_clusters=n_clus, random_state=i, n_init=10)
+        X = pd.DataFrame({
+            "x_c": np.array((links["from_x"] + links["to_x"]) / 2),
+            "y_c": np.array((links["from_y"] + links["to_y"]) / 2)
+        })
+        labels = kmeans.fit_predict(X)
+        score  = silhouette_score(X, labels)
+        if score > best_score:
+            best_score, best_seed, best_labels = score, i, labels
+
+    links["cluster"] = best_labels
+    print(f"Best seed: {best_seed}  |  Silhouette: {best_score:.3f}")
+
+    fig, ax = plt.subplots(dpi=250)
     ax.set_aspect("equal")
-    ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
+    ax.set_title(f"KMeans k={n_clus}  —  best seed {best_seed}  (silhouette={best_score:.3f})", fontsize=9)
     ax.set_xlabel("X [m]", fontsize=10)
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis='both', labelsize=8)
-    
-    for i in random_states:
-        i = int(i)
-        kmeans = KMeans(n_clusters=n_clusters, random_state=i)
-        X = pd.DataFrame({
-        "x_c": np.array((links["from_x"]+links["to_x"])/2),
-        "y_c": np.array((links["from_y"]+links["to_y"])/2)
-    })
-        links["cluster"] = kmeans.fit_predict(X)
-        
-        
 
+    for j, row in links.iterrows():
+        x, y = sublink(row)
+        color = plt.cm.viridis(row["cluster"] / max(n_clus - 1, 1))
+        ax.plot(x, y, c=color)
 
-        ### Plotting the links
-        for j, row in links.iterrows():
-            x, y = sublink(row)
-            color=plt.cm.viridis(row["cluster"]/n_clus)
-            ax.plot(x, y, c = color)      
-            
-        ### Plotting the intersetion polygons
-        #polyg(ax)
-            
-
-        fig.savefig(f"{folder}/{name}{i}.png")
-        print(f"Seed {i} DONE")
+    fig.savefig(f"{folder}/{name}_best.png")
     plt.close(fig)
+    print(f"Saved → {folder}/{name}_best.png")
 
     
-
 n_clus = 8
 seeds = np.linspace(0,9,10)
 
