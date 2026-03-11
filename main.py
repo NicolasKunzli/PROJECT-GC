@@ -283,6 +283,9 @@ NETWORK_CONNECTIVITY = sparse.csr_matrix(DL.adjacency)
 
 
 def mean_over_sessions(values):
+    """
+    Returns the mean of a value over all of the sessions.
+    """
     valid_counts = np.sum(~np.isnan(values), axis=0)
     summed = np.nansum(values, axis=0)
     return np.divide(
@@ -294,6 +297,9 @@ def mean_over_sessions(values):
 
 
 def fill_profile_nans(profile):
+    """
+    Fill the NaNs with the median of each column of the profile, i.e. the 2D NumPy array of the mean_over_session of a parameter.
+    """
     filled = profile.copy()
     time_medians = np.nanmedian(filled, axis=0)
     time_medians = np.where(np.isnan(time_medians), 0.0, time_medians)
@@ -303,6 +309,9 @@ def fill_profile_nans(profile):
 
 
 def rowwise_zscore(profile):
+    """
+    Returns row-wise the z-score normalization of a profile.
+    """
     mean = profile.mean(axis=1, keepdims=True)
     std = profile.std(axis=1, keepdims=True)
     std[std == 0] = 1.0
@@ -310,6 +319,9 @@ def rowwise_zscore(profile):
 
 
 def profile_components(profile, n_components=3):
+    """
+    Use SVD to return the profile's principal components.
+    """
     centered = profile - profile.mean(axis=0, keepdims=True)
     u, s, _ = np.linalg.svd(centered, full_matrices=False)
     n_comp = min(n_components, centered.shape[0], centered.shape[1])
@@ -317,6 +329,19 @@ def profile_components(profile, n_components=3):
 
 
 def temporal_cluster_features(profile, peak_mode, spatial_weight=1.2):
+    """
+    Compute combined temporal and spatial features for clustering nodes based on
+    their temporal profiles.
+
+    The function extracts statistical and structural features from each profile including 
+    mean, 
+    standard deviation, 
+    peak timing, 
+    and principal components of the normalized profile. 
+    
+    These dynamic features are combined with spatial node
+    coordinates to produce a feature matrix suitable for clustering.
+        """
     filled = fill_profile_nans(profile)
     peak_idx = np.argmin(filled, axis=1) if peak_mode == "min" else np.argmax(filled, axis=1)
     peak_time = peak_idx / max(filled.shape[1] - 1, 1)
@@ -335,6 +360,15 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=1.2):
 
 
 def build_cluster_features(feature_type):
+    """
+    Build feature matrices for clustering based on different traffic descriptors.
+
+    Depending on the selected feature type, the function constructs node-level
+    feature representations from geometric attributes or temporal traffic
+    profiles derived from distance and travel time measurements.
+    
+    feature_type : {"geometric", "speed", "distance", "time"}
+    """
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
 
@@ -370,6 +404,9 @@ def build_cluster_features(feature_type):
 
 
 def clustering(n_clusters, name, feature_type):
+    """
+    Perform hierarchical clustering of network links and visualize the result.
+    """
     n_clus = n_clusters
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
