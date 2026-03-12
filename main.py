@@ -457,7 +457,8 @@ def grid_clust(xdiv = 4, ydiv = 4):
     """
     Clusters the links based on a rectangular grid
     
-    xdiv : int
+    xdiv : Number of cells on the x-axis
+    xdiv : Number of cells on the y-axis
     """
     tol = 100
     x_min = np.min(links["from_x"]) - tol
@@ -475,22 +476,23 @@ def grid_clust(xdiv = 4, ydiv = 4):
     
     fig, ax = plt.subplots(dpi = 250)
     
-    ### Obtaining the center of each links
+    ### Making a copy so that the clustering assignment isn't kept from one method to another
+    plot_links = links.copy()
 
-    
     ### Assigning the grid cell in which link is (clustering)
-    links["cell_x"] = ((links["c_x"] - x_min)//w).astype(int)
-    links["cell_y"] = ((links["c_y"] - y_min)//h).astype(int)
+    plot_links["cell_x"] = ((links["c_x"] - x_min)//w).astype(int)
+    plot_links["cell_y"] = ((links["c_y"] - y_min)//h).astype(int)
     
     ### Manually assigning a color for each grid cell 
-    cells = list(zip(links["cell_x"], links["cell_y"]))
+    cells = list(zip(plot_links["cell_x"], plot_links["cell_y"]))
     unique_cells = list(set(cells))
+    print(unique_cells)
 
     cmap = plt.colormaps.get_cmap("tab20")
     cell_color = {cell: cmap(i) for i, cell in enumerate(unique_cells)}
     
     ### Plotting the links
-    for _, row in links.iterrows():
+    for _, row in plot_links.iterrows():
 
         cell = (row["cell_x"], row["cell_y"])
         color = cell_color[cell]
@@ -526,7 +528,7 @@ def grid_clust(xdiv = 4, ydiv = 4):
     
     
 n_clus = 8
-
+print(links.head)
 grid_clust(4,3)
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
