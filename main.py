@@ -5,6 +5,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
+import matplotlib.patches as patches
 import numpy as np
 from DataLoad import DataLoader
 import imageio
@@ -34,6 +35,11 @@ od = pd.read_json(os.path.join(path, "metadata", "od_pairs.json"))
 
 with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.read()
 with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:interest = [line.strip() for line in f.readlines()]
+
+
+links["c_x"] = (links["from_x"] + links["to_x"])/2
+links["c_y"] = (links["from_y"] + links["to_y"])/2
+
 
 ### Class
 DL = DataLoader()
@@ -447,8 +453,81 @@ def clustering(n_clusters, name, feature_type):
     plt.close(fig)
     print(f"Saved → {folder}/{name}_best.png")
 
+def grid_clust(xdiv = 4, ydiv = 4):
+    """
+    Clusters the links based on a rectangular grid
+    
+    xdiv : int
+    """
+    tol = 100
+    x_min = np.min(links["from_x"]) - tol
+    x_max = np.max(links["to_x"]) + tol
+    y_min = np.min(links["from_y"]) - tol
+    y_max = np.max(links["to_y"]) + tol
+ 
+    w = (x_max - x_min)/xdiv
+    h = (y_max - y_min)/ydiv
+    xs = np.arange(x_min, x_max, w)
+    ys = np.arange(y_min, y_max, h)
+    
+    folder = f"figure/clustering/grid_clusters"
+    os.makedirs(folder, exist_ok=True)
+    
+    fig, ax = plt.subplots(dpi = 250)
+    
+    ### Obtaining the center of each links
+
+    
+    ### Assigning the grid cell in which link is (clustering)
+    links["cell_x"] = ((links["c_x"] - x_min)//w).astype(int)
+    links["cell_y"] = ((links["c_y"] - y_min)//h).astype(int)
+    
+    ### Manually assigning a color for each grid cell 
+    cells = list(zip(links["cell_x"], links["cell_y"]))
+    unique_cells = list(set(cells))
+
+    cmap = plt.colormaps.get_cmap("tab20")
+    cell_color = {cell: cmap(i) for i, cell in enumerate(unique_cells)}
+    
+    ### Plotting the links
+    for _, row in links.iterrows():
+
+        cell = (row["cell_x"], row["cell_y"])
+        color = cell_color[cell]
+
+        ax.plot(
+            [row["from_x"], row["to_x"]],
+            [row["from_y"], row["to_y"]],
+            color=color
+        )
+    
+    ### Plotting the grid cells
+    for x in xs:
+        for y in ys:
+            rect = patches.Rectangle(
+                (x, y),
+                w,
+                h,
+                edgecolor="black",
+                facecolor="none",
+                linewidth=0.5
+            )
+            ax.add_patch(rect)
+            
+    ### Plotting the intersections
+    polyg(ax, color="black", zorder=-2)
+    
+    
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    ax.set_aspect("equal")
+    fig.savefig(f"{folder}/grid.png")
+    plt.close()
+    
+    
 n_clus = 8
 
+grid_clust(4,3)
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
