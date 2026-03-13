@@ -11,7 +11,7 @@ from DataLoad import DataLoader
 import imageio
 import re
 from scipy import sparse
-from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
 ############################# FILES/CLASS INSTANCES #############################
@@ -270,6 +270,52 @@ def gradient_gif(param: list, param_name:list, fps : int):
 
 fps = 0.5
 
+############################# KMEANS #############################
+os.makedirs(f"figure/clustering", exist_ok = True)
+
+
+def kmeans_clust(n_clusters, random_states, name):
+    """
+    n_clusters desired amount of cluster
+    randome_states : integer deciding the cluster spawn points
+    name : name given to the .png files
+    """
+    folder = f"figure/clustering/{name}"
+    os.makedirs(folder, exist_ok = True)
+    
+    ### Creating the figure
+    fig, ax = plt.subplots(dpi = 250)
+    
+    ### Axis, labels, ration, sizes, ...
+    ax.set_aspect("equal")
+    ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis='both', labelsize=8)
+    
+    for i in random_states:
+        i = int(i)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=i)
+        X = pd.DataFrame({
+        "x_c": np.array((links["from_x"]+links["to_x"])/2),
+        "y_c": np.array((links["from_y"]+links["to_y"])/2)
+    })
+        plot_links = links.copy()
+        plot_links["cluster"] = kmeans.fit_predict(X) # Fitting the data
+
+        ### Plotting the links
+        for j, row in plot_links.iterrows():
+            x, y = sublink(row)
+            color=plt.cm.viridis(row["cluster"]/n_clus)
+            ax.plot(x, y, c = color)      
+            
+        ### Plotting the intersetion polygons
+        #polyg(ax)
+            
+
+        fig.savefig(f"{folder}/{name}{i}.png")
+        print(f"Seed {i} DONE")
+    plt.close(fig)
 
 
 ############################# CLUSTERING #############################
@@ -370,8 +416,8 @@ def build_cluster_features(feature_type):
 
     if feature_type == "geometric":
         geometric = np.column_stack([
-            links["c_x"],
-            links["c_y"],
+            DL.node_coordinates[:, 0],
+            DL.node_coordinates[:, 1],
             links["length"].to_numpy(dtype=float),
             links["num_lanes"].to_numpy(dtype=float),
         ])
@@ -411,7 +457,7 @@ def clustering(n_clusters, name, feature_type):
 
     ### Clustering
     X = build_cluster_features(feature_type)
-    labels = AgglomerativeClustering( # Assign a cluster to each link
+    labels = AgglomerativeClustering( # Assign a cluster to each link, euclidian distance
         n_clusters=n_clus,
         linkage="ward",
         connectivity=NETWORK_CONNECTIVITY,
@@ -522,7 +568,7 @@ def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
     plt.close()
     
     
-n_clus = 8
+
 
 #graph()
 param = [
@@ -538,7 +584,15 @@ param_name = [
     ]
 #gradient_gif(param, param_name, fps)
 
+
+
+n_clus = 8
+seeds = np.linspace(0,9,10)
+
 grid_clust(4, 3)
+
+kmeans_clust(n_clus, seeds, "kmeans")
+
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
