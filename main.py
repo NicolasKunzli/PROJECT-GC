@@ -304,7 +304,7 @@ def mean_over_sessions(values):
 
 def fill_profile_nans(profile):
     """
-    Fill the NaNs with the median of each column of the profile, i.e. the 2D NumPy array of the mean_over_session of a parameter.
+    Fills the NaNs with the median of each column of the profile, i.e. the 2D NumPy array of the mean_over_session of a parameter.
     """
     filled = profile.copy()
     time_medians = np.nanmedian(filled, axis=0)
@@ -414,16 +414,18 @@ def clustering(n_clusters, name, feature_type):
     Perform hierarchical clustering of network links and visualize the result.
     """
     n_clus = n_clusters
+    
+    ### Creating folder
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
 
+    ### Clustering
     X = build_cluster_features(feature_type)
-    labels = AgglomerativeClustering(
+    labels = AgglomerativeClustering( # Assign a cluster to each link
         n_clusters=n_clus,
         linkage="ward",
         connectivity=NETWORK_CONNECTIVITY,
     ).fit_predict(X)
-
     plot_links = links.copy()
     plot_links["cluster"] = labels
     cluster_sizes = np.bincount(labels, minlength=n_clus)
@@ -453,7 +455,8 @@ def clustering(n_clusters, name, feature_type):
     plt.close(fig)
     print(f"Saved → {folder}/{name}_best.png")
 
-def grid_clust(xdiv = 4, ydiv = 4):
+
+def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
     """
     Clusters the links based on a rectangular grid
     
@@ -466,11 +469,13 @@ def grid_clust(xdiv = 4, ydiv = 4):
     y_min = np.min(links["from_y"]) - tol
     y_max = np.max(links["to_y"]) + tol
  
-    w = (x_max - x_min)/xdiv
-    h = (y_max - y_min)/ydiv
+    w = (x_max - x_min)/xdiv # Width of a cell
+    h = (y_max - y_min)/ydiv # Height of a cell
+    
     xs = np.arange(x_min, x_max, w)
     ys = np.arange(y_min, y_max, h)
     
+    ### Creating folder
     folder = f"figure/clustering/grid_clusters"
     os.makedirs(folder, exist_ok=True)
     
@@ -480,13 +485,12 @@ def grid_clust(xdiv = 4, ydiv = 4):
     plot_links = links.copy()
 
     ### Assigning the grid cell in which link is (clustering)
-    plot_links["cell_x"] = ((links["c_x"] - x_min)//w).astype(int)
-    plot_links["cell_y"] = ((links["c_y"] - y_min)//h).astype(int)
+    plot_links["cell_x"] = ((links["c_x"] - x_min)//w) # Floor dividing by the width/height to assign a cell id on the x or y axis to each links
+    plot_links["cell_y"] = ((links["c_y"] - y_min)//h)
     
     ### Manually assigning a color for each grid cell 
     cells = list(zip(plot_links["cell_x"], plot_links["cell_y"]))
     unique_cells = list(set(cells))
-    print(unique_cells)
 
     cmap = plt.colormaps.get_cmap("tab20")
     cell_color = {cell: cmap(i) for i, cell in enumerate(unique_cells)}
@@ -504,22 +508,23 @@ def grid_clust(xdiv = 4, ydiv = 4):
         )
     
     ### Plotting the grid cells
-    for x in xs:
-        for y in ys:
-            rect = patches.Rectangle(
-                (x, y),
-                w,
-                h,
-                edgecolor="black",
-                facecolor="none",
-                linewidth=0.5
-            )
-            ax.add_patch(rect)
+    if showgrid == True:
+        for x in xs:
+            for y in ys:
+                rect = patches.Rectangle(
+                    (x, y),
+                    w,
+                    h,
+                    edgecolor="black",
+                    facecolor="none",
+                    linewidth=0.5
+                )
+                ax.add_patch(rect)
             
     ### Plotting the intersections
     polyg(ax, color="black", zorder=-2)
     
-    
+    ax.set_title(f"Grid clustering of shape ({xdiv},{ydiv})")
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
     ax.set_aspect("equal")
@@ -528,8 +533,8 @@ def grid_clust(xdiv = 4, ydiv = 4):
     
     
 n_clus = 8
-print(links.head)
-grid_clust(4,3)
+
+grid_clust(4, 3)
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
