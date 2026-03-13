@@ -307,7 +307,7 @@ def kmeans_clust(n_clusters, random_states, name):
         for j, row in plot_links.iterrows():
             x, y = sublink(row)
             color=plt.cm.viridis(row["cluster"]/n_clus)
-            ax.plot(x, y, c = color)      
+            ax.plot(x, y, c = color, linewidth = 0.4 + row["num_lanes"] * 0.4)      
             
         ### Plotting the intersetion polygons
         #polyg(ax)
@@ -479,7 +479,7 @@ def clustering(n_clusters, name, feature_type):
     for _, row in plot_links.iterrows():
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]
-        ax.plot(x, y, c=color)
+        ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4)
 
     handles = [
         plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
@@ -530,17 +530,19 @@ def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
 
     cmap = plt.colormaps.get_cmap("tab20")
     cell_color = {cell: cmap(i) for i, cell in enumerate(unique_cells)}
-    
+
     ### Plotting the links
     for _, row in plot_links.iterrows():
-
+        x, y = sublink(row)
+        
         cell = (row["cell_x"], row["cell_y"])
         color = cell_color[cell]
 
         ax.plot(
-            [row["from_x"], row["to_x"]],
-            [row["from_y"], row["to_y"]],
-            color=color
+            x,
+            y,
+            color=color,
+            linewidth = 0.4 + row["num_lanes"] * 0.4
         )
     
     ### Plotting the grid cells
