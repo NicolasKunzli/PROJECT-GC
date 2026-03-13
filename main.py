@@ -166,7 +166,7 @@ def graph():
     fig.savefig("graph.png")
     plt.close(fig)
 
-#graph()
+
 
 ############################# GRADIENT MAP #############################
 def gradient_gif(param: list, param_name:list, fps : int):
@@ -263,24 +263,14 @@ def gradient_gif(param: list, param_name:list, fps : int):
         plt.close(fig)
     return
 
-param = [
-    DL._vdist_3min, 
-    DL._vtime_3min,
-    DL._vdist_3min/DL._vtime_3min
-    ]
 
-param_name = [
-    "vdist_3min", 
-    "vtime_3min",
-    "vdist_3min_over_vtime_3min"
-    ]
 
 # "vdist_3min_over_segment_lengths" is the amount of travels per link. Ex: 175 means that vehicles have travelled 175 times the link length
 # "vtime_3min_over_3min" is the amount of vehicle on average on the link during the 3 mins. Ex: 40 means that there are on average 40 vehicles on the link
 
 fps = 0.5
 
-#gradient_gif(param, param_name, fps)
+
 
 ############################# CLUSTERING #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
@@ -380,8 +370,8 @@ def build_cluster_features(feature_type):
 
     if feature_type == "geometric":
         geometric = np.column_stack([
-            DL.node_coordinates[:, 0],
-            DL.node_coordinates[:, 1],
+            links["c_x"],
+            links["c_y"],
             links["length"].to_numpy(dtype=float),
             links["num_lanes"].to_numpy(dtype=float),
         ])
@@ -534,8 +524,23 @@ def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
     
 n_clus = 8
 
+#graph()
+param = [
+    DL._vdist_3min, 
+    DL._vtime_3min,
+    DL._vdist_3min/DL._vtime_3min
+    ]
+
+param_name = [
+    "vdist_3min", 
+    "vtime_3min",
+    "vdist_3min_over_vtime_3min"
+    ]
+#gradient_gif(param, param_name, fps)
+
 grid_clust(4, 3)
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
 clustering(n_clus, "speed_clusters", "speed")
+
