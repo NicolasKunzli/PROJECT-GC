@@ -608,7 +608,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0
         filled.mean(axis=1),
         filled.std(axis=1),
         peak_time,
-        profile_components(rowwise_zscore(filled), n_components=3),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
+        profile_components(rowwise_zscore(filled), n_components=6),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
     ])
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
@@ -646,6 +646,7 @@ def build_cluster_features(feature_type):
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
+        #speed_profile = np.log1p(mean_over_sessions(speed)).T
         speed_profile = mean_over_sessions(speed).T
         return temporal_cluster_features(speed_profile, peak_mode="min")
 
