@@ -45,10 +45,6 @@ links["c_y"] = (links["from_y"] + links["to_y"])/2
 DL = DataLoader()
 DL.init_graph_structure
 
-# Replace NaN values by 0
-'''DL._vdist_3min = np.nan_to_num(DL._vdist_3min, nan=0)
-DL._vtime_3min = np.nan_to_num(DL._vtime_3min, nan=0)'''
-
 ############################# GENERAL COMMENTS #############################
 # Dl._vdist_3min[simulation number, timestamp, link id]
 # DL.segment_lengths[link id]
@@ -276,49 +272,269 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 
 def kmeans_clust(n_clusters, random_states, name):
     """
-    n_clusters desired amount of cluster
-    randome_states : integer deciding the cluster spawn points
-    name : name given to the .png files
+    Spatial-only KMeans clustering using link centroid coordinates (x, y).
+
+    Clusters links purely by geographic position. Useful as a spatial baseline
+    to compare against feature-driven methods (Ward, velocity-based KMeans).
+
+    Parameters
+    ----------
+    n_clusters    : int   – number of clusters
+    random_states : array – list of random seeds to try (one PNG saved per seed)
+    name          : str   – subfolder / filename prefix for saved figures
     """
     folder = f"figure/clustering/{name}"
-    os.makedirs(folder, exist_ok = True)
-    
-    ### Creating the figure
-    fig, ax = plt.subplots(dpi = 250)
-    
-    ### Axis, labels, ration, sizes, ...
-    ax.set_aspect("equal")
-    ax.set_title("Nodes + Links + Intersection Polygons", fontsize=10)
-    ax.set_xlabel("X [m]", fontsize=10)
-    ax.set_ylabel("Y [m]", fontsize=10)
-    ax.tick_params(axis='both', labelsize=8)
-    
+    os.makedirs(folder, exist_ok=True)
+
+    # Pre-build discrete colormap once (consistent across all seeds)
+    cmap_discrete = matplotlib.colormaps.get_cmap("tab10").resampled(n_clusters)
+    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clusters))
+
+    # Feature matrix: normalised centroid coordinates
+    X = StandardScaler().fit_transform(
+        np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
+    )
+
     for i in random_states:
         i = int(i)
-        kmeans = KMeans(n_clusters=n_clusters, random_state=i)
-        X = pd.DataFrame({
-        "x_c": np.array((links["from_x"]+links["to_x"])/2),
-        "y_c": np.array((links["from_y"]+links["to_y"])/2)
-    })
+
+        # FIX 1 – create a fresh figure per seed so previous seeds don't bleed through
+        fig, ax = plt.subplots(dpi=250)
+        ax.set_aspect("equal")
+        # FIX 2 – title now reflects what the plot actually shows
+        ax.set_title(f"KMeans spatial clustering (k={n_clusters}, seed={i})", fontsize=9)
+        ax.set_xlabel("X [m]", fontsize=10)
+        ax.set_ylabel("Y [m]", fontsize=10)
+        ax.tick_params(axis="both", labelsize=8)
+
+        kmeans = KMeans(n_clusters=n_clusters, random_state=i, n_init="auto")
         plot_links = links.copy()
-        plot_links["cluster"] = kmeans.fit_predict(X) # Fitting the data
+        plot_links["cluster"] = kmeans.fit_predict(X)
 
         ### Plotting the links
-        for j, row in plot_links.iterrows():
+        for _, row in plot_links.iterrows():
             x, y = sublink(row)
-            color=plt.cm.viridis(row["cluster"]/n_clus)
-            ax.plot(x, y, c = color, linewidth = 0.4 + row["num_lanes"] * 0.4)      
-            
-        ### Plotting the intersetion polygons
-        #polyg(ax)
-            
+            # FIX 3 – use tab10 discrete colormap (was viridis continuous)
+            # FIX 4 – divide by n_clusters (was global n_clus, caused wrong colours
+            #          when the function was called with a different n)
+            color = cluster_colors[int(row["cluster"])]
+            ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4)
+
+        ### Intersection polygons
+        polyg(ax, color="black", alpha=0.6, zorder=-1)
+
+        ### FIX 5 – add a legend so clusters are identifiable
+        handles = [
+            plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
+            for k in range(n_clusters)
+        ]
+        ax.legend(handles=handles, fontsize=7, loc="upper right")
 
         fig.savefig(f"{folder}/{name}{i}.png")
+        plt.close(fig)
         print(f"Seed {i} DONE")
+
+
+############################# KMEANS WITH VELOCITY / TRAFFIC FEATURES #############################
+
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
+    """
+    KMeans clustering using the same rich traffic feature vectors as the Ward
+    method, making it directly comparable with `clustering()`.
+
+    Unlike Ward, KMeans does NOT enforce network connectivity, so clusters may
+    be spatially scattered but will group links with similar traffic behaviour.
+
+    Parameters
+    ----------
+    n_clusters   : int – number of clusters
+    name         : str – subfolder / filename prefix for saved figures
+    feature_type : str – one of {"geometric", "speed", "distance", "time"}
+    random_state : int – random seed for reproducibility (default 42)
+
+    ─────────────────────────────────────────────────────────────────────────────
+    HOW KMEANS WORKS — THE FOUR STEPS
+    ─────────────────────────────────────────────────────────────────────────────
+    KMeans is an iterative algorithm that partitions N data points into k groups
+    by minimising the total within-cluster variance (inertia).  Each iteration
+    consists of four conceptual steps:
+
+      STEP 1 – INITIALISE CENTROIDS
+          Place k centroids in the feature space.  By default sklearn uses
+          "k-means++" which spreads the initial centroids far apart, dramatically
+          reducing the chance of a bad local minimum compared to random placement.
+          `n_init="auto"` tells sklearn to run the full algorithm several times
+          with different initialisations and keep the best result.
+
+      STEP 2 – LABEL EACH DATA POINT
+          Assign every data point (here: every road link) to the nearest centroid
+          using Euclidean distance in the feature space.  The feature space here
+          encodes speed/distance/time temporal profiles, NOT raw geographic
+          coordinates, so "nearest" means "most similar traffic behaviour".
+
+      STEP 3 – UPDATE CENTROIDS
+          Recompute each centroid as the mean of all data points currently
+          assigned to it.  A centroid is just a vector of the same dimensionality
+          as the feature matrix X, representing the "average traffic profile" of
+          its cluster.
+
+      STEP 4 – REPEAT UNTIL CONVERGENCE
+          Steps 2 and 3 are repeated until centroid positions stop moving
+          (change is below a tolerance) or a maximum number of iterations is
+          reached.  sklearn's default tolerance is 1e-4 and default max_iter is
+          300.  All of this is handled internally by sklearn.
+
+    Because all four steps run inside `.fit_predict()`, the comments below
+    point to the exact lines that trigger or prepare each step.
+    ─────────────────────────────────────────────────────────────────────────────
+    """
+
+    # ── Output folder ──────────────────────────────────────────────────────────
+    folder = f"figure/clustering/{name}"
+    os.makedirs(folder, exist_ok=True)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # STEP 2 (PREPARATION) – BUILD THE FEATURE MATRIX
+    # ══════════════════════════════════════════════════════════════════════════
+    # `build_cluster_features` constructs the matrix X of shape (n_links, n_features).
+    # Each row is one road link; the columns encode its traffic behaviour:
+    #
+    #   • For feature_type="speed":
+    #       – mean speed across all time steps (how fast is this link on average?)
+    #       – std of speed       (how much does speed vary throughout the day?)
+    #       – peak timing        (when does congestion hit its worst point?)
+    #       – 3 SVD components   (dominant temporal patterns, e.g. morning peak,
+    #                             evening peak, flat profile)
+    #       – x, y coordinates   (scaled by spatial_weight=1.2 to keep clusters
+    #                             geographically coherent without being purely spatial)
+    #
+    # This is the raw material that KMeans will operate on.  All columns are
+    # z-score normalised (StandardScaler) so that no single feature dominates
+    # simply because of its units or magnitude.
+    #
+    # NOTE: even though we ask for feature_type="speed" here, the function also
+    # accepts "distance" and "time", which swap in different traffic signals
+    # while keeping the same temporal feature structure.
+    X = build_cluster_features(feature_type)
+    # X.shape → (n_links, n_features)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # STEP 1 – INITIALISE CENTROIDS
+    # ══════════════════════════════════════════════════════════════════════════
+    # `KMeans(n_clusters=n_clusters, random_state=random_state, n_init="auto")`
+    # constructs the KMeans object but does NOT run the algorithm yet.
+    #
+    #   n_clusters=n_clusters
+    #       How many centroids (k) to place.  Each centroid is a vector in the
+    #       same feature space as X, representing the "centre of mass" of one
+    #       cluster.
+    #
+    #   random_state=random_state
+    #       Seeds the random number generator so the initialisation is
+    #       reproducible.  Two runs with the same seed always produce the same
+    #       centroids and therefore the same final clustering.
+    #
+    #   n_init="auto"
+    #       sklearn will run the entire algorithm (steps 1–4) multiple times,
+    #       each time starting from a different random initialisation, and will
+    #       return the result with the lowest inertia (tightest clusters).
+    #       This guards against converging to a poor local minimum.
+    #
+    # Initialisation strategy (k-means++, sklearn default):
+    #       1. Pick the first centroid uniformly at random from the data points.
+    #       2. For each remaining centroid, pick a data point with probability
+    #          proportional to its squared distance from the nearest already-chosen
+    #          centroid.  This spreads the initial centroids across the space,
+    #          making convergence faster and results better on average.
+    #
+    # ══════════════════════════════════════════════════════════════════════════
+    # STEP 2 – LABEL EACH DATA POINT  (first pass)
+    # STEP 3 – UPDATE CENTROIDS
+    # STEP 4 – REPEAT UNTIL CONVERGENCE
+    # ══════════════════════════════════════════════════════════════════════════
+    # `.fit_predict(X)` triggers all remaining steps in one call:
+    #
+    #   fit():
+    #     Iterates steps 2 and 3 until convergence:
+    #       • E-step (Step 2): assign each link (row of X) to its nearest centroid
+    #                          using Euclidean distance.
+    #       • M-step (Step 3): recompute each centroid as the mean of all links
+    #                          currently assigned to it.
+    #     Stops when max(centroid shift) < tol (default 1e-4) OR max_iter (300)
+    #     is reached.
+    #
+    #   predict():
+    #     Returns the final cluster label (0 … k-1) for every data point.
+    #     This is the result of the last E-step after convergence.
+    #
+    # `labels` is therefore a 1-D integer array of length n_links where
+    # labels[i] is the cluster index (0 … n_clusters-1) of the i-th road link.
+    labels = KMeans(
+        n_clusters=n_clusters,      # ← STEP 1: sets the number of centroids
+        random_state=random_state,  # ← STEP 1: seeds the initialisation
+        n_init="auto",              # ← STEP 4: how many independent restarts
+    ).fit_predict(X)                # ← STEPS 1–4: runs the full algorithm
+
+    # ── Attach cluster labels to the links DataFrame ───────────────────────────
+    # Each road link now carries an integer cluster ID (0 … n_clusters-1).
+    # This is the "labelling" result of Step 2 at convergence.
+    plot_links = links.copy()
+    plot_links["cluster"] = labels  # ← STEP 2 result: final label for each link
+
+    # ── Diagnostic: print the range of cluster sizes ───────────────────────────
+    # np.bincount counts how many links belong to each cluster.
+    # A very uneven distribution (e.g. one cluster with 2 links, another with 500)
+    # is a signal that k may be too high or that the feature space has outliers.
+    cluster_sizes = np.bincount(labels, minlength=n_clusters)
+    print(f"{name}: KMeans clusters, size range {cluster_sizes.min()}-{cluster_sizes.max()}")
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # VISUALISATION — map the cluster labels back onto the road network
+    # ══════════════════════════════════════════════════════════════════════════
+
+    # Build a discrete colour palette: one distinct colour per cluster.
+    # tab10 has 10 maximally distinct colours; `.resampled(n_clusters)` picks
+    # exactly n_clusters of them at equal spacing.
+    cmap_discrete = matplotlib.colormaps.get_cmap("tab10").resampled(n_clusters)
+    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clusters))
+    # cluster_colors[k] → RGBA tuple for cluster k
+
+    # ── Figure setup ───────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(dpi=250)
+    ax.set_aspect("equal")
+    ax.set_title(f"{name} (KMeans, k={n_clusters})", fontsize=9)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis="both", labelsize=8)
+
+    # ── Draw each road link coloured by its cluster assignment ─────────────────
+    # This loop translates the abstract cluster labels (integers) into a spatial
+    # picture: links that share a similar speed/distance/time profile receive the
+    # same colour regardless of where they sit in the network.
+    # Line width encodes the number of lanes, providing an extra visual cue about
+    # road hierarchy within each cluster.
+    for _, row in plot_links.iterrows():
+        x, y = sublink(row)
+        color = cluster_colors[int(row["cluster"])]  # colour = cluster label
+        ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4)
+
+    # ── Overlay intersection polygons for spatial context ──────────────────────
+    polyg(ax, color="black", alpha=0.6, zorder=-1)
+
+    # ── Legend ─────────────────────────────────────────────────────────────────
+    handles = [
+        plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
+        for k in range(n_clusters)
+    ]
+    ax.legend(handles=handles, fontsize=7, loc="upper right")
+
+    # ── Save ───────────────────────────────────────────────────────────────────
+    fig.savefig(f"{folder}/{name}_best.png")
     plt.close(fig)
+    print(f"Saved → {folder}/{name}_best.png")
 
 
-############################# CLUSTERING #############################
+############################# CLUSTERING (using a library) (WARD / AGGLOMERATIVE) #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
 
 NETWORK_CONNECTIVITY = sparse.csr_matrix(DL.adjacency)
@@ -447,7 +663,18 @@ def build_cluster_features(feature_type):
 
 def clustering(n_clusters, name, feature_type):
     """
-    Perform hierarchical clustering of network links and visualize the result.
+    Perform hierarchical (Ward) clustering of network links and visualize the result.
+
+    Uses AgglomerativeClustering with Ward linkage and a network connectivity
+    constraint so that only spatially adjacent links can be merged.  This
+    guarantees that every resulting cluster is a contiguous subgraph of the
+    road network.
+
+    Parameters
+    ----------
+    n_clusters   : int  – desired number of clusters
+    name         : str  – subfolder / filename prefix for saved figures
+    feature_type : str  – one of {"geometric", "speed", "distance", "time"}
     """
     n_clus = n_clusters
     
@@ -569,7 +796,6 @@ def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
     fig.savefig(f"{folder}/grid.png")
     plt.close()
     
-    
 
 
 #graph()
@@ -589,14 +815,21 @@ param_name = [
 
 
 n_clus = 8
-seeds = np.linspace(0,9,10)
+seeds = np.linspace(0, 9, 10)
 
+# Spatial baseline
 grid_clust(4, 3)
 
+# Spatial KMeans (multiple seeds)
 kmeans_clust(n_clus, seeds, "kmeans")
 
+# Ward (agglomerative) – feature-driven, connectivity-constrained
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
 clustering(n_clus, "speed_clusters", "speed")
 
+# KMeans with velocity/traffic features  ← NEW
+kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed")
+kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
+kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
