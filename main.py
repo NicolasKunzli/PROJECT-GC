@@ -586,7 +586,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=1.2):
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -608,9 +608,9 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=1.2):
         filled.mean(axis=1),
         filled.std(axis=1),
         peak_time,
-        profile_components(rowwise_zscore(filled), n_components=3),
+        profile_components(rowwise_zscore(filled), n_components=3),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
     ])
-    spatial_features = DL.node_coordinates.astype(float)
+    spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
         StandardScaler().fit_transform(dynamic),
         StandardScaler().fit_transform(spatial_features) * spatial_weight,
