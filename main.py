@@ -608,7 +608,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0
         filled.mean(axis=1),
         filled.std(axis=1),
         peak_time,
-        profile_components(rowwise_zscore(filled), n_components=6),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
+        profile_components(rowwise_zscore(filled), n_components=8),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
     ])
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
