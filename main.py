@@ -415,7 +415,11 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     # NOTE: even though we ask for feature_type="speed" here, the function also
     # accepts "distance" and "time", which swap in different traffic signals
     # while keeping the same temporal feature structure.
-    X = build_cluster_features(feature_type)
+    
+    X, low_speed_links = build_cluster_features(feature_type)
+    if low_speed_links.size > 0:
+        print(f"The low speed links are :{low_speed_links}")
+
     # X.shape → (n_links, n_features)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -474,7 +478,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
         random_state=random_state,  # ← STEP 1: seeds the initialisation
         n_init="auto",              # ← STEP 4: how many independent restarts
     ).fit_predict(X)                # ← STEPS 1–4: runs the full algorithm
-
+    
     # ── Attach cluster labels to the links DataFrame ───────────────────────────
     # Each road link now carries an integer cluster ID (0 … n_clusters-1).
     # This is the "labelling" result of Step 2 at convergence.
@@ -514,10 +518,14 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     # Line width encodes the number of lanes, providing an extra visual cue about
     # road hierarchy within each cluster.
     for _, row in plot_links.iterrows():
+        z = 1
         x, y = sublink(row)
-        color = cluster_colors[int(row["cluster"])]  # colour = cluster label
-        ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4)
-
+        color = cluster_colors[int(row["cluster"])]  # color = cluster label
+        if _ in low_speed_links:
+            color = "black"
+            z = 2
+        ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
+        
     # ── Overlay intersection polygons for spatial context ──────────────────────
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
@@ -586,7 +594,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1): #trial of 0 so that it doesnt take into account the geometry of the map
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1,  profile_type=""): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -603,18 +611,29 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weig
     filled = fill_profile_nans(profile)
     peak_idx = np.argmin(filled, axis=1) if peak_mode == "min" else np.argmax(filled, axis=1)
     peak_time = peak_idx / max(filled.shape[1] - 1, 1)
-
+    
     dynamic = np.column_stack([
         filled.mean(axis=1),
         filled.std(axis=1),
         peak_time,
         profile_components(rowwise_zscore(filled), n_components=8),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
     ])
+    
+    ###
+    if profile_type == "speed_profile":
+        p85 = np.percentile(filled, 85, axis=1)
+
+        # Slow links
+        add_val = np.where(p85 < 2)[0] # Low speed links
+    
+    else:
+        add_val = np.array([])
+    
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
         StandardScaler().fit_transform(dynamic) * dynamic_weight,
         StandardScaler().fit_transform(spatial_features) * spatial_weight,
-    ])
+    ]), add_val
 
 
 def build_cluster_features(feature_type):
@@ -637,7 +656,7 @@ def build_cluster_features(feature_type):
             links["length"].to_numpy(dtype=float),
             links["num_lanes"].to_numpy(dtype=float),
         ])
-        return StandardScaler().fit_transform(geometric)
+        return StandardScaler().fit_transform(geometric), np.array([])
 
     if feature_type == "speed":
         speed = np.divide(
@@ -648,7 +667,7 @@ def build_cluster_features(feature_type):
         )
         #speed_profile = np.log1p(mean_over_sessions(speed)).T
         speed_profile = mean_over_sessions(speed).T
-        return temporal_cluster_features(speed_profile, peak_mode="min")
+        return temporal_cluster_features(speed_profile, peak_mode="min", profile_type="speed_profile")
 
     if feature_type == "distance":
         distance = np.where(vdist != 0, vdist, np.nan)
@@ -683,7 +702,10 @@ def clustering(n_clusters, name, feature_type):
     os.makedirs(folder, exist_ok=True)
 
     ### Clustering
-    X = build_cluster_features(feature_type)
+    X, low_speed_links = build_cluster_features(feature_type)
+    if low_speed_links.size > 0:
+        print(f"The low speed links are :{low_speed_links}")
+        
     labels = AgglomerativeClustering( # Assign a cluster to each link, euclidian distance
         n_clusters=n_clus,
         linkage="ward",
@@ -703,10 +725,16 @@ def clustering(n_clusters, name, feature_type):
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis='both', labelsize=8)
 
+
     for _, row in plot_links.iterrows():
+        z = 1
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]
-        ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4)
+        if _ in low_speed_links:
+            color = "black"
+            z = 2
+        ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
+
 
     handles = [
         plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
@@ -771,6 +799,7 @@ def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
             color=color,
             linewidth = 0.4 + row["num_lanes"] * 0.4
         )
+
     
     ### Plotting the grid cells
     if showgrid == True:
@@ -821,7 +850,7 @@ seeds = np.linspace(0, 9, 10)
 grid_clust(4, 3)
 
 ### Spatial KMeans (multiple seeds)
-kmeans_clust(n_clus, seeds, "kmeans")
+# kmeans_clust(n_clus, seeds, "kmeans")
 
 
 ### Ward (agglomerative) – feature-driven, connectivity-constrained
