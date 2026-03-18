@@ -586,7 +586,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0 so that it doesnt take into account the geometry of the map
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -595,7 +595,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0
     mean, 
     standard deviation, 
     peak timing, 
-    and principal components of the normalized profile. 
+    and principal components of the normalized profile (n_components).
     
     These dynamic features are combined with spatial node
     coordinates to produce a feature matrix suitable for clustering.
@@ -612,7 +612,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2): #trial of 0
     ])
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
-        StandardScaler().fit_transform(dynamic),
+        StandardScaler().fit_transform(dynamic) * dynamic_weight,
         StandardScaler().fit_transform(spatial_features) * spatial_weight,
     ])
 
@@ -658,34 +658,12 @@ def build_cluster_features(feature_type):
     if feature_type == "time":
         time_profile = np.log1p(mean_over_sessions(np.where(vtime != 0, vtime, np.nan))).T
         return temporal_cluster_features(time_profile, peak_mode="max")
-
-    if feature_type == "x_y":
-        xy = DL.node_coordinates
-        xy_profile = StandardScaler().fit_transform(xy)
-        return xy_profile
-
-    if feature_type == "speed_x_y":
-        speed = np.divide(
-            vdist,
-            vtime,
-            out=np.full(vdist.shape, np.nan, dtype=float),
-            where=vtime != 0,
-        )
-        speed_profile = mean_over_sessions(speed).T
-        
-        features = temporal_cluster_features(speed_profile, peak_mode="min")
-        
-        xy = DL.node_coordinates
-        xy_profile = StandardScaler().fit_transform(xy)
-        return np.hstack([features, xy_profile])
-        
         
     raise ValueError(f"Unknown feature_type: {feature_type}")
 
-
 def clustering(n_clusters, name, feature_type):
     """
-    Perform hierarchical (Ward) clustering of network links and visualize the result.
+    Perform hierarchical (Ward) clustering of network links and visualize the result. 
 
     Uses AgglomerativeClustering with Ward linkage and a network connectivity
     constraint so that only spatially adjacent links can be merged.  This
@@ -852,11 +830,9 @@ clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
 clustering(n_clus, "speed_clusters", "speed")
-clustering(n_clus, "speed_x_y_clusters", "speed_x_y")
 
 # ## KMeans with velocity/traffic features  ← NEW
 
 kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed")
 kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
-kmeans_clustering(n_clus, "kmeans_speed_x_y_clusters",     "speed_x_y")
