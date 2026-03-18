@@ -659,6 +659,27 @@ def build_cluster_features(feature_type):
         time_profile = np.log1p(mean_over_sessions(np.where(vtime != 0, vtime, np.nan))).T
         return temporal_cluster_features(time_profile, peak_mode="max")
 
+    if feature_type == "x_y":
+        xy = DL.node_coordinates
+        xy_profile = StandardScaler().fit_transform(xy)
+        return xy_profile
+
+    if feature_type == "speed_x_y":
+        speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan, dtype=float),
+            where=vtime != 0,
+        )
+        speed_profile = mean_over_sessions(speed).T
+        
+        features = temporal_cluster_features(speed_profile, peak_mode="min")
+        
+        xy = DL.node_coordinates
+        xy_profile = StandardScaler().fit_transform(xy)
+        return np.hstack([features, xy_profile])
+        
+        
     raise ValueError(f"Unknown feature_type: {feature_type}")
 
 
@@ -818,19 +839,24 @@ param_name = [
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
 
-# Spatial baseline
+### Spatial baseline
 grid_clust(4, 3)
 
-# Spatial KMeans (multiple seeds)
+### Spatial KMeans (multiple seeds)
 kmeans_clust(n_clus, seeds, "kmeans")
 
-# Ward (agglomerative) – feature-driven, connectivity-constrained
+
+### Ward (agglomerative) – feature-driven, connectivity-constrained
+
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
 clustering(n_clus, "speed_clusters", "speed")
+clustering(n_clus, "speed_x_y_clusters", "speed_x_y")
 
-# KMeans with velocity/traffic features  ← NEW
+# ## KMeans with velocity/traffic features  ← NEW
+
 kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed")
 kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
+kmeans_clustering(n_clus, "kmeans_speed_x_y_clusters",     "speed_x_y")
