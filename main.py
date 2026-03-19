@@ -337,7 +337,7 @@ def kmeans_clust(n_clusters, random_states, name):
 
 ############################# KMEANS WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([])):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -351,6 +351,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     name         : str – subfolder / filename prefix for saved figures
     feature_type : str – one of {"geometric", "speed", "distance", "time"}
     random_state : int – random seed for reproducibility (default 42)
+    threshold    : array - links index with outside the threshold
 
     ─────────────────────────────────────────────────────────────────────────────
     HOW KMEANS WORKS — THE FOUR STEPS
@@ -416,13 +417,11 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     # accepts "distance" and "time", which swap in different traffic signals
     # while keeping the same temporal feature structure.
     
-    X, low_speed_links = build_cluster_features(feature_type)
-    if low_speed_links.size > 0:
-        print(f"The low speed links are :{low_speed_links}")
+    X = build_cluster_features(feature_type)
     
     s_a_s = []     
-    if feature_type == "speed":   
-        s_a_s = small_and_slow()
+    if feature_type == "speed" and threshold.size > 0:   
+        s_a_s = threshold
         if s_a_s.size > 0:
             print(f"The low speed and short links are :{s_a_s}")
             
@@ -523,15 +522,12 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     # same colour regardless of where they sit in the network.
     # Line width encodes the number of lanes, providing an extra visual cue about
     # road hierarchy within each cluster.
-    for _, row in plot_links.iterrows():
+    for idx, row in plot_links.iterrows():
         z = 1
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]  # color = cluster label
-        if _ in low_speed_links:
+        if idx in s_a_s:
             color = "black"
-            z = 2
-        if _ in s_a_s:
-            color = "maroon"
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
         
@@ -603,7 +599,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1,  profile_type=""): #trial of 0 so that it doesnt take into account the geometry of the map
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -628,21 +624,12 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weig
         profile_components(rowwise_zscore(filled), n_components=8),# IMPORTANT TO CHANGE AS IT ONLY TAKES INTO ACCOUNT THE THREE VALUESSSSSSSS
     ])
     
-    ###
-    if profile_type == "speed_profile":
-        p85 = np.percentile(filled, 85, axis=1)
-        print(p85.shape)
-        # Slow links
-        add_val = np.where(p85 < 2)[0] # Low speed links
-    
-    else:
-        add_val = np.array([])
     
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     return np.hstack([
         StandardScaler().fit_transform(dynamic) * dynamic_weight,
         StandardScaler().fit_transform(spatial_features) * spatial_weight,
-    ]), add_val
+    ])
 
 
 def build_cluster_features(feature_type):
@@ -658,6 +645,14 @@ def build_cluster_features(feature_type):
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
 
+
+    # to_remove = small_and_slow()
+    # n_links = vdist.shape[2]
+
+    # mask = np.ones(n_links, dtype=bool)
+    # mask[to_remove] = False
+    
+    
     if feature_type == "geometric":
         geometric = np.column_stack([
             DL.node_coordinates[:, 0],
@@ -665,7 +660,7 @@ def build_cluster_features(feature_type):
             links["length"].to_numpy(dtype=float),
             links["num_lanes"].to_numpy(dtype=float),
         ])
-        return StandardScaler().fit_transform(geometric), np.array([])
+        return StandardScaler().fit_transform(geometric)
 
     if feature_type == "speed":
         speed = np.divide(
@@ -676,7 +671,7 @@ def build_cluster_features(feature_type):
         )
         #speed_profile = np.log1p(mean_over_sessions(speed)).T
         speed_profile = mean_over_sessions(speed).T
-        return temporal_cluster_features(speed_profile, peak_mode="min", profile_type="speed_profile")
+        return temporal_cluster_features(speed_profile, peak_mode="min")
 
     if feature_type == "distance":
         distance = np.where(vdist != 0, vdist, np.nan)
@@ -689,7 +684,7 @@ def build_cluster_features(feature_type):
         
     raise ValueError(f"Unknown feature_type: {feature_type}")
 
-def clustering(n_clusters, name, feature_type):
+def clustering(n_clusters, name, feature_type, threshold=np.array([])):
     """
     Perform hierarchical (Ward) clustering of network links and visualize the result. 
 
@@ -703,6 +698,7 @@ def clustering(n_clusters, name, feature_type):
     n_clusters   : int  – desired number of clusters
     name         : str  – subfolder / filename prefix for saved figures
     feature_type : str  – one of {"geometric", "speed", "distance", "time"}
+    threshold    : array - links index with outside the threshold
     """
     n_clus = n_clusters
     
@@ -711,21 +707,20 @@ def clustering(n_clusters, name, feature_type):
     os.makedirs(folder, exist_ok=True)
 
     ### Clustering and outliers
-    X, low_speed_links = build_cluster_features(feature_type)
-    if low_speed_links.size > 0:
-        print(f"The low speed links are :{low_speed_links}")
+    X = build_cluster_features(feature_type)
     
     s_a_s = []    
-    if feature_type == "speed":   
-        s_a_s = small_and_slow()
+    if feature_type == "speed" and threshold.size > 0:   
+        s_a_s = threshold
         if s_a_s.size > 0:
             print(f"The low speed and short links are :{s_a_s}")
-    
+
     labels = AgglomerativeClustering( # Assign a cluster to each link, euclidian distance
         n_clusters=n_clus,
         linkage="ward",
         connectivity=NETWORK_CONNECTIVITY,
     ).fit_predict(X)
+    
     plot_links = links.copy()
     plot_links["cluster"] = labels
     cluster_sizes = np.bincount(labels, minlength=n_clus)
@@ -741,15 +736,12 @@ def clustering(n_clusters, name, feature_type):
     ax.tick_params(axis='both', labelsize=8)
 
 
-    for _, row in plot_links.iterrows():
+    for idx, row in plot_links.iterrows():
         z = 1
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]
-        if _ in low_speed_links:
+        if idx in s_a_s:
             color = "black"
-            z = 2
-        if _ in s_a_s:
-            color = "maroon"
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
 
@@ -767,11 +759,17 @@ def clustering(n_clusters, name, feature_type):
     
 ### Small links grouping
 
-def small_and_slow():
-    
+def thresholds(max_speed = 0, max_length = 0):
+    """
+    Finds the links with an 85th-percentile mean over every sessions speed lower than max_speed and a length smaller than max_length
+
+    Parameters
+    ----------
+    max_speed :  int - maximum 85th-percentile mean over every sessions speed [m/s] set to np.inf if no speed restrictions are wanted, i.e. only short links
+    max_length : int - maximum link length [m], set to np.inf if no length restrictions are wanted, i.e. only slow links
+    """
     # Dl._vdist_3min[simulation number, timestamp, link id]
     # DL.segment_lengths[link id]
-    
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
      
@@ -781,24 +779,15 @@ def small_and_slow():
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
-    distance = np.where(vdist != 0, vdist, np.nan)
     
     speed =  mean_over_sessions(np.nan_to_num(speed, nan=0.0))
-    distance = mean_over_sessions(np.nan_to_num(distance, nan=0.0))
-    
     speed_85 = np.percentile(speed, 85, axis=0)
-    distance_85 = np.percentile(distance, 85, axis=0)
+
+    low_speed_links = np.where((speed_85 <= max_speed))[0]
     
-    low_speed_links = np.where((speed_85 <= 2))[0]
-    
-    small_and_slow = []
-    for link in low_speed_links:
-        if links.loc[link, "length"] <= 10:
-            small_and_slow.append(link)
-    
-    small_and_slow = np.array(small_and_slow)
-    
-    return small_and_slow
+    smallslow = [link for link in low_speed_links if links.iloc[link]["length"] <= max_length]
+            
+    return np.array(smallslow)
 
 #graph()
 param = [
@@ -823,17 +812,18 @@ seeds = np.linspace(0, 9, 10)
 ### Spatial KMeans (multiple seeds)
 # kmeans_clust(n_clus, seeds, "kmeans")
 
+### Threshold
+th = thresholds(max_speed=2, max_length=np.inf)
+print(th)
 
 ### Ward (agglomerative) – feature-driven, connectivity-constrained
-
 clustering(n_clus, "geometric_clusters", "geometric")
 clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
-clustering(n_clus, "speed_clusters", "speed")
+clustering(n_clus, "speed_clusters", "speed", threshold=th)
 
 ## KMeans with velocity/traffic features  ← NEW
-
-kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed")
+kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
 kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
