@@ -419,7 +419,13 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
     X, low_speed_links = build_cluster_features(feature_type)
     if low_speed_links.size > 0:
         print(f"The low speed links are :{low_speed_links}")
-
+    
+    s_a_s = []     
+    if feature_type == "speed":   
+        s_a_s = small_and_slow()
+        if s_a_s.size > 0:
+            print(f"The low speed and short links are :{s_a_s}")
+            
     # X.shape → (n_links, n_features)
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -524,6 +530,9 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42):
         if _ in low_speed_links:
             color = "black"
             z = 2
+        if _ in s_a_s:
+            color = "maroon"
+            z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
         
     # ── Overlay intersection polygons for spatial context ──────────────────────
@@ -622,7 +631,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weig
     ###
     if profile_type == "speed_profile":
         p85 = np.percentile(filled, 85, axis=1)
-
+        print(p85.shape)
         # Slow links
         add_val = np.where(p85 < 2)[0] # Low speed links
     
@@ -701,11 +710,17 @@ def clustering(n_clusters, name, feature_type):
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
 
-    ### Clustering
+    ### Clustering and outliers
     X, low_speed_links = build_cluster_features(feature_type)
     if low_speed_links.size > 0:
         print(f"The low speed links are :{low_speed_links}")
-        
+    
+    s_a_s = []    
+    if feature_type == "speed":   
+        s_a_s = small_and_slow()
+        if s_a_s.size > 0:
+            print(f"The low speed and short links are :{s_a_s}")
+    
     labels = AgglomerativeClustering( # Assign a cluster to each link, euclidian distance
         n_clusters=n_clus,
         linkage="ward",
@@ -733,6 +748,9 @@ def clustering(n_clusters, name, feature_type):
         if _ in low_speed_links:
             color = "black"
             z = 2
+        if _ in s_a_s:
+            color = "maroon"
+            z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
 
 
@@ -746,86 +764,41 @@ def clustering(n_clusters, name, feature_type):
     plt.close(fig)
     print(f"Saved → {folder}/{name}_best.png")
 
+    
+### Small links grouping
 
-def grid_clust(xdiv = 4, ydiv = 4, showgrid = True):
-    """
-    Clusters the links based on a rectangular grid
+def small_and_slow():
     
-    xdiv : Number of cells on the x-axis
-    xdiv : Number of cells on the y-axis
-    """
-    tol = 100
-    x_min = np.min(links["from_x"]) - tol
-    x_max = np.max(links["to_x"]) + tol
-    y_min = np.min(links["from_y"]) - tol
-    y_max = np.max(links["to_y"]) + tol
- 
-    w = (x_max - x_min)/xdiv # Width of a cell
-    h = (y_max - y_min)/ydiv # Height of a cell
+    # Dl._vdist_3min[simulation number, timestamp, link id]
+    # DL.segment_lengths[link id]
     
-    xs = np.arange(x_min, x_max, w)
-    ys = np.arange(y_min, y_max, h)
-    
-    ### Creating folder
-    folder = f"figure/clustering/grid_clusters"
-    os.makedirs(folder, exist_ok=True)
-    
-    fig, ax = plt.subplots(dpi = 250)
-    
-    ### Making a copy so that the clustering assignment isn't kept from one method to another
-    plot_links = links.copy()
-
-    ### Assigning the grid cell in which link is (clustering)
-    plot_links["cell_x"] = ((links["c_x"] - x_min)//w) # Floor dividing by the width/height to assign a cell id on the x or y axis to each links
-    plot_links["cell_y"] = ((links["c_y"] - y_min)//h)
-    
-    ### Manually assigning a color for each grid cell 
-    cells = list(zip(plot_links["cell_x"], plot_links["cell_y"]))
-    unique_cells = list(set(cells))
-
-    cmap = plt.colormaps.get_cmap("tab20")
-    cell_color = {cell: cmap(i) for i, cell in enumerate(unique_cells)}
-
-    ### Plotting the links
-    for _, row in plot_links.iterrows():
-        x, y = sublink(row)
-        
-        cell = (row["cell_x"], row["cell_y"])
-        color = cell_color[cell]
-
-        ax.plot(
-            x,
-            y,
-            color=color,
-            linewidth = 0.4 + row["num_lanes"] * 0.4
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+     
+    speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan, dtype=float),
+            where=vtime != 0,
         )
-
+    distance = np.where(vdist != 0, vdist, np.nan)
     
-    ### Plotting the grid cells
-    if showgrid == True:
-        for x in xs:
-            for y in ys:
-                rect = patches.Rectangle(
-                    (x, y),
-                    w,
-                    h,
-                    edgecolor="black",
-                    facecolor="none",
-                    linewidth=0.5
-                )
-                ax.add_patch(rect)
-            
-    ### Plotting the intersections
-    polyg(ax, color="black", zorder=-2)
+    speed =  mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    distance = mean_over_sessions(np.nan_to_num(distance, nan=0.0))
     
-    ax.set_title(f"Grid clustering of shape ({xdiv},{ydiv})")
-    ax.set_xlim(x_min, x_max)
-    ax.set_ylim(y_min, y_max)
-    ax.set_aspect("equal")
-    fig.savefig(f"{folder}/grid.png")
-    plt.close()
+    speed_85 = np.percentile(speed, 85, axis=0)
+    distance_85 = np.percentile(distance, 85, axis=0)
     
-
+    low_speed_links = np.where((speed_85 <= 2))[0]
+    
+    small_and_slow = []
+    for link in low_speed_links:
+        if links.loc[link, "length"] <= 10:
+            small_and_slow.append(link)
+    
+    small_and_slow = np.array(small_and_slow)
+    
+    return small_and_slow
 
 #graph()
 param = [
@@ -846,8 +819,6 @@ param_name = [
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
 
-### Spatial baseline
-grid_clust(4, 3)
 
 ### Spatial KMeans (multiple seeds)
 # kmeans_clust(n_clus, seeds, "kmeans")
@@ -860,8 +831,10 @@ clustering(n_clus, "distance_clusters", "distance")
 clustering(n_clus, "time_clusters", "time")
 clustering(n_clus, "speed_clusters", "speed")
 
-# ## KMeans with velocity/traffic features  ← NEW
+## KMeans with velocity/traffic features  ← NEW
 
 kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed")
 kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
+
+
