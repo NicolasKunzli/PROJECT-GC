@@ -337,7 +337,7 @@ def kmeans_clust(n_clusters, random_states, name):
 
 ############################# KMEANS WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([])):
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -417,7 +417,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # accepts "distance" and "time", which swap in different traffic signals
     # while keeping the same temporal feature structure.
     
-    X = build_cluster_features(feature_type)
+    X = build_cluster_features(feature_type, threshold, filter)
     
     if feature_type == "speed" and threshold.size > 0:
             print(f"The low speed and short links are :{threshold}")
@@ -485,6 +485,11 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # Each road link now carries an integer cluster ID (0 … n_clusters-1).
     # This is the "labelling" result of Step 2 at convergence.
     plot_links = links.copy()
+    if filter:
+        if threshold.size > 0:
+            mask = np.ones(plot_links.shape[0], dtype=bool)
+            mask[th] = False 
+            plot_links = plot_links.loc[mask]
     plot_links["cluster"] = labels  # ← STEP 2 result: final label for each link
 
     # ── Diagnostic: print the range of cluster sizes ───────────────────────────
@@ -509,6 +514,8 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     fig, ax = plt.subplots(dpi=250)
     ax.set_aspect("equal")
     ax.set_title(f"{name} (KMeans, k={n_clusters})", fontsize=9)
+    if filter:
+        ax.set_title(f"{name}_filtered (KMeans, k={n_clusters})", fontsize=9)
     ax.set_xlabel("X [m]", fontsize=10)
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis="both", labelsize=8)
@@ -528,6 +535,13 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
         
+    if filter:
+        for idx, row in links.loc[threshold].iterrows():
+            x, y = sublink(row)  # color = cluster label
+            color = "black"
+            z = 3 
+            ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
+        
     # ── Overlay intersection polygons for spatial context ──────────────────────
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
@@ -539,9 +553,14 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     ax.legend(handles=handles, fontsize=7, loc="upper right")
 
     # ── Save ───────────────────────────────────────────────────────────────────
-    fig.savefig(f"{folder}/{name}_best.png")
-    plt.close(fig)
-    print(f"Saved → {folder}/{name}_best.png")
+    if filter == True:
+        fig.savefig(f"{folder}/{name}_filtered.png")
+        plt.close(fig)
+        print(f"Saved → {folder}/{name}_filtered.png")
+    else:    
+        fig.savefig(f"{folder}/{name}_best.png")
+        plt.close(fig)
+        print(f"Saved → {folder}/{name}_best.png")
 
 
 ############################# CLUSTERING (using a library) (WARD / AGGLOMERATIVE) #############################
@@ -596,7 +615,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1): #trial of 0 so that it doesnt take into account the geometry of the map
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1, threshold=np.array([]), filter=False): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -623,13 +642,19 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weig
     
     
     spatial_features = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
+    if filter:
+        threshold = threshold.astype(int)
+        mask = np.ones(spatial_features.shape[0], dtype=bool)
+        mask[threshold] = False 
+        spatial_features = spatial_features[mask,:]
+    
     return np.hstack([
         StandardScaler().fit_transform(dynamic) * dynamic_weight,
         StandardScaler().fit_transform(spatial_features) * spatial_weight,
     ])
 
 
-def build_cluster_features(feature_type):
+def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
     """
     Build feature matrices for clustering based on different traffic descriptors.
 
@@ -667,8 +692,13 @@ def build_cluster_features(feature_type):
             where=vtime != 0,
         )
         #speed_profile = np.log1p(mean_over_sessions(speed)).T
-        speed_profile = mean_over_sessions(speed).T
-        return temporal_cluster_features(speed_profile, peak_mode="min")
+        speed_profile = mean_over_sessions(speed)
+        if filter:
+            if threshold.size > 0:
+                mask = np.ones(speed_profile.shape[1], dtype=bool)
+                mask[th] = False 
+                speed_profile = speed_profile[:, mask]
+        return temporal_cluster_features(speed_profile.T, peak_mode="min",threshold=threshold, filter=filter)
 
     if feature_type == "distance":
         distance = np.where(vdist != 0, vdist, np.nan)
@@ -811,14 +841,15 @@ th = thresholds(max_speed=2, max_length=np.inf)
 print(th)
 
 ### Ward (agglomerative) – feature-driven, connectivity-constrained
-clustering(n_clus, "geometric_clusters", "geometric")
-clustering(n_clus, "distance_clusters", "distance")
-clustering(n_clus, "time_clusters", "time")
-clustering(n_clus, "speed_clusters", "speed", threshold=th)
+# clustering(n_clus, "geometric_clusters", "geometric")
+# clustering(n_clus, "distance_clusters", "distance")
+# clustering(n_clus, "time_clusters", "time")
+# clustering(n_clus, "speed_clusters", "speed", threshold=th)
 
 ## KMeans with velocity/traffic features  ← NEW
 kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
-kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
-kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
+kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, filter=True)
+# kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
+# kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
 
