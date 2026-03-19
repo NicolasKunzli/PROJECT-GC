@@ -419,11 +419,8 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     
     X = build_cluster_features(feature_type)
     
-    s_a_s = []     
-    if feature_type == "speed" and threshold.size > 0:   
-        s_a_s = threshold
-        if s_a_s.size > 0:
-            print(f"The low speed and short links are :{s_a_s}")
+    if feature_type == "speed" and threshold.size > 0:
+            print(f"The low speed and short links are :{threshold}")
             
     # X.shape → (n_links, n_features)
 
@@ -526,7 +523,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
         z = 1
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]  # color = cluster label
-        if idx in s_a_s:
+        if idx in threshold:
             color = "black"
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
@@ -708,12 +705,9 @@ def clustering(n_clusters, name, feature_type, threshold=np.array([])):
 
     ### Clustering and outliers
     X = build_cluster_features(feature_type)
-    
-    s_a_s = []    
+       
     if feature_type == "speed" and threshold.size > 0:   
-        s_a_s = threshold
-        if s_a_s.size > 0:
-            print(f"The low speed and short links are :{s_a_s}")
+        print(f"The low speed and short links are :{threshold}")
 
     labels = AgglomerativeClustering( # Assign a cluster to each link, euclidian distance
         n_clusters=n_clus,
@@ -740,7 +734,7 @@ def clustering(n_clusters, name, feature_type, threshold=np.array([])):
         z = 1
         x, y = sublink(row)
         color = cluster_colors[int(row["cluster"])]
-        if idx in s_a_s:
+        if idx in threshold:
             color = "black"
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
