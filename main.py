@@ -12,6 +12,8 @@ import imageio
 import re
 from scipy import sparse
 from scipy.spatial import cKDTree
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
@@ -982,6 +984,199 @@ def simplified_map(distance_threshold, grad=True, color="navy"):
     print(f"Saved simplified map ({suffix}): {len(groups)} groups from {len(links)} segments")
 
 
+############################# PERCOLATION ANALYSIS (Li et al. 2015) #############################
+
+def build_directed_adjacency():
+    """Builds a directed adjacency matrix from the connections DataFrame."""
+    N = len(links)
+    row_idx, col_idx = [], []
+    for _, row in connections.iterrows():
+        org = DL.section_id_to_index.get(row["org"])
+        dst = DL.section_id_to_index.get(row["dst"])
+        if org is not None and dst is not None:
+            row_idx.append(org)
+            col_idx.append(dst)
+    return csr_matrix((np.ones(len(row_idx)), (row_idx, col_idx)), shape=(N, N))
+
+
+def compute_normalized_speed():
+    """
+    Computes normalized speed r_ij(t) = v_ij(t) / v_max_ij for each segment.
+    v_max_ij is the 95th percentile speed of segment j (across all sessions and timesteps).
+
+    Returns r of shape (S, T, N) with values in [0, 1].
+    """
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+
+    speed = np.divide(
+        vdist, vtime,
+        out=np.full(vdist.shape, np.nan, dtype=float),
+        where=vtime != 0,
+    )
+
+    # 95th percentile per segment (across all sessions and timesteps)
+    v_max = np.nanpercentile(speed.reshape(-1, speed.shape[2]), 95, axis=0)
+    v_max[v_max == 0] = np.nan
+
+    r = speed / v_max[np.newaxis, np.newaxis, :]
+    r = np.clip(r, 0, 1)
+    return r
+
+
+def percolation_sweep(r_t, adj_directed, q_values):
+    """
+    For a single time snapshot r_t (shape N,), sweep over q values
+    and find strongly connected components.
+
+    Returns:
+        giant : array of giant component sizes for each q
+        second : array of second-largest component sizes for each q
+    """
+    N = r_t.shape[0]
+    giant = np.zeros(len(q_values))
+    second = np.zeros(len(q_values))
+
+    for i, q in enumerate(q_values):
+        functional = r_t >= q
+        # Subgraph: keep only edges between functional nodes
+        func_idx = np.where(functional)[0]
+        if len(func_idx) == 0:
+            continue
+
+        sub_adj = adj_directed[np.ix_(func_idx, func_idx)]
+        n_comp, labels = connected_components(sub_adj, directed=True, connection='strong')
+
+        comp_sizes = np.bincount(labels)
+        sorted_sizes = np.sort(comp_sizes)[::-1]
+        giant[i] = sorted_sizes[0]
+        if len(sorted_sizes) > 1:
+            second[i] = sorted_sizes[1]
+
+    return giant, second
+
+
+def find_critical_threshold(r_t, adj_directed, q_values):
+    """
+    Finds q_c: the threshold where the second-largest strongly connected
+    component is maximal (percolation transition point).
+
+    Returns q_c, giant sizes array, second-largest sizes array.
+    """
+    giant, second = percolation_sweep(r_t, adj_directed, q_values)
+    qc_idx = np.argmax(second)
+    return q_values[qc_idx], giant, second
+
+
+def find_bottlenecks(r_t, adj_directed, qc, delta=0.01):
+    """
+    Identifies bottleneck links by comparing the functional network just below
+    and just above q_c. Bottlenecks are segments that are functional at (qc - delta)
+    but dysfunctional at (qc + delta).
+
+    Returns array of bottleneck segment indices.
+    """
+    functional_below = r_t >= (qc - delta)
+    functional_above = r_t >= (qc + delta)
+
+    # Links present below qc but removed above qc
+    bottlenecks = np.where(functional_below & ~functional_above)[0]
+    return bottlenecks
+
+
+def percolation_analysis(session=0, timestep=None, n_q=100):
+    """
+    Full percolation analysis pipeline for a given session and timestep.
+
+    Parameters
+    ----------
+    session : int - simulation session index
+    timestep : int or None - if None, averages r over all timesteps
+    n_q : int - number of q values to sweep
+    """
+    r = compute_normalized_speed()
+    adj_directed = build_directed_adjacency()
+    q_values = np.linspace(0, 1, n_q)
+
+    if timestep is not None:
+        r_t = r[session, timestep, :]
+        # Replace NaN with 0 (no data = dysfunctional)
+        r_t = np.nan_to_num(r_t, nan=0.0)
+        time_label = f"session {session}, t={timestep}"
+    else:
+        # Average over all sessions and timesteps
+        r_t = np.nanmean(r.reshape(-1, r.shape[2]), axis=0)
+        r_t = np.nan_to_num(r_t, nan=0.0)
+        time_label = "mean over all sessions/timesteps"
+
+    # Find q_c
+    qc, giant, second = find_critical_threshold(r_t, adj_directed, q_values)
+    print(f"Critical threshold q_c = {qc:.3f} ({time_label})")
+
+    # Find bottlenecks
+    bottlenecks = find_bottlenecks(r_t, adj_directed, qc)
+    print(f"Found {len(bottlenecks)} bottleneck segments at q_c")
+
+    # --- Plot 1: Giant and second-largest component vs q ---
+    fig, ax = plt.subplots(dpi=250)
+    ax.plot(q_values, giant, label="Giant component (G)", color="blue")
+    ax.plot(q_values, second, label="2nd largest (SG)", color="red")
+    ax.axvline(qc, color="gray", linestyle="--", linewidth=0.8, label=f"$q_c$ = {qc:.3f}")
+    ax.set_xlabel("Threshold q", fontsize=10)
+    ax.set_ylabel("Component size (# segments)", fontsize=10)
+    ax.set_title("Percolation transition", fontsize=10)
+    ax.legend(fontsize=8)
+    ax.tick_params(axis="both", labelsize=8)
+    fig.savefig(f"{localfigure}/percolation_transition.png")
+    plt.close(fig)
+    print(f"Saved {localfigure}/percolation_transition.png")
+
+    # --- Plot 2: Network at q_c with bottlenecks highlighted ---
+    fig, ax = plt.subplots(dpi=250)
+
+    functional = r_t >= qc
+
+    # Plot all segments light gray
+    for i, row in links.iterrows():
+        x, y = sublink(row)
+        ax.plot(x, y, c="lightgray", linewidth=0.3, zorder=1)
+
+    # Plot functional segments colored by cluster
+    func_idx = np.where(functional)[0]
+    if len(func_idx) > 0:
+        sub_adj = adj_directed[np.ix_(func_idx, func_idx)]
+        n_comp, labels = connected_components(sub_adj, directed=True, connection='strong')
+        comp_sizes = np.bincount(labels)
+        # Sort clusters by size (descending) and assign colors to top clusters
+        size_order = np.argsort(comp_sizes)[::-1]
+        cluster_colors = ["green", "blue", "orange", "purple", "cyan"]
+
+        for k, cluster_id in enumerate(size_order[:5]):
+            members = func_idx[labels == cluster_id]
+            c = cluster_colors[k] if k < len(cluster_colors) else "gray"
+            for idx in members:
+                row = links.iloc[idx]
+                x, y = sublink(row)
+                ax.plot(x, y, c=c, linewidth=0.5, zorder=2)
+
+    # Highlight bottlenecks in red
+    for idx in bottlenecks:
+        row = links.iloc[idx]
+        x, y = sublink(row)
+        ax.plot(x, y, c="red", linewidth=1.5, zorder=3)
+
+    ax.set_aspect("equal")
+    ax.set_title(f"Network at $q_c$={qc:.3f}, bottlenecks in red ({len(bottlenecks)})", fontsize=9)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis="both", labelsize=8)
+    fig.savefig(f"{localfigure}/percolation_bottlenecks.png")
+    plt.close(fig)
+    print(f"Saved {localfigure}/percolation_bottlenecks.png")
+
+    return qc, bottlenecks
+
+
 #graph()
 param = [
     DL._vdist_3min, 
@@ -1022,6 +1217,9 @@ seeds = np.linspace(0, 9, 10)
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
 ### Simplified map
-simplified_map(distance_threshold=45.0, grad=True)
-simplified_map(distance_threshold=45.0, grad=False, color="navy")
+# simplified_map(distance_threshold=45.0, grad=True)
+# simplified_map(distance_threshold=45.0, grad=False, color="navy")
+
+### Percolation analysis
+percolation_analysis()
 
