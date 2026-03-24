@@ -11,6 +11,7 @@ from DataLoad import DataLoader
 import imageio
 import re
 from scipy import sparse
+from scipy.spatial import cKDTree
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
@@ -616,6 +617,7 @@ def rowwise_zscore(profile):
 
 
 def profile_components(profile, n_components=3):
+
     """
     Use SVD to return the profile's principal components.
     """
@@ -830,6 +832,156 @@ def thresholds(max_speed = 0, max_length = 0):
             
     return np.array(smallslow)
 
+
+### Simplified map: merge parallel/duplicate segments and show average speed
+
+class UnionFind:
+    def __init__(self, n):
+        self.parent = list(range(n))
+        self.rank = [0] * n
+
+    def find(self, x):
+        while self.parent[x] != x:
+            self.parent[x] = self.parent[self.parent[x]]
+            x = self.parent[x]
+        return x
+
+    def union(self, x, y):
+        rx, ry = self.find(x), self.find(y)
+        if rx == ry:
+            return
+        if self.rank[rx] < self.rank[ry]:
+            rx, ry = ry, rx
+        self.parent[ry] = rx
+        if self.rank[rx] == self.rank[ry]:
+            self.rank[rx] += 1
+
+
+def group_segments(distance_threshold=35.0):
+    """
+    Groups road segments whose endpoints are within distance_threshold [m] of each other.
+    Handles both same-direction and opposite-direction segments on the same road.
+
+    Returns a list of groups, where each group is a list of link indices.
+    """
+    N = len(links)
+    from_xy = links[["from_x", "from_y"]].to_numpy()
+    to_xy = links[["to_x", "to_y"]].to_numpy()
+
+    from_tree = cKDTree(from_xy)
+    to_tree = cKDTree(to_xy)
+
+    # Forward match: from_i ~ from_j AND to_i ~ to_j
+    from_from_pairs = from_tree.query_pairs(distance_threshold)
+    to_to_pairs = to_tree.query_pairs(distance_threshold)
+    forward_matches = from_from_pairs & to_to_pairs
+
+    # Reverse match: from_i ~ to_j AND to_i ~ from_j (opposite direction)
+    from_to_neighbors = from_tree.query_ball_tree(to_tree, distance_threshold)
+    to_from_neighbors = to_tree.query_ball_tree(from_tree, distance_threshold)
+
+    reverse_matches = set()
+    for i in range(N):
+        candidates = set(from_to_neighbors[i]) & set(to_from_neighbors[i])
+        for j in candidates:
+            if i != j:
+                reverse_matches.add((min(i, j), max(i, j)))
+
+    all_matches = forward_matches | reverse_matches
+
+    uf = UnionFind(N)
+    for i, j in all_matches:
+        uf.union(i, j)
+
+    groups_dict = {}
+    for i in range(N):
+        root = uf.find(i)
+        groups_dict.setdefault(root, []).append(i)
+
+    return list(groups_dict.values())
+
+
+def compute_group_speeds(groups):
+    """
+    Computes the global average speed (nanmean over all sessions, timesteps, and group members)
+    for each group of segments.
+
+    Returns an array of shape (len(groups),) with mean speed [m/s] per group.
+    """
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+
+    speed = np.divide(
+        vdist,
+        vtime,
+        out=np.full(vdist.shape, np.nan, dtype=float),
+        where=vtime != 0,
+    )
+
+    group_speeds = np.empty(len(groups))
+    for k, group in enumerate(groups):
+        group_speeds[k] = np.nanmean(speed[:, :, group])
+
+    return group_speeds
+
+
+def simplified_map(distance_threshold, grad=True, color="navy"):
+    """
+    Creates a simplified road network map by merging parallel/duplicate segments.
+
+    Parameters
+    ----------
+    distance_threshold : float - endpoint proximity threshold [m]
+    grad : bool - if True, color by average speed; if False, use flat color
+    color : str - flat color when grad=False
+    """
+    groups = group_segments(distance_threshold)
+    representatives = []
+    for group in groups:
+        best = max(group, key=lambda idx: links.iloc[idx]["num_lanes"])
+        representatives.append(best)
+
+    fig, ax = plt.subplots(dpi=250)
+
+    if grad:
+        speeds = compute_group_speeds(groups)
+        valid_speeds = speeds[~np.isnan(speeds)]
+        norm = mcolors.Normalize(vmin=np.nanmin(valid_speeds), vmax=np.nanmax(valid_speeds))
+        cmap = plt.get_cmap("RdYlGn")
+
+        for k, rep_idx in enumerate(representatives):
+            row = links.iloc[rep_idx]
+            x, y = sublink(row)
+            if np.isnan(speeds[k]):
+                c = "lime"
+            else:
+                c = cmap(norm(speeds[k]))
+            ax.plot(x, y, c=c, linewidth=0.3)
+
+        sm = cm.ScalarMappable(norm=norm, cmap=cmap)
+        sm.set_array([])
+        fig.colorbar(sm, ax=ax, label="Average speed [m/s]")
+        suffix = "speed"
+    else:
+        for rep_idx in representatives:
+            row = links.iloc[rep_idx]
+            x, y = sublink(row)
+            ax.plot(x, y, c=color, linewidth=0.3)
+        suffix = "flat"
+
+    polyg(ax, color="black", alpha=0.3, zorder=-1)
+
+    ax.set_aspect("equal")
+    ax.set_title(f"Simplified network (threshold={distance_threshold}m, {len(representatives)}/{len(links)} segments)", fontsize=9)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis="both", labelsize=8)
+
+    fig.savefig(f"{localfigure}/simplified_map_{suffix}.png")
+    plt.close(fig)
+    print(f"Saved simplified map ({suffix}): {len(groups)} groups from {len(links)} segments")
+
+
 #graph()
 param = [
     DL._vdist_3min, 
@@ -869,4 +1021,7 @@ seeds = np.linspace(0, 9, 10)
 # # kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
+### Simplified map
+simplified_map(distance_threshold=45.0, grad=True)
+simplified_map(distance_threshold=45.0, grad=False, color="navy")
 
