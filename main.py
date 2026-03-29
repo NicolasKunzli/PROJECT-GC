@@ -1228,7 +1228,6 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
     links_local["cell_x"] = ((links_local["c_x"] - x_min)//w).astype(int)
     links_local["cell_y"] = ((links_local["c_y"] - y_min)//h).astype(int)
     
-    ### Manually assigning a color for each grid cell 
 
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
@@ -1240,10 +1239,10 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
         where=(vtime != 0) & (~np.isnan(vtime))
     )
     
-    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0)) # (T, N)
     print(speed.shape)
     
-    average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours
+    average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours (N, )
     links_local["speed_mean"] = average_speed_per_link
     
     cell_speed = (
