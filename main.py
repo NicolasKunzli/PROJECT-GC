@@ -581,7 +581,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
                 [0], [0], 
                 color=cluster_colors[k], 
                 lw=3, 
-                label=f"Cluster {k} – {mean_speed_real:.1f} km/h"
+                label=f"Cluster {k} – {mean_speed_real:.2f} m/s"
             )
         )
 
@@ -1292,7 +1292,7 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
     ### Plotting the intersections
     polyg(ax, color="black", zorder=-2)
     
-    ax.set_title(f"{percentile}th percentile : Speed = {perc}")
+    ax.set_title(f"{percentile}th percentile : Speed = {perc:.2f} m/s")
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
     ax.set_aspect("equal")
@@ -1320,9 +1320,10 @@ param_name = [
 
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
-# grid_clust(20, 16, 85)
-# grid_clust(20, 16, 65)
-# grid_clust(20, 16, 45)
+grid_clust(20, 16, 85)
+grid_clust(20, 16, 65)
+grid_clust(20, 16, 55)
+grid_clust(20, 16, 45)
 
 ### Spatial KMeans (multiple seeds)
 # kmeans_clust(n_clus, seeds, "kmeans")
