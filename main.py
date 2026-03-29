@@ -493,7 +493,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     if filter:
         if threshold.size > 0:
             mask = np.ones(plot_links.shape[0], dtype=bool)
-            mask[th] = False 
+            mask[threshold] = False 
             plot_links = plot_links.loc[mask] 
     ##############
     
@@ -559,10 +559,32 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
     # ── Legend ─────────────────────────────────────────────────────────────────
-    handles = [
-        plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
-        for k in range(n_clusters)
-    ]
+    handles = []
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+    speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan, dtype=float),
+            where=vtime != 0,
+        )
+    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    print(speed.shape)
+    speed = np.mean(speed, axis = 0)
+    print(speed.shape)
+    
+    for k in range(n_clusters):
+        cluster_idx = np.where(labels == k)[0]          # indices des liens du cluster k
+        mean_speed_real = speed[cluster_idx].mean()
+        handles.append(
+            plt.Line2D(
+                [0], [0], 
+                color=cluster_colors[k], 
+                lw=3, 
+                label=f"Cluster {k} – {mean_speed_real:.1f} km/h"
+            )
+        )
+
     ax.legend(handles=handles, fontsize=7, loc="upper right")
 
     # ── Save ───────────────────────────────────────────────────────────────────
@@ -715,7 +737,7 @@ def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
         if filter:
             if threshold.size > 0:
                 mask = np.ones(speed_profile.shape[1], dtype=bool)
-                mask[th] = False 
+                mask[threshold] = False 
                 speed_profile = speed_profile[:, mask]
         ##############
         
@@ -1177,6 +1199,109 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     return qc, bottlenecks
 
 
+
+
+def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
+    """
+    Clusters the links based on a rectangular grid
+    
+    xdiv : int
+    """
+    links_local = links.copy()
+    tol = 100
+    x_min = np.min(links_local["from_x"]) - tol
+    x_max = np.max(links_local["to_x"]) + tol
+    y_min = np.min(links_local["from_y"]) - tol
+    y_max = np.max(links_local["to_y"]) + tol
+ 
+    w = (x_max - x_min)/xdiv
+    h = (y_max - y_min)/ydiv
+    xs = np.arange(x_min, x_max, w)
+    ys = np.arange(y_min, y_max, h)
+    
+    folder = f"figure/clustering/grid_clusters"
+    os.makedirs(folder, exist_ok=True)
+    
+    fig, ax = plt.subplots(dpi = 250)
+    
+    ### Assigning the grid cell in which link is (clustering)
+    links_local["cell_x"] = ((links_local["c_x"] - x_min)//w).astype(int)
+    links_local["cell_y"] = ((links_local["c_y"] - y_min)//h).astype(int)
+    
+    ### Manually assigning a color for each grid cell 
+
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+
+    speed = np.divide(
+        vdist,
+        vtime,
+        out=np.full(vdist.shape, np.nan),  # fallback
+        where=(vtime != 0) & (~np.isnan(vtime))
+    )
+    
+    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    print(speed.shape)
+    
+    average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours
+    links_local["speed_mean"] = average_speed_per_link
+    
+    cell_speed = (
+        links_local
+        .groupby(["cell_x", "cell_y"])["speed_mean"]
+        .mean()
+        .reset_index(name="cell_avg_speed")
+    )
+    
+    links_local = links_local.merge(
+        cell_speed,
+        on=["cell_x", "cell_y"],
+        how="left"
+    )
+
+    perc = np.percentile(average_speed_per_link, percentile, axis=0) # NN-th percentile 
+    print(perc)
+    
+    links_local["color"] = np.where(
+        links_local["cell_avg_speed"] >= perc,
+        "green",
+        "red"
+    )
+    ### Plotting the links
+    for _, row in links_local.iterrows():
+
+        ax.plot(
+            [row["from_x"], row["to_x"]],
+            [row["from_y"], row["to_y"]],
+            color= row["color"]
+        )
+
+    ### Plotting the grid cells
+    for x in xs:
+        for y in ys:
+            rect = patches.Rectangle(
+                (x, y),
+                w,
+                h,
+                edgecolor="black",
+                facecolor="none",
+                linewidth=0.5
+            )
+            ax.add_patch(rect)
+            
+    ### Plotting the intersections
+    polyg(ax, color="black", zorder=-2)
+    
+    ax.set_title(f"{percentile}th percentile : Speed = {perc}")
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    ax.set_aspect("equal")
+    fig.savefig(f"{folder}/grid{percentile}.png")
+    plt.close()
+
+
+
+
 #graph()
 param = [
     DL._vdist_3min, 
@@ -1195,14 +1320,16 @@ param_name = [
 
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
-
+# grid_clust(20, 16, 85)
+# grid_clust(20, 16, 65)
+# grid_clust(20, 16, 45)
 
 ### Spatial KMeans (multiple seeds)
 # kmeans_clust(n_clus, seeds, "kmeans")
 
 ### Threshold
-# th = thresholds(max_speed=2, max_length=np.inf)
-# print(th)
+th = thresholds(max_speed=2, max_length=np.inf)
+print(th)
 
 # ### Ward (agglomerative) – feature-driven, connectivity-constrained
 # # clustering(n_clus, "geometric_clusters", "geometric")
@@ -1211,8 +1338,8 @@ seeds = np.linspace(0, 9, 10)
 # # clustering(n_clus, "speed_clusters", "speed", threshold=th)
 
 # ## KMeans with velocity/traffic features  ← NEW
-# kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
-# kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, filter=True)
+kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
+kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, filter=True)
 # # kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
@@ -1221,5 +1348,5 @@ seeds = np.linspace(0, 9, 10)
 # simplified_map(distance_threshold=45.0, grad=False, color="navy")
 
 ### Percolation analysis
-percolation_analysis()
+#percolation_analysis()
 
