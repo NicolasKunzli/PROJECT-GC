@@ -340,7 +340,7 @@ def kmeans_clust(n_clusters, random_states, name):
 
 ############################# KMEANS WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False):
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -589,14 +589,24 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
 
     # ── Save ───────────────────────────────────────────────────────────────────
     if filter == True:
-        fig.savefig(f"{folder}/{name}_filtered.png")
-        plt.close(fig)
-        print(f"Saved → {folder}/{name}_filtered.png")
-    else:    
-        fig.savefig(f"{folder}/{name}_best.png")
-        plt.close(fig)
-        print(f"Saved → {folder}/{name}_best.png")
-
+        if show:
+            fig.savefig(f"{folder}/{n_clusters}_{name}_filtered.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{n_clusters}_{name}_filtered.png")
+        else:
+            fig.savefig(f"{folder}/{name}_filtered.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{name}_filtered.png")
+    else:
+        if show:
+            fig.savefig(f"{folder}/{n_clusters}_{name}_best.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{n_clusters}_{name}_best.png")
+        else:
+            fig.savefig(f"{folder}/{name}_best.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{name}_best.png")
+            
 
 ############################# CLUSTERING (using a library) (WARD / AGGLOMERATIVE) #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
@@ -622,11 +632,11 @@ def fill_profile_nans(profile):
     """
     Fills the NaNs with the median of each column of the profile, i.e. the 2D NumPy array of the mean_over_session of a parameter.
     """
-    filled = profile.copy()
-    time_medians = np.nanmedian(filled, axis=0)
-    time_medians = np.where(np.isnan(time_medians), 0.0, time_medians)
-    nan_rows, nan_cols = np.where(np.isnan(filled))
-    filled[nan_rows, nan_cols] = time_medians[nan_cols]
+    filled = profile.copy() 
+    time_medians = np.nanmedian(filled, axis=0) 
+    time_medians = np.where(np.isnan(time_medians), 0.0, time_medians) 
+    nan_rows, nan_cols = np.where(np.isnan(filled)) 
+    filled[nan_rows, nan_cols] = time_medians[nan_cols] 
     return filled
 
 
@@ -693,7 +703,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weig
     ])
 
 
-def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
+def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filter=False, one_timeframe = False):
     """
     Build feature matrices for clustering based on different traffic descriptors.
 
@@ -705,7 +715,6 @@ def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
     """
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
-
 
     # to_remove = small_and_slow()
     # n_links = vdist.shape[2]
@@ -730,7 +739,7 @@ def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
-        #speed_profile = np.log1p(mean_over_sessions(speed)).T
+            
         speed_profile = mean_over_sessions(speed)
         
         ### FILTER ###
@@ -741,7 +750,7 @@ def build_cluster_features(feature_type, threshold=np.array([]), filter=False):
                 speed_profile = speed_profile[:, mask]
         ##############
         
-        return temporal_cluster_features(speed_profile.T, peak_mode="min",threshold=threshold, filter=filter)
+        return temporal_cluster_features(speed_profile.T, peak_mode="min", threshold=threshold, filter=filter)
 
     if feature_type == "distance":
         distance = np.where(vdist != 0, vdist, np.nan)
@@ -1319,17 +1328,17 @@ param_name = [
 
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
-grid_clust(20, 16, 85)
-grid_clust(20, 16, 65)
-grid_clust(20, 16, 55)
-grid_clust(20, 16, 45)
+# grid_clust(20, 16, 85)
+# grid_clust(20, 16, 65)
+# grid_clust(20, 16, 55)
+# grid_clust(20, 16, 45)
 
 ### Spatial KMeans (multiple seeds)
 # kmeans_clust(n_clus, seeds, "kmeans")
 
 ### Threshold
 th = thresholds(max_speed=2, max_length=np.inf)
-print(th)
+#print(th)
 
 # ### Ward (agglomerative) – feature-driven, connectivity-constrained
 # # clustering(n_clus, "geometric_clusters", "geometric")
@@ -1338,8 +1347,8 @@ print(th)
 # # clustering(n_clus, "speed_clusters", "speed", threshold=th)
 
 # ## KMeans with velocity/traffic features  ← NEW
-kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
-kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, filter=True)
+# kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th)
+# kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, filter=True)
 # # kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
@@ -1349,4 +1358,14 @@ kmeans_clustering(n_clus, "kmeans_speed_clusters",    "speed", threshold=th, fil
 
 ### Percolation analysis
 #percolation_analysis()
+
+
+
+##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
+cluster_amount = list(range(2,8,1))
+
+for i in cluster_amount:
+    kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
+    
+... # Do for one timeframe
 
