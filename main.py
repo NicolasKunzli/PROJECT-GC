@@ -890,12 +890,20 @@ class UnionFind:
             self.rank[rx] += 1
 
 
-def group_segments(distance_threshold=35.0):
+def group_segments(distance_threshold=35.0, lateral_threshold=15.0):
     """
-    Groups road segments whose endpoints are within distance_threshold [m] of each other.
-    Handles both same-direction and opposite-direction segments on the same road.
+    Groups road segments that represent the same road.
 
-    Returns a list of groups, where each group is a list of link indices.
+    Three matching criteria (any one is sufficient):
+    1. Forward match: both endpoint pairs within distance_threshold
+    2. Reverse match: endpoints cross-match (opposite direction)
+    3. Lateral match: midpoint-to-midpoint distance within lateral_threshold
+       (handles segments of different lengths on the same road)
+
+    Parameters
+    ----------
+    distance_threshold : float - endpoint proximity threshold [m]
+    lateral_threshold : float - max distance between midpoints [m]
     """
     N = len(links)
     from_xy = links[["from_x", "from_y"]].to_numpy()
@@ -904,12 +912,12 @@ def group_segments(distance_threshold=35.0):
     from_tree = cKDTree(from_xy)
     to_tree = cKDTree(to_xy)
 
-    # Forward match: from_i ~ from_j AND to_i ~ to_j
+    # --- 1. Forward match: from_i ~ from_j AND to_i ~ to_j ---
     from_from_pairs = from_tree.query_pairs(distance_threshold)
     to_to_pairs = to_tree.query_pairs(distance_threshold)
     forward_matches = from_from_pairs & to_to_pairs
 
-    # Reverse match: from_i ~ to_j AND to_i ~ from_j (opposite direction)
+    # --- 2. Reverse match: from_i ~ to_j AND to_i ~ from_j ---
     from_to_neighbors = from_tree.query_ball_tree(to_tree, distance_threshold)
     to_from_neighbors = to_tree.query_ball_tree(from_tree, distance_threshold)
 
@@ -920,7 +928,12 @@ def group_segments(distance_threshold=35.0):
             if i != j:
                 reverse_matches.add((min(i, j), max(i, j)))
 
-    all_matches = forward_matches | reverse_matches
+    # --- 3. Lateral match: midpoints within lateral_threshold ---
+    mid_xy = (from_xy + to_xy) / 2.0
+    center_tree = cKDTree(mid_xy)
+    lateral_matches = center_tree.query_pairs(lateral_threshold)
+
+    all_matches = forward_matches | reverse_matches | lateral_matches
 
     uf = UnionFind(N)
     for i, j in all_matches:
@@ -989,7 +1002,7 @@ def simplified_map(distance_threshold, grad=True, color="navy"):
                 c = "lime"
             else:
                 c = cmap(norm(speeds[k]))
-            ax.plot(x, y, c=c, linewidth=0.3)
+            ax.plot(x, y, c=c, linewidth=0.5)
 
         sm = cm.ScalarMappable(norm=norm, cmap=cmap)
         sm.set_array([])
@@ -1353,8 +1366,9 @@ th = thresholds(max_speed=2, max_length=np.inf)
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
 ### Simplified map
-# simplified_map(distance_threshold=45.0, grad=True)
-# simplified_map(distance_threshold=45.0, grad=False, color="navy")
+simplified_map(distance_threshold=50.0, grad=True)
+simplified_map(distance_threshold=50.0, grad=False, color="navy")
+
 
 ### Percolation analysis
 #percolation_analysis()
@@ -1362,10 +1376,11 @@ th = thresholds(max_speed=2, max_length=np.inf)
 
 
 ##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
+'''
 cluster_amount = list(range(2,8,1))
 
 for i in cluster_amount:
     kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
     
-... # Do for one timeframe
+... # Do for one timeframe'''
 
