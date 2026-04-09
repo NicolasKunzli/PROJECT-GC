@@ -1374,13 +1374,15 @@ simplified_map(distance_threshold=50.0, grad=False, color="navy")
 #percolation_analysis()
 
 
+##################### CLUSTERS SPAWN POINTS/AMOUNT (legacy) #####################
 
-##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
-'''
 cluster_amount = list(range(2,8,1))
 
 for i in cluster_amount:
     kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
-    
-... # Do for one timeframe'''
+
+
+
+
+... # Do for one timeframe
 
