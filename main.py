@@ -1236,6 +1236,53 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     return qc, bottlenecks
 
 
+def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31,33,36,38]):
+    """
+    Plots congestion maps at selected timesteps using the critical threshold qc
+    from percolation analysis. Congested segments (r < qc) are shown in red,
+    functional segments (r >= qc) in green.
+
+    Parameters
+    ----------
+    qc : float - critical threshold from percolation_analysis
+    session : int - simulation session index
+    timesteps : list - timestep indices to plot
+    """
+    r = compute_normalized_speed()
+    folder = f"{localfigure}/congestion_maps"
+    os.makedirs(folder, exist_ok=True)
+
+    for t in timesteps:
+        r_t = np.nan_to_num(r[session, t, :], nan=0.0)
+
+        fig, ax = plt.subplots(dpi=250)
+
+        for i, row in links.iterrows():
+            x, y = sublink(row)
+            if r_t[i] < qc:
+                ax.plot(x, y, c="red", linewidth=1, zorder=2)
+            else:
+                ax.plot(x, y, c="green", linewidth=1, zorder=1)
+
+        polyg(ax, color="black", alpha=0.3, zorder=-1)
+
+        n_congested = np.sum(r_t < qc)
+        ax.set_aspect("equal")
+        ax.set_title(f"Congestion at t={t} ({t*3}min) — {n_congested}/{len(links)} congested, $q_c$={qc:.3f}", fontsize=8)
+        ax.set_xlabel("X [m]", fontsize=10)
+        ax.set_ylabel("Y [m]", fontsize=10)
+        ax.tick_params(axis="both", labelsize=8)
+
+        # Legend
+        handles = [
+            plt.Line2D([0], [0], color="red", lw=2, label=f"Congested (r < {qc:.2f})"),
+            plt.Line2D([0], [0], color="green", lw=2, label=f"Functional (r ≥ {qc:.2f})"),
+        ]
+        ax.legend(handles=handles, fontsize=7, loc="upper right")
+
+        fig.savefig(f"{folder}/congestion_t{t}.png")
+        plt.close(fig)
+        print(f"Saved congestion map t={t} ({t*3}min): {n_congested} congested segments")
 
 
 def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
@@ -1386,16 +1433,17 @@ simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
 
 ### Percolation analysis
-#percolation_analysis()
+#qc, bottlenecks = percolation_analysis(session=0)
+#congestion_map(qc, session=0)
 
 
-##################### CLUSTERS SPAWN POINTS/AMOUNT (legacy) #####################
+##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
 
 cluster_amount = list(range(2,8,1))
 
-for i in cluster_amount:
-    kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
-    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th,timeframe=10)
+#for i in cluster_amount:
+#    kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
+#    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th,timeframe=10)
 
 
 
