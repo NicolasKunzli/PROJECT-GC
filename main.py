@@ -338,9 +338,9 @@ def kmeans_clust(n_clusters, random_states, name):
         print(f"Seed {i} DONE")
 
 
-############################# KMEANS WITH VELOCITY / TRAFFIC FEATURES #############################
+############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True):
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -420,8 +420,9 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # accepts "distance" and "time", which swap in different traffic signals
     # while keeping the same temporal feature structure.
     
-    X = build_cluster_features(feature_type, threshold, filter)
-    
+    one_tf = timeframe is not None
+    X = build_cluster_features(feature_type, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
+
     if feature_type == "speed" and threshold.size > 0:
             print(f"The low speed and short links are :{threshold}")
             
@@ -661,7 +662,7 @@ def profile_components(profile, n_components=3):
     return u[:, :n_comp] * s[:n_comp]
 
 
-def temporal_cluster_features(profile, peak_mode, spatial_weight=2, dynamic_weight = 1, threshold=np.array([]), filter=False): #trial of 0 so that it doesnt take into account the geometry of the map
+def temporal_cluster_features(profile, peak_mode, spatial_weight=2.5, dynamic_weight = 1, threshold=np.array([]), filter=False): #trial of 0 so that it doesnt take into account the geometry of the map
     """
     Compute combined temporal and spatial features for clustering nodes based on
     their temporal profiles.
@@ -739,17 +740,31 @@ def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filt
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
-            
+
         speed_profile = mean_over_sessions(speed)
-        
+
         ### FILTER ###
         if filter:
             if threshold.size > 0:
                 mask = np.ones(speed_profile.shape[1], dtype=bool)
-                mask[threshold] = False 
+                mask[threshold] = False
                 speed_profile = speed_profile[:, mask]
         ##############
-        
+
+        if one_timeframe:
+            # Single timeframe: use speed at one timestamp as feature vector
+            speed_snapshot = speed_profile[timeframe, :]  # shape (N,)
+            speed_snapshot = np.nan_to_num(speed_snapshot, nan=0.0)
+            spatial = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
+            if filter and threshold.size > 0:
+                mask = np.ones(spatial.shape[0], dtype=bool)
+                mask[threshold] = False
+                spatial = spatial[mask, :]
+            return np.column_stack([
+                StandardScaler().fit_transform(speed_snapshot.reshape(-1, 1)),
+                StandardScaler().fit_transform(spatial),
+            ])
+
         return temporal_cluster_features(speed_profile.T, peak_mode="min", threshold=threshold, filter=filter)
 
     if feature_type == "distance":
@@ -1380,9 +1395,8 @@ cluster_amount = list(range(2,8,1))
 
 for i in cluster_amount:
     kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
+    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th,timeframe=10)
 
 
 
-
-... # Do for one timeframe
 
