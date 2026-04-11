@@ -275,7 +275,7 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 
 ############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None):
+def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -356,7 +356,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # while keeping the same temporal feature structure.
     
     one_tf = timeframe is not None
-    X = build_cluster_features(feature_type, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
+    X = build_cluster_features(feature_type, spatial_weight=2.5, dynamic_weight = 1, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
 
     if feature_type == "speed" and threshold.size > 0:
             print(f"The low speed and short links are :{threshold}")
@@ -720,7 +720,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2.5, dynamic_we
     return np.hstack([dynamic_scaled, spatial_scaled])
 
 
-def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filter=False, one_timeframe = False):
+def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_weight = 1, threshold=np.array([]), filter=False, one_timeframe = False):
     """
     Build feature matrices for clustering based on different traffic descriptors.
 
@@ -791,12 +791,9 @@ def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filt
             #  normalize 
             X = StandardScaler().fit_transform(X)
 
-            #  WEGHTS 
-            w_speed = 1.5
-            w_spatial = 2.0
 
-            X[:, 0] *= w_speed
-            X[:, 1:] *= w_spatial
+            X[:, 0] *= dynamic_weight
+            X[:, 1:] *= spatial_weight
 
             return X
 
@@ -1419,8 +1416,16 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
 
 
 def closest_link(x, y):
-
+    """
+    Returns the id of the closest link to the two coordinates given.
+    Uses L2 norm AKA Euclidean distance
     
+    Parameters
+    ----------
+    x : int - x coordinates
+    y : int - y coordinates
+    """
+
     coords = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
     
     point = np.array([x, y])
@@ -1523,17 +1528,17 @@ cluster_amount = list(range(2,8,1))
 
 for i in cluster_amount:
     kmeans_clustering(i, "kmeans_speed_clusters", "speed")
-    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", timeframe=10)
-    kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", timeframe=30)
+    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10)
+    kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30)
 
-kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", timeframe=10, init_links=init_links_1)
-kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  timeframe=10, init_links=init_links_2)
-kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed",  timeframe=10, init_links=init_links_3)
+kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_1)
+kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_2)
+kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_3)
 
 
-kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_1)
-kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_2)
-kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_3)
+kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_1)
+kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_2)
+kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_3)
 
 
 
@@ -1544,11 +1549,23 @@ main_roads1 = [
     closest_link(430280, 4582250) 
     ]
 
-kmeans_clustering(len(main_roads1), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=main_roads1)
+kmeans_clustering(len(main_roads1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads1)
 
 main_roads2 = [
     closest_link(429250, 4581750),
     closest_link(431250, 4582350)
 ]
 
-kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=main_roads2)
+kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads2)
+
+
+
+#  WEIGHTS 
+
+# UNIQUE TIMEFRAME
+# dynamic_weight = 1.0
+# spatial_weight = 2.5
+
+# UNIQUE TIMEFRAME
+# dynamic_weight = 1.5
+# spatial_weight = 2.0
