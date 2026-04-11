@@ -414,6 +414,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     #
     # `labels` is therefore a 1-D integer array of length n_links where
     # labels[i] is the cluster index (0 … n_clusters-1) of the i-th road link.
+    spawn_links = []
     
     if init_links is not None:
         if len(init_links) != int(n_clusters):
@@ -437,8 +438,19 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     )
         
     labels = kmeans.fit_predict(X)
+    centroids = kmeans.cluster_centers_
                                 
-                                
+    if init_links is None:
+        for k in range(n_clusters):
+            cluster_idx = np.where(labels == k)[0]
+            cluster_points = X[cluster_idx]
+            centroid = centroids[k]
+
+            distances = np.linalg.norm(cluster_points - centroid, axis=1)
+            closest_idx = cluster_idx[np.argmin(distances)]
+
+            spawn_links.append(closest_idx)
+                                   
                                 
                                 
     
@@ -495,30 +507,52 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # same colour regardless of where they sit in the network.
     # Line width encodes the number of lanes, providing an extra visual cue about
     # road hierarchy within each cluster.
+    
+    # PLOT LINKS
     for idx, row in plot_links.iterrows():
-        z = 1
         x, y = sublink(row)
-        color = cluster_colors[int(row["cluster"])]  # color = cluster label
+
+        color = cluster_colors[int(row["cluster"])]
+        z = 1
+
         if idx in threshold:
             color = "black"
-            z = 3 
-        ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
+            z = 3
+
+        ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4, zorder=z)
+
+
+    # PLOT SPAWN LINKS
+    all_spawn = []
     
+    if len(spawn_links) != 0:
+        all_spawn.extend(spawn_links)
+
     if init_links is not None:
-        for idx in init_links:
-            row = plot_links.iloc[idx]
-            z = 4
-            x, y = sublink(row)
-            color = "lime"  # color = cluster label
-            ax.plot(x, y, c=color, linewidth = 2 + row["num_lanes"] * 0.4, zorder = z)   
-         
-    ### FILTER ###
+        all_spawn.extend(init_links)
+
+    for idx in set(all_spawn): 
+        row = plot_links.iloc[idx]
+        x, y = sublink(row)
+
+        ax.plot(
+            x, y,
+            c="lime",
+            linewidth=2 + row["num_lanes"] * 0.4,
+            zorder=4
+        )
+
+
+    # Filter (si activé) 
     if filter:
         for idx, row in links.loc[threshold].iterrows():
-            x, y = sublink(row)  # color = cluster label
-            color = "black"
-            z = 3 
-            ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
+            x, y = sublink(row)
+            ax.plot(
+                x, y,
+                c="black",
+                linewidth=0.4 + row["num_lanes"] * 0.4,
+                zorder=3
+            )
     ##############
     
     # ── Overlay intersection polygons for spatial context ──────────────────────
@@ -550,7 +584,9 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
                 label=f"Cluster {k} – {mean_speed_real:.2f} m/s"
             )
         )
-
+    handles.append(
+    plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points")
+)
     ax.legend(handles=handles, fontsize=7, loc="upper right")
 
     # ── Save ───────────────────────────────────────────────────────────────────
@@ -1395,37 +1431,6 @@ def closest_link(x, y):
 
 
 
-x_min_lim = np.min(links["from_x"])
-x_max_lim = np.max(links["to_x"])
-y_min_lim = np.min(links["from_y"])
-y_max_lim = np.max(links["to_y"])
-
-x25 = x_min_lim + 0.25 * (x_max_lim - x_min_lim)
-x50 = x_min_lim + 0.5 * (x_max_lim - x_min_lim)
-x75 = x_min_lim + 0.75 * (x_max_lim - x_min_lim)
-
-
-y25 = y_min_lim + 0.25 * (y_max_lim - y_min_lim)
-y50 = y_min_lim + 0.5 * (y_max_lim - y_min_lim)
-y75 = y_min_lim + 0.75 * (y_max_lim - y_min_lim)
-
-xs1 = [x25, x75]
-ys1 = [y25, y75]
-
-xs2 = [x50]
-ys2 = [y25, y75]
-
-xs3 = [x25, x75]
-ys3 = [y50]
-
-links_spawn_1 = [(x, y) for x in xs1 for y in ys1]
-links_spawn_2 = [(x, y) for x in xs2 for y in ys2]
-links_spawn_3 = [(x, y) for x in xs3 for y in ys3]
-
-init_links_1 = [closest_link(x, y) for x, y in links_spawn_1]
-init_links_2 = [closest_link(x, y) for x, y in links_spawn_2]
-init_links_3 = [closest_link(x, y) for x, y in links_spawn_3]
-
     
 
 
@@ -1480,24 +1485,70 @@ th = thresholds(max_speed=2, max_length=np.inf)
 
 ##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
 
+
+x_min_lim = np.min(links["from_x"])
+x_max_lim = np.max(links["to_x"])
+y_min_lim = np.min(links["from_y"])
+y_max_lim = np.max(links["to_y"])
+
+x25 = x_min_lim + 0.25 * (x_max_lim - x_min_lim)
+x50 = x_min_lim + 0.5 * (x_max_lim - x_min_lim)
+x75 = x_min_lim + 0.75 * (x_max_lim - x_min_lim)
+
+
+y25 = y_min_lim + 0.25 * (y_max_lim - y_min_lim)
+y50 = y_min_lim + 0.5 * (y_max_lim - y_min_lim)
+y75 = y_min_lim + 0.75 * (y_max_lim - y_min_lim)
+
+xs1 = [x25, x75]
+ys1 = [y25, y75]
+
+xs2 = [x50]
+ys2 = [y25, y75]
+
+xs3 = [x25, x75]
+ys3 = [y50]
+
+links_spawn_1 = [(x, y) for x in xs1 for y in ys1]
+links_spawn_2 = [(x, y) for x in xs2 for y in ys2]
+links_spawn_3 = [(x, y) for x in xs3 for y in ys3]
+
+init_links_1 = [closest_link(x, y) for x, y in links_spawn_1]
+init_links_2 = [closest_link(x, y) for x, y in links_spawn_2]
+init_links_3 = [closest_link(x, y) for x, y in links_spawn_3]
+
+
 cluster_amount = list(range(2,8,1))
 
-# for i in cluster_amount:
-#     kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
-#     kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th, timeframe=10)
-#     kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", threshold=th, timeframe=30)
 
-kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_1)
-# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_2)
-# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_3)
+for i in cluster_amount:
+    kmeans_clustering(i, "kmeans_speed_clusters", "speed")
+    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", timeframe=10)
+    kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", timeframe=30)
 
-# for i in cluster_amount:
+kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", timeframe=10, init_links=init_links_1)
+kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  timeframe=10, init_links=init_links_2)
+kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed",  timeframe=10, init_links=init_links_3)
 
 
-# kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_1)
-# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_2)
-# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_3)
-
+kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_1)
+kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_2)
+kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=init_links_3)
 
 
 
+
+main_roads1 = [
+    closest_link(429250, 4581750),
+    closest_link(432200,4581900),
+    closest_link(430280, 4582250) 
+    ]
+
+kmeans_clustering(len(main_roads1), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=main_roads1)
+
+main_roads2 = [
+    closest_link(429250, 4581750),
+    closest_link(431250, 4582350)
+]
+
+kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "speed", timeframe=30, init_links=main_roads2)
