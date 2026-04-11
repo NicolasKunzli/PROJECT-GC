@@ -273,71 +273,6 @@ fps = 0.5
 os.makedirs(f"figure/clustering", exist_ok = True)
 
 
-def kmeans_clust(n_clusters, random_states, name):
-    """
-    Spatial-only KMeans clustering using link centroid coordinates (x, y).
-
-    Clusters links purely by geographic position. Useful as a spatial baseline
-    to compare against feature-driven methods (Ward, velocity-based KMeans).
-
-    Parameters
-    ----------
-    n_clusters    : int   – number of clusters
-    random_states : array – list of random seeds to try (one PNG saved per seed)
-    name          : str   – subfolder / filename prefix for saved figures
-    """
-    folder = f"figure/clustering/{name}"
-    os.makedirs(folder, exist_ok=True)
-
-    # Pre-build discrete colormap once (consistent across all seeds)
-    cmap_discrete = matplotlib.colormaps.get_cmap("tab10").resampled(n_clusters)
-    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clusters))
-
-    # Feature matrix: normalised centroid coordinates
-    X = StandardScaler().fit_transform(
-        np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
-    )
-
-    for i in random_states:
-        i = int(i)
-
-        # FIX 1 – create a fresh figure per seed so previous seeds don't bleed through
-        fig, ax = plt.subplots(dpi=250)
-        ax.set_aspect("equal")
-        # FIX 2 – title now reflects what the plot actually shows
-        ax.set_title(f"KMeans spatial clustering (k={n_clusters}, seed={i})", fontsize=9)
-        ax.set_xlabel("X [m]", fontsize=10)
-        ax.set_ylabel("Y [m]", fontsize=10)
-        ax.tick_params(axis="both", labelsize=8)
-
-        kmeans = KMeans(n_clusters=n_clusters, random_state=i, n_init="auto")
-        plot_links = links.copy()
-        plot_links["cluster"] = kmeans.fit_predict(X)
-
-        ### Plotting the links
-        for _, row in plot_links.iterrows():
-            x, y = sublink(row)
-            # FIX 3 – use tab10 discrete colormap (was viridis continuous)
-            # FIX 4 – divide by n_clusters (was global n_clus, caused wrong colours
-            #          when the function was called with a different n)
-            color = cluster_colors[int(row["cluster"])]
-            ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4)
-
-        ### Intersection polygons
-        polyg(ax, color="black", alpha=0.6, zorder=-1)
-
-        ### FIX 5 – add a legend so clusters are identifiable
-        handles = [
-            plt.Line2D([0], [0], color=cluster_colors[k], lw=3, label=f"Cluster {k}")
-            for k in range(n_clusters)
-        ]
-        ax.legend(handles=handles, fontsize=7, loc="upper right")
-
-        fig.savefig(f"{folder}/{name}{i}.png")
-        plt.close(fig)
-        print(f"Seed {i} DONE")
-
-
 ############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
 def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None):
@@ -355,7 +290,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     feature_type : str – one of {"geometric", "speed", "distance", "time"}
     random_state : int – random seed for reproducibility (default 42)
     threshold    : array - links index with outside the threshold
-    init_links   : 
+    init_links   : list - links indices to 
     ─────────────────────────────────────────────────────────────────────────────
     HOW KMEANS WORKS — THE FOUR STEPS
     ─────────────────────────────────────────────────────────────────────────────
@@ -481,6 +416,10 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     # labels[i] is the cluster index (0 … n_clusters-1) of the i-th road link.
     
     if init_links is not None:
+        if len(init_links) != int(n_clusters):
+            print(f"n_clusters doesn't match the amount of init_links")
+            n_clusters = len(init_links)
+            print(f"n_clusters set to {len(init_links)}")
         init_centroids = X[init_links]  
         n_clusters = len(init_links)
         kmeans = KMeans(
@@ -571,7 +510,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
             z = 4
             x, y = sublink(row)
             color = "lime"  # color = cluster label
-            ax.plot(x, y, c=color, linewidth = 5 + row["num_lanes"] * 0.4, zorder = z)   
+            ax.plot(x, y, c=color, linewidth = 2 + row["num_lanes"] * 0.4, zorder = z)   
          
     ### FILTER ###
     if filter:
@@ -1513,9 +1452,6 @@ seeds = np.linspace(0, 9, 10)
 # grid_clust(20, 16, 55)
 # grid_clust(20, 16, 45)
 
-### Spatial KMeans (multiple seeds)
-# kmeans_clust(n_clus, seeds, "kmeans")
-
 ### Threshold
 th = thresholds(max_speed=2, max_length=np.inf)
 #print(th)
@@ -1546,14 +1482,21 @@ th = thresholds(max_speed=2, max_length=np.inf)
 
 cluster_amount = list(range(2,8,1))
 
-#for i in cluster_amount:
-#    kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
-#    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th, timeframe=10)
+# for i in cluster_amount:
+#     kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
+#     kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th, timeframe=10)
+#     kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", threshold=th, timeframe=30)
 
-kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_1)
-kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_2)
-kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_3)
+kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_1)
+# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_2)
+# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_3)
 
+# for i in cluster_amount:
+
+
+# kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_1)
+# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_2)
+# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", threshold=th, timeframe=30, init_links=init_links_3)
 
 
 
