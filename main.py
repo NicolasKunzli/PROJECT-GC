@@ -340,7 +340,7 @@ def kmeans_clust(n_clusters, random_states, name):
 
 ############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None):
+def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -355,7 +355,7 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     feature_type : str – one of {"geometric", "speed", "distance", "time"}
     random_state : int – random seed for reproducibility (default 42)
     threshold    : array - links index with outside the threshold
-
+    init_links   : 
     ─────────────────────────────────────────────────────────────────────────────
     HOW KMEANS WORKS — THE FOUR STEPS
     ─────────────────────────────────────────────────────────────────────────────
@@ -479,11 +479,29 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
     #
     # `labels` is therefore a 1-D integer array of length n_links where
     # labels[i] is the cluster index (0 … n_clusters-1) of the i-th road link.
-    labels = KMeans(
-        n_clusters=n_clusters,      # ← STEP 1: sets the number of centroids
-        random_state=random_state,  # ← STEP 1: seeds the initialisation
-        n_init="auto",              # ← STEP 4: how many independent restarts
-    ).fit_predict(X)                # ← STEPS 1–4: runs the full algorithm
+    
+    if init_links is not None:
+        init_centroids = X[init_links]  
+        n_clusters = len(init_links)
+        kmeans = KMeans(
+            n_clusters=n_clusters,      # ← STEP 1: sets the number of centroids
+            init=init_centroids,        # ← STEP 1: seeds the initialisation
+            n_init=1,                   # ← STEP 4: how many independent restarts
+            random_state=random_state,  # ← STEPS 1–4: runs the full algorithm
+        )
+        
+    else:
+        kmeans = KMeans(
+            n_clusters=n_clusters,
+            random_state=random_state,
+            n_init="auto",
+    )
+        
+    labels = kmeans.fit_predict(X)
+                                
+                                
+                                
+                                
     
     # ── Attach cluster labels to the links DataFrame ───────────────────────────
     # Each road link now carries an integer cluster ID (0 … n_clusters-1).
@@ -547,6 +565,14 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
             z = 3 
         ax.plot(x, y, c=color, linewidth = 0.4 + row["num_lanes"] * 0.4, zorder = z)
     
+    if init_links is not None:
+        for idx in init_links:
+            row = plot_links.iloc[idx]
+            z = 4
+            x, y = sublink(row)
+            color = "lime"  # color = cluster label
+            ax.plot(x, y, c=color, linewidth = 5 + row["num_lanes"] * 0.4, zorder = z)   
+         
     ### FILTER ###
     if filter:
         for idx, row in links.loc[threshold].iterrows():
@@ -598,6 +624,17 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
             fig.savefig(f"{folder}/{name}_filtered.png")
             plt.close(fig)
             print(f"Saved → {folder}/{name}_filtered.png")
+            
+    elif init_links is not None:
+        if show:
+            fig.savefig(f"{folder}/{n_clusters}_{name}_{str(init_links)}.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{n_clusters}_{name}_{str(init_links)}.png")
+        else:
+            fig.savefig(f"{folder}/{name}_{str(init_links)}.png")
+            plt.close(fig)
+            print(f"Saved → {folder}/{name}_{str(init_links)}.png")  
+    
     else:
         if show:
             fig.savefig(f"{folder}/{n_clusters}_{name}_best.png")
@@ -607,6 +644,8 @@ def kmeans_clustering(n_clusters, name, feature_type, random_state=42, threshold
             fig.savefig(f"{folder}/{name}_best.png")
             plt.close(fig)
             print(f"Saved → {folder}/{name}_best.png")
+    
+    
             
 
 ############################# CLUSTERING (using a library) (WARD / AGGLOMERATIVE) #############################
@@ -698,10 +737,12 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2.5, dynamic_we
         spatial_features = spatial_features[mask,:]
     ##############
     
-    return np.hstack([
-        StandardScaler().fit_transform(dynamic) * dynamic_weight,
-        StandardScaler().fit_transform(spatial_features) * spatial_weight,
-    ])
+    scaler = StandardScaler()
+
+    dynamic_scaled = scaler.fit_transform(dynamic) * dynamic_weight
+    spatial_scaled = scaler.fit_transform(spatial_features) * spatial_weight
+
+    return np.hstack([dynamic_scaled, spatial_scaled])
 
 
 def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filter=False, one_timeframe = False):
@@ -752,18 +793,37 @@ def build_cluster_features(feature_type, timeframe, threshold=np.array([]), filt
         ##############
 
         if one_timeframe:
-            # Single timeframe: use speed at one timestamp as feature vector
-            speed_snapshot = speed_profile[timeframe, :]  # shape (N,)
-            speed_snapshot = np.nan_to_num(speed_snapshot, nan=0.0)
-            spatial = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
-            if filter and threshold.size > 0:
-                mask = np.ones(spatial.shape[0], dtype=bool)
-                mask[threshold] = False
-                spatial = spatial[mask, :]
-            return np.column_stack([
-                StandardScaler().fit_transform(speed_snapshot.reshape(-1, 1)),
-                StandardScaler().fit_transform(spatial),
+            #  speed snapshot 
+            speed_snapshot = np.nan_to_num(speed_profile[timeframe, :], nan=0.0)
+
+            #  spatial features 
+            spatial = np.column_stack([
+                links["c_x"].to_numpy(),
+                links["c_y"].to_numpy()
             ])
+
+            #  optional filtering
+            if filter and threshold.size > 0:
+                mask = np.ones(len(speed_snapshot), dtype=bool)
+                mask[threshold] = False
+
+                speed_snapshot = speed_snapshot[mask]
+                spatial = spatial[mask, :]
+
+            #  build feature matrix 
+            X = np.column_stack([speed_snapshot, spatial])
+
+            #  normalize 
+            X = StandardScaler().fit_transform(X)
+
+            #  WEGHTS 
+            w_speed = 1.5
+            w_spatial = 2.0
+
+            X[:, 0] *= w_speed
+            X[:, 1:] *= w_spatial
+
+            return X
 
         return temporal_cluster_features(speed_profile.T, peak_mode="min", threshold=threshold, filter=filter)
 
@@ -1383,6 +1443,51 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
     plt.close()
 
 
+def closest_link(x, y):
+
+    
+    coords = np.column_stack([links["c_x"].to_numpy(), links["c_y"].to_numpy()])
+    
+    point = np.array([x, y])
+    
+    distances = np.linalg.norm(coords - point, axis=1)
+    
+    return np.argmin(distances)
+
+
+
+x_min_lim = np.min(links["from_x"])
+x_max_lim = np.max(links["to_x"])
+y_min_lim = np.min(links["from_y"])
+y_max_lim = np.max(links["to_y"])
+
+x25 = x_min_lim + 0.25 * (x_max_lim - x_min_lim)
+x50 = x_min_lim + 0.5 * (x_max_lim - x_min_lim)
+x75 = x_min_lim + 0.75 * (x_max_lim - x_min_lim)
+
+
+y25 = y_min_lim + 0.25 * (y_max_lim - y_min_lim)
+y50 = y_min_lim + 0.5 * (y_max_lim - y_min_lim)
+y75 = y_min_lim + 0.75 * (y_max_lim - y_min_lim)
+
+xs1 = [x25, x75]
+ys1 = [y25, y75]
+
+xs2 = [x50]
+ys2 = [y25, y75]
+
+xs3 = [x25, x75]
+ys3 = [y50]
+
+links_spawn_1 = [(x, y) for x in xs1 for y in ys1]
+links_spawn_2 = [(x, y) for x in xs2 for y in ys2]
+links_spawn_3 = [(x, y) for x in xs3 for y in ys3]
+
+init_links_1 = [closest_link(x, y) for x, y in links_spawn_1]
+init_links_2 = [closest_link(x, y) for x, y in links_spawn_2]
+init_links_3 = [closest_link(x, y) for x, y in links_spawn_3]
+
+    
 
 
 #graph()
@@ -1427,9 +1532,9 @@ th = thresholds(max_speed=2, max_length=np.inf)
 # # kmeans_clustering(n_clus, "kmeans_distance_clusters", "distance")
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
-### Simplified map
-simplified_map(distance_threshold=50.0, grad=True)
-simplified_map(distance_threshold=50.0, grad=False, color="navy")
+# ### Simplified map
+# simplified_map(distance_threshold=50.0, grad=True)
+# simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
 
 ### Percolation analysis
@@ -1443,7 +1548,12 @@ cluster_amount = list(range(2,8,1))
 
 #for i in cluster_amount:
 #    kmeans_clustering(i, "kmeans_speed_clusters", "speed", threshold=th)
-#    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th,timeframe=10)
+#    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", threshold=th, timeframe=10)
+
+kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_1)
+kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_2)
+kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed", threshold=th, timeframe=10, init_links=init_links_3)
+
 
 
 
