@@ -275,7 +275,7 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 
 ############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
-def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None):
+def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None, show_weights=False):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -356,7 +356,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
     # while keeping the same temporal feature structure.
     
     one_tf = timeframe is not None
-    X = build_cluster_features(feature_type, spatial_weight=2.5, dynamic_weight = 1, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
+    X = build_cluster_features(feature_type, spatial_weight=spatial_weight, dynamic_weight=dynamic_weight, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
 
     if feature_type == "speed" and threshold.size > 0:
             print(f"The low speed and short links are :{threshold}")
@@ -592,33 +592,43 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
     # ── Save ───────────────────────────────────────────────────────────────────
     if filter == True:
         if show:
-            fig.savefig(f"{folder}/{n_clusters}_{name}_filtered.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{n_clusters}_{name}_filtered.png")
+            if show_weights:
+                filename = f"{folder}/{n_clusters}_{name}_filtered_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{n_clusters}_{name}_filtered.png"
         else:
-            fig.savefig(f"{folder}/{name}_filtered.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{name}_filtered.png")
-            
+            if show_weights:
+                filename = f"{folder}/{name}_filtered_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{name}_filtered.png"
+
     elif init_links is not None:
         if show:
-            fig.savefig(f"{folder}/{n_clusters}_{name}_{str(init_links)}.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{n_clusters}_{name}_{str(init_links)}.png")
+            if show_weights:
+                filename = f"{folder}/{n_clusters}_{name}_{str(init_links)}_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{n_clusters}_{name}_{str(init_links)}.png"
         else:
-            fig.savefig(f"{folder}/{name}_{str(init_links)}.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{name}_{str(init_links)}.png")  
-    
+            if show_weights:
+                filename = f"{folder}/{name}_{str(init_links)}_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{name}_{str(init_links)}.png"
+
     else:
         if show:
-            fig.savefig(f"{folder}/{n_clusters}_{name}_best.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{n_clusters}_{name}_best.png")
+            if show_weights:
+                filename = f"{folder}/{n_clusters}_{name}_best_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{n_clusters}_{name}_best.png"
         else:
-            fig.savefig(f"{folder}/{name}_best.png")
-            plt.close(fig)
-            print(f"Saved → {folder}/{name}_best.png")
+            if show_weights:
+                filename = f"{folder}/{name}_best_spa{spatial_weight}_dyn{dynamic_weight}.png"
+            else:
+                filename = f"{folder}/{name}_best.png"
+
+    fig.savefig(filename)
+    plt.close(fig)
+    print(f"Saved → {filename}")
     
     
             
@@ -1526,37 +1536,38 @@ init_links_3 = [closest_link(x, y) for x, y in links_spawn_3]
 cluster_amount = list(range(2,8,1))
 
 
-for i in cluster_amount:
-    kmeans_clustering(i, "kmeans_speed_clusters", "speed")
-    kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10)
-    kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30)
 
-kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_1)
-kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_2)
-kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_3)
+# for i in cluster_amount:
+#     kmeans_clustering(i, "kmeans_speed_clusters", "speed")
+#     kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10)
+#     kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30)
 
-
-kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_1)
-kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_2)
-kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_3)
+# kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_1)
+# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_2)
+# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_3)
 
 
+# kmeans_clustering(len(init_links_1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_1)
+# kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_2)
+# kmeans_clustering(len(init_links_3), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=init_links_3)
 
 
-main_roads1 = [
-    closest_link(429250, 4581750),
-    closest_link(432200,4581900),
-    closest_link(430280, 4582250) 
-    ]
 
-kmeans_clustering(len(main_roads1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads1)
 
-main_roads2 = [
-    closest_link(429250, 4581750),
-    closest_link(431250, 4582350)
-]
+# main_roads1 = [
+#     closest_link(429250, 4581750),
+#     closest_link(432200,4581900),
+#     closest_link(430280, 4582250) 
+#     ]
 
-kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads2)
+# kmeans_clustering(len(main_roads1), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads1)
+
+# main_roads2 = [
+#     closest_link(429250, 4581750),
+#     closest_link(431250, 4582350)
+# ]
+
+# kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30, init_links=main_roads2)
 
 
 
@@ -1569,3 +1580,11 @@ kmeans_clustering(len(main_roads2), "kmeans_speed_clusters_t_30_set_spawn", "spe
 # UNIQUE TIMEFRAME
 # dynamic_weight = 1.5
 # spatial_weight = 2.0
+
+halves = np.array(list(range(1, 21)))/10
+print(halves)
+
+
+for i in halves:
+    kmeans_clustering(4, "kmeans_speed_clusters_t_30_set_spawn_weights", "speed", dynamic_weight = i, spatial_weight = 1, timeframe=30, init_links=init_links_1, show_weights = True)
+    print(i)
