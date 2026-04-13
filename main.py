@@ -40,17 +40,22 @@ with open (os.path.join(path, "metadata", "train_test_split.json")) as f:tts=f.r
 with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:interest = [line.strip() for line in f.readlines()]
 
 
+############################# LINKS CENTER #############################
 links["c_x"] = (links["from_x"] + links["to_x"])/2
 links["c_y"] = (links["from_y"] + links["to_y"])/2
+
 
 
 ### Class
 DL = DataLoader()
 DL.init_graph_structure
 
+
+
 ############################# GENERAL COMMENTS #############################
 # Dl._vdist_3min[simulation number, timestamp, link id]
 # DL.segment_lengths[link id]
+
 
 
 ############################# BASIC PLOT FUNCTIONS #############################
@@ -139,6 +144,7 @@ def numerical_sort(file):
         return int(numbers[0]) # If a number has been found, we take the first one and return it to be used as index to ensure correct order
     else: 
         return -1 # If no numbers has been found, return the index to be at last place
+
 
 
 ############################# CREATING THE BASELINE MAP #############################
@@ -269,12 +275,14 @@ def gradient_gif(param: list, param_name:list, fps : int):
 
 fps = 0.5
 
+
+
 ############################# KMEANS #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
 
 
-############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 
+############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
 def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None, show_weights=False):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
@@ -449,10 +457,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
             distances = np.linalg.norm(cluster_points - centroid, axis=1)
             closest_idx = cluster_idx[np.argmin(distances)]
 
-            spawn_links.append(closest_idx)
-                                   
-                                
-                                
+            spawn_links.append(closest_idx)                        
     
     # ── Attach cluster labels to the links DataFrame ───────────────────────────
     # Each road link now carries an integer cluster ID (0 … n_clusters-1).
@@ -543,7 +548,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
         )
 
 
-    # Filter (si activé) 
+    # FILTER 
     if filter:
         for idx, row in links.loc[threshold].iterrows():
             x, y = sublink(row)
@@ -631,7 +636,6 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
     print(f"Saved → {filename}")
     
     
-            
 
 ############################# CLUSTERING (using a library) (WARD / AGGLOMERATIVE) #############################
 os.makedirs(f"figure/clustering", exist_ok = True)
@@ -820,6 +824,9 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
         
     raise ValueError(f"Unknown feature_type: {feature_type}")
 
+
+
+############################# AGGLOMERATIVE CLUSTERING #############################
 def clustering(n_clusters, name, feature_type, threshold=np.array([])):
     """
     Perform hierarchical (Ward) clustering of network links and visualize the result. 
@@ -1585,6 +1592,6 @@ halves = np.array(list(range(1, 21)))/10
 print(halves)
 
 
-for i in halves:
-    kmeans_clustering(4, "kmeans_speed_clusters_t_30_set_spawn_weights", "speed", dynamic_weight = i, spatial_weight = 1, timeframe=30, init_links=init_links_1, show_weights = True)
-    print(i)
+# for i in halves:
+#     kmeans_clustering(4, "kmeans_speed_clusters_t_30_set_spawn_weights", "speed", dynamic_weight = i, spatial_weight = 1, timeframe=30, init_links=init_links_1, show_weights = True)
+#     print(i)
