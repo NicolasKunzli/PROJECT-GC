@@ -1334,11 +1334,20 @@ def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31,33,36,38]):
         print(f"Saved congestion map t={t} ({t*3}min): {n_congested} congested segments")
 
 
-def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
+def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None):
     """
-    Clusters the links based on a rectangular grid
-    
+    Clusters the links based on a rectangular grid.
+
     xdiv : int
+        Number of grid divisions along x.
+    ydiv : int
+        Number of grid divisions along y.
+    percentile : int
+        Speed percentile threshold used when qc is None (raw-speed mode).
+    qc : float or None
+        If provided, uses the percolation critical threshold on normalized speed
+        r = v / v_max instead of the raw-speed percentile. Cells with mean r < qc
+        are drawn red (congested), otherwise green (functional).
     """
     links_local = links.copy()
     tol = 100
@@ -1346,59 +1355,80 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
     x_max = np.max(links_local["to_x"]) + tol
     y_min = np.min(links_local["from_y"]) - tol
     y_max = np.max(links_local["to_y"]) + tol
- 
+
     w = (x_max - x_min)/xdiv
     h = (y_max - y_min)/ydiv
     xs = np.arange(x_min, x_max, w)
     ys = np.arange(y_min, y_max, h)
-    
+
     folder = f"figure/clustering/grid_clusters"
     os.makedirs(folder, exist_ok=True)
-    
+
     fig, ax = plt.subplots(dpi = 250)
-    
+
     ### Assigning the grid cell in which link is (clustering)
     links_local["cell_x"] = ((links_local["c_x"] - x_min)//w).astype(int)
     links_local["cell_y"] = ((links_local["c_y"] - y_min)//h).astype(int)
-    
 
-    vdist = DL._vdist_3min.astype(float)
-    vtime = DL._vtime_3min.astype(float)
+    if qc is not None:
+        # Mode percolation : on utilise la vitesse normalisée r = v / v_max
+        r = compute_normalized_speed()                              # (S, T, N)
+        r_mean = np.nanmean(r.reshape(-1, r.shape[2]), axis=0)      # (N,)
+        r_mean = np.nan_to_num(r_mean, nan=0.0)
+        links_local["speed_mean"] = r_mean
 
-    speed = np.divide(
-        vdist,
-        vtime,
-        out=np.full(vdist.shape, np.nan),  # fallback
-        where=(vtime != 0) & (~np.isnan(vtime))
-    )
-    
-    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0)) # (T, N)
-    print(speed.shape)
-    
-    average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours (N, )
-    links_local["speed_mean"] = average_speed_per_link
-    
-    cell_speed = (
-        links_local
-        .groupby(["cell_x", "cell_y"])["speed_mean"]
-        .mean()
-        .reset_index(name="cell_avg_speed")
-    )
-    
-    links_local = links_local.merge(
-        cell_speed,
-        on=["cell_x", "cell_y"],
-        how="left"
-    )
+        cell_speed = (
+            links_local
+            .groupby(["cell_x", "cell_y"])["speed_mean"]
+            .mean()
+            .reset_index(name="cell_avg_speed")
+        )
+        links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
 
-    perc = np.percentile(average_speed_per_link, percentile, axis=0) # NN-th percentile 
-    print(perc)
-    
-    links_local["color"] = np.where(
-        links_local["cell_avg_speed"] >= perc,
-        "green",
-        "red"
-    )
+        links_local["color"] = np.where(
+            links_local["cell_avg_speed"] >= qc,
+            "green",
+            "red"
+        )
+        title = f"Percolation $q_c$ = {qc:.3f} (normalized speed)"
+        fname = f"{folder}/grid_perc_qc{qc:.3f}.png"
+    else:
+        # Mode historique : percentile sur la vitesse brute
+        vdist = DL._vdist_3min.astype(float)
+        vtime = DL._vtime_3min.astype(float)
+
+        speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan),  # fallback
+            where=(vtime != 0) & (~np.isnan(vtime))
+        )
+
+        speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0)) # (T, N)
+        print(speed.shape)
+
+        average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours (N, )
+        links_local["speed_mean"] = average_speed_per_link
+
+        cell_speed = (
+            links_local
+            .groupby(["cell_x", "cell_y"])["speed_mean"]
+            .mean()
+            .reset_index(name="cell_avg_speed")
+        )
+        links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
+
+        perc = np.percentile(average_speed_per_link, percentile, axis=0) # NN-th percentile
+        print(perc)
+
+        links_local["color"] = np.where(
+            links_local["cell_avg_speed"] >= perc,
+            "green",
+            "red"
+        )
+        title = f"{percentile}th percentile : Speed = {perc:.2f} m/s"
+        fname = f"{folder}/grid{percentile}.png"
+
     ### Plotting the links
     for _, row in links_local.iterrows():
 
@@ -1420,15 +1450,15 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65):
                 linewidth=0.5
             )
             ax.add_patch(rect)
-            
+
     ### Plotting the intersections
     polyg(ax, color="black", zorder=-2)
-    
-    ax.set_title(f"{percentile}th percentile : Speed = {perc:.2f} m/s")
+
+    ax.set_title(title)
     ax.set_xlim(x_min, x_max)
     ax.set_ylim(y_min, y_max)
     ax.set_aspect("equal")
-    fig.savefig(f"{folder}/grid{percentile}.png")
+    fig.savefig(fname)
     plt.close()
 
 
@@ -1503,6 +1533,8 @@ th = thresholds(max_speed=2, max_length=np.inf)
 ### Percolation analysis
 #qc, bottlenecks = percolation_analysis(session=0)
 #congestion_map(qc, session=0)
+# Grille avec le seuil critique de percolation (au lieu du percentile arbitraire) :
+#grid_clust(20, 16, qc=qc)
 
 
 ##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
@@ -1544,10 +1576,12 @@ cluster_amount = list(range(2,8,1))
 
 
 
+# Timeframes couvrant le début (≈08:18), le milieu (≈09:03) et la fin (≈09:48) de la fenêtre 08:03–10:00
+# timeframes = [5, 20, 35]
 # for i in cluster_amount:
 #     kmeans_clustering(i, "kmeans_speed_clusters", "speed")
-#     kmeans_clustering(i, "kmeans_speed_clusters_t_10", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10)
-#     kmeans_clustering(i, "kmeans_speed_clusters_t_30", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=30)
+#     for tf in timeframes:
+#         kmeans_clustering(i, f"kmeans_speed_clusters_t_{tf}", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=tf)
 
 # kmeans_clustering(5, "kmeans_speed_clusters_t_10_set_spawn", "speed", dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_1)
 # kmeans_clustering(len(init_links_2), "kmeans_speed_clusters_t_10_set_spawn", "speed",  dynamic_weight = 1.5, spatial_weight = 2.0, timeframe=10, init_links=init_links_2)
