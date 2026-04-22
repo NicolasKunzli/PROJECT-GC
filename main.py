@@ -283,7 +283,7 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 
 
 ############################# KMEANS - WITH VELOCITY / TRAFFIC FEATURES #############################
-def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, show=True, timeframe=None, init_links = None, show_weights=False):
+def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=1.75, dynamic_weight = 1, random_state=42, threshold=np.array([]), filter=False, timeframe=None, init_links = None, show_weights=False, session_min=0, session_max=100):
     """
     KMeans clustering using the same rich traffic feature vectors as the Ward
     method, making it directly comparable with `clustering()`.
@@ -364,7 +364,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
     # while keeping the same temporal feature structure.
     
     one_tf = timeframe is not None
-    X = build_cluster_features(feature_type, spatial_weight=spatial_weight, dynamic_weight=dynamic_weight, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf)
+    X = build_cluster_features(feature_type, spatial_weight=spatial_weight, dynamic_weight=dynamic_weight, timeframe=timeframe if one_tf else 0, threshold=threshold, filter=filter, one_timeframe=one_tf, session_min=session_min, session_max=session_max)
 
     if feature_type == "speed" and threshold.size > 0:
             print(f"The low speed and short links are :{threshold}")
@@ -573,7 +573,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
-    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max)
     print(speed.shape)
     speed = np.mean(speed, axis = 0)
     print(speed.shape)
@@ -592,45 +592,42 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=2.5, dynami
     handles.append(
     plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points")
 )
-    ax.legend(handles=handles, fontsize=7, loc="upper right")
+    ax.legend(handles=handles, fontsize=5, loc="upper right")
 
     # ── Save ───────────────────────────────────────────────────────────────────
-    if filter == True:
-        if show:
-            if show_weights:
-                filename = f"{folder}/{n_clusters}_{name}_filtered_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{n_clusters}_{name}_filtered.png"
-        else:
-            if show_weights:
-                filename = f"{folder}/{name}_filtered_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{name}_filtered.png"
+    all_sessions = (session_min == 0 and session_max == 100)
 
-    elif init_links is not None:
-        if show:
-            if show_weights:
-                filename = f"{folder}/{n_clusters}_{name}_{str(init_links)}_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{n_clusters}_{name}_{str(init_links)}.png"
-        else:
-            if show_weights:
-                filename = f"{folder}/{name}_{str(init_links)}_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{name}_{str(init_links)}.png"
-
+    if all_sessions:
+        session_str = ""
+        full_folder = folder  # pas de sous-dossier
     else:
-        if show:
-            if show_weights:
-                filename = f"{folder}/{n_clusters}_{name}_best_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{n_clusters}_{name}_best.png"
-        else:
-            if show_weights:
-                filename = f"{folder}/{name}_best_spa{spatial_weight}_dyn{dynamic_weight}.png"
-            else:
-                filename = f"{folder}/{name}_best.png"
+        session_str = f"s{session_min}-{session_max}"
+        full_folder = os.path.join(folder, session_str)
+        os.makedirs(full_folder, exist_ok=True)
 
+    base = f"{n_clusters}_t{timeframe}"
+
+    if session_str:
+        base += f"_{session_str}"
+
+    base += f"_{name}"
+
+    if filter:
+        suffix = "filtered"
+    elif init_links is not None:
+        clean_links = "_".join(str(int(x)) for x in init_links)
+        suffix = clean_links
+    else:
+        suffix = "best"
+
+    filename = f"{full_folder}/{base}_{suffix}"
+
+    if show_weights:
+        filename += f"_spa{spatial_weight}_dyn{dynamic_weight}"
+
+    filename += ".png"
+
+    # --- Save ---
     fig.savefig(filename)
     plt.close(fig)
     print(f"Saved → {filename}")
@@ -643,12 +640,20 @@ os.makedirs(f"figure/clustering", exist_ok = True)
 NETWORK_CONNECTIVITY = sparse.csr_matrix(DL.adjacency)
 
 
-def mean_over_sessions(values):
+def mean_over_sessions(values, min=0, max=None):
     """
-    Returns the mean of a value over all of the sessions.
+    Returns the mean of a value over a subset of sessions (axis=0),
+    between indices [min, max).
     """
-    valid_counts = np.sum(~np.isnan(values), axis=0)
-    summed = np.nansum(values, axis=0)
+    if max is None:
+        max = values.shape[0]
+
+    # Sélection des sessions dans l'intervalle
+    subset = values[min:max]
+
+    valid_counts = np.sum(~np.isnan(subset), axis=0)
+    summed = np.nansum(subset, axis=0)
+
     return np.divide(
         summed,
         valid_counts,
@@ -734,7 +739,7 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2.5, dynamic_we
     return np.hstack([dynamic_scaled, spatial_scaled])
 
 
-def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_weight = 1, threshold=np.array([]), filter=False, one_timeframe = False):
+def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_weight = 1, threshold=np.array([]), filter=False, one_timeframe = False, session_min=0, session_max=100):
     """
     Build feature matrices for clustering based on different traffic descriptors.
 
@@ -771,7 +776,7 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
             where=vtime != 0,
         )
 
-        speed_profile = mean_over_sessions(speed)
+        speed_profile = mean_over_sessions(speed, min=session_min, max=session_max)
 
         ### FILTER ###
         if filter:
@@ -815,11 +820,11 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
 
     if feature_type == "distance":
         distance = np.where(vdist != 0, vdist, np.nan)
-        distance_profile = np.log1p(mean_over_sessions(distance)).T
+        distance_profile = np.log1p(mean_over_sessions(distance), min=session_min, max=session_max).T
         return temporal_cluster_features(distance_profile, peak_mode="max")
 
     if feature_type == "time":
-        time_profile = np.log1p(mean_over_sessions(np.where(vtime != 0, vtime, np.nan))).T
+        time_profile = np.log1p(mean_over_sessions(np.where(vtime != 0, vtime, np.nan)), min=session_min, max=session_max).T
         return temporal_cluster_features(time_profile, peak_mode="max")
         
     raise ValueError(f"Unknown feature_type: {feature_type}")
@@ -827,7 +832,7 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
 
 
 ############################# AGGLOMERATIVE CLUSTERING #############################
-def clustering(n_clusters, name, feature_type, threshold=np.array([])):
+def clustering(n_clusters, name, feature_type, threshold=np.array([]), session_min=0, session_max=100):
     """
     Perform hierarchical (Ward) clustering of network links and visualize the result. 
 
@@ -850,7 +855,7 @@ def clustering(n_clusters, name, feature_type, threshold=np.array([])):
     os.makedirs(folder, exist_ok=True)
 
     ### Clustering and outliers
-    X = build_cluster_features(feature_type)
+    X = build_cluster_features(feature_type, session_min=session_min, session_max=session_max)
        
     if feature_type == "speed" and threshold.size > 0:   
         print(f"The low speed and short links are :{threshold}")
@@ -899,7 +904,7 @@ def clustering(n_clusters, name, feature_type, threshold=np.array([])):
     
 ### Small links grouping
 
-def thresholds(max_speed = 0, max_length = 0):
+def thresholds(max_speed = 0, max_length = 0, session_min=0, session_max=100):
     """
     Finds the links with an 85th-percentile mean over every sessions speed lower than max_speed and a length smaller than max_length
 
@@ -920,7 +925,7 @@ def thresholds(max_speed = 0, max_length = 0):
             where=vtime != 0,
         )
     
-    speed =  mean_over_sessions(np.nan_to_num(speed, nan=0.0))
+    speed =  mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max)
     speed_85 = np.percentile(speed, 85, axis=0)
 
     low_speed_links = np.where((speed_85 <= max_speed))[0]
@@ -1285,7 +1290,7 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     return qc, bottlenecks
 
 
-def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31,33,36,38]):
+def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31, 33, 36, 38]):
     """
     Plots congestion maps at selected timesteps using the critical threshold qc
     from percolation analysis. Congested segments (r < qc) are shown in red,
@@ -1334,7 +1339,7 @@ def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31,33,36,38]):
         print(f"Saved congestion map t={t} ({t*3}min): {n_congested} congested segments")
 
 
-def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None):
+def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None, session_min=0, session_max=100):
     """
     Clusters the links based on a rectangular grid.
 
@@ -1404,7 +1409,7 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None):
             where=(vtime != 0) & (~np.isnan(vtime))
         )
 
-        speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0)) # (T, N)
+        speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max) # (T, N)
         print(speed.shape)
 
         average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours (N, )
@@ -1614,14 +1619,6 @@ cluster_amount = list(range(2,8,1))
 
 #  WEIGHTS 
 
-# UNIQUE TIMEFRAME
-# dynamic_weight = 1.0
-# spatial_weight = 2.5
-
-# UNIQUE TIMEFRAME
-# dynamic_weight = 1.5
-# spatial_weight = 2.0
-
 halves = np.array(list(range(1, 21)))/10
 print(halves)
 
@@ -1629,3 +1626,26 @@ print(halves)
 # for i in halves:
 #     kmeans_clustering(4, "kmeans_speed_clusters_t_30_set_spawn_weights", "speed", dynamic_weight = i, spatial_weight = 1, timeframe=30, init_links=init_links_1, show_weights = True)
 #     print(i)
+
+
+### Bottlenecks
+bottlenecks1 = [
+    int(closest_link(431900, 4582650)), #upper right ok
+    int(closest_link(430570, 4582390)), #upper middle ok
+    int(closest_link(428730, 4582880)), #upper left ok
+    int(closest_link(428700, 4581420)), #lower left ok
+    int(closest_link(431450, 4581820)), #middle right ok
+    int(closest_link(432200, 4581370)), #lower right ok
+    int(closest_link(430000, 4581800))  #lower middle ok
+]
+
+timesteps=[0, 9, 23, 31, 33, 36, 38]
+for t in timesteps:
+    kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks", "speed", timeframe=t, init_links=bottlenecks1)
+    
+### Sessions
+sessions = list(range(0, 81, 20))
+print(sessions)
+for t in timesteps:
+    for session in sessions:
+        kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions", "speed", timeframe=t, init_links=bottlenecks1, session_min=session, session_max=session+20)
