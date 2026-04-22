@@ -44,8 +44,6 @@ with open(os.path.join(path, "metadata", "sections_of_interest.txt"), "r") as f:
 links["c_x"] = (links["from_x"] + links["to_x"])/2
 links["c_y"] = (links["from_y"] + links["to_y"])/2
 
-
-
 ### Class
 DL = DataLoader()
 DL.init_graph_structure
@@ -574,9 +572,7 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=1.75, dynam
             where=vtime != 0,
         )
     speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max)
-    print(speed.shape)
     speed = np.mean(speed, axis = 0)
-    print(speed.shape)
     
     for k in range(n_clusters):
         cluster_idx = np.where(labels == k)[0]          # indices des liens du cluster k
@@ -596,7 +592,8 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=1.75, dynam
 
     # ── Save ───────────────────────────────────────────────────────────────────
     all_sessions = (session_min == 0 and session_max == 100)
-
+    
+    ### SESSIONS
     if all_sessions:
         session_str = ""
         full_folder = folder  # pas de sous-dossier
@@ -1617,15 +1614,6 @@ cluster_amount = list(range(2,8,1))
 
 
 
-#  WEIGHTS 
-
-halves = np.array(list(range(1, 21)))/10
-print(halves)
-
-
-# for i in halves:
-#     kmeans_clustering(4, "kmeans_speed_clusters_t_30_set_spawn_weights", "speed", dynamic_weight = i, spatial_weight = 1, timeframe=30, init_links=init_links_1, show_weights = True)
-#     print(i)
 
 
 ### Bottlenecks
@@ -1639,9 +1627,47 @@ bottlenecks1 = [
     int(closest_link(430000, 4581800))  #lower middle ok
 ]
 
+### Lowest and Highest speeds (without NaNs and 0)
+speed = np.divide(
+    DL._vdist_3min.astype(float),
+    DL._vtime_3min.astype(float),
+    where=DL._vtime_3min.astype(float) != 0,
+)
+
+speed = mean_over_sessions(speed)
+speed = np.mean(speed, axis = 0)
+
+df = links.copy()
+df["speed"] = speed 
+
+df = df[(df["speed"].notna()) & (df["speed"] != 0)]
+
+df_sorted = df.sort_values("speed")
+
+low_speeds = df_sorted.head(20)["speed"]
+high_speeds = df_sorted.tail(20).iloc[::-1]["speed"]
+
+combinations1 = []
+
+idx_low = [2, 7, 11, 19]
+idx_high = [3, 10, 15]
+
+combinations1 = (
+    low_speeds.iloc[idx_low].index.tolist()
+    + high_speeds.iloc[idx_high].index.tolist()
+)
+
 timesteps=[0, 9, 23, 31, 33, 36, 38]
+
+### Bottleneck
 for t in timesteps:
-    kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks", "speed", timeframe=t, init_links=bottlenecks1)
+    kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks", "speed", timeframe=t, init_links=bottlenecks1)
+
+### Weights analysis
+dyn_weights = np.array(list(range(1, 21)))/10
+
+for i in dyn_weights:
+    kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_set_spawn_weights", "speed", dynamic_weight = 1, spatial_weight = i, timeframe=31, init_links=bottlenecks1, show_weights=True)
     
 ### Sessions
 sessions = list(range(0, 81, 20))
@@ -1649,3 +1675,7 @@ print(sessions)
 for t in timesteps:
     for session in sessions:
         kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions", "speed", timeframe=t, init_links=bottlenecks1, session_min=session, session_max=session+20)
+
+### Low and High Speeds
+for t in timesteps:
+    kmeans_clustering(0, "kmeans_speed_clusters_low_and_high", "speed", timeframe=t, init_links=combinations1)
