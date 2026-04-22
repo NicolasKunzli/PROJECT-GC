@@ -1617,6 +1617,7 @@ cluster_amount = list(range(2,8,1))
 
 
 ### Bottlenecks
+# We choose the links that are marked as bottlnecks as per the percolation analysis results
 bottlenecks1 = [
     int(closest_link(431900, 4582650)), #upper right ok
     int(closest_link(430570, 4582390)), #upper middle ok
@@ -1628,6 +1629,7 @@ bottlenecks1 = [
 ]
 
 ### Lowest and Highest speeds (without NaNs and 0)
+# We obtain the 20 lowest and highest values of speed over all sessions (meaning that they are only relevant in an all sessions mean context)
 speed = np.divide(
     DL._vdist_3min.astype(float),
     DL._vtime_3min.astype(float),
@@ -1637,18 +1639,19 @@ speed = np.divide(
 speed = mean_over_sessions(speed)
 speed = np.mean(speed, axis = 0)
 
-df = links.copy()
+df = links.copy() # copying the links to not change the base DF
 df["speed"] = speed 
 
 df = df[(df["speed"].notna()) & (df["speed"] != 0)]
 
-df_sorted = df.sort_values("speed")
+df_sorted = df.sort_values("speed") 
 
 low_speeds = df_sorted.head(20)["speed"]
 high_speeds = df_sorted.tail(20).iloc[::-1]["speed"]
 
 combinations1 = []
 
+# Arbitrary choice of links
 idx_low = [2, 7, 11, 19]
 idx_high = [3, 10, 15]
 
@@ -1657,17 +1660,19 @@ combinations1 = (
     + high_speeds.iloc[idx_high].index.tolist()
 )
 
+
+
 timesteps=[0, 9, 23, 31, 33, 36, 38]
 
 ### Bottleneck
 for t in timesteps:
     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks", "speed", timeframe=t, init_links=bottlenecks1)
 
-### Weights analysis
+### Weights analysis on the bottlenecks spawning points and all sessions
 dyn_weights = np.array(list(range(1, 21)))/10
 
 for i in dyn_weights:
-    kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_set_spawn_weights", "speed", dynamic_weight = 1, spatial_weight = i, timeframe=31, init_links=bottlenecks1, show_weights=True)
+    kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks", "speed", dynamic_weight = 1, spatial_weight = i, timeframe=31, init_links=bottlenecks1, show_weights=True)
     
 ### Sessions
 sessions = list(range(0, 81, 20))
