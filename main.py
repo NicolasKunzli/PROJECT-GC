@@ -1620,7 +1620,7 @@ param_name = [
 
 n_clus = 8
 seeds = np.linspace(0, 9, 10)
-# grid_clust(20, 16, 85)
+grid_clust(20, 16, 85)
 # grid_clust(20, 16, 65)
 # grid_clust(20, 16, 55)
 # grid_clust(20, 16, 45)
@@ -1642,15 +1642,15 @@ th = thresholds(max_speed=2, max_length=np.inf)
 # # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
 # ### Simplified map
-# simplified_map(distance_threshold=50.0, grad=True)
+simplified_map(distance_threshold=50.0, grad=True)
 # simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
 
 ### Percolation analysis
-#qc, bottlenecks = percolation_analysis(session=0)
-#congestion_map(qc, session=0)
+qc, bottlenecks = percolation_analysis(session=0)
+congestion_map(qc, session=0)
 # Grille avec le seuil critique de percolation (au lieu du percentile arbitraire) :
-#grid_clust(20, 16, qc=qc)
+grid_clust(20, 16, qc=qc)
 
 
 ##################### CLUSTERS SPAWN POINTS/AMOUNT #####################
@@ -1732,6 +1732,8 @@ cluster_amount = list(range(2,8,1))
 
 ### Bottlenecks
 # We choose the links that are marked as bottlnecks as per the percolation analysis results
+
+'''
 bottlenecks1 = [
     int(closest_link(431900, 4582650)), #upper right ok
     int(closest_link(430570, 4582390)), #upper middle ok
@@ -1740,7 +1742,7 @@ bottlenecks1 = [
     int(closest_link(431450, 4581820)), #middle right ok
     int(closest_link(432200, 4581370)), #lower right ok
     int(closest_link(430000, 4581800))  #lower middle ok
-]
+]'''
 
 ### Lowest and Highest speeds (without NaNs and 0)
 # We obtain the 20 lowest and highest values of speed over all sessions (meaning that they are only relevant in an all sessions mean context)
@@ -1777,7 +1779,7 @@ combinations1 = (
 
 
 timesteps=[0, 9, 23, 31, 33, 36, 38]
-
+'''
 ### Bottleneck
 for t in timesteps:
     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks", "speed", timeframe=t, init_links=bottlenecks1)
@@ -1787,7 +1789,7 @@ dyn_weights = np.array(list(range(1, 21)))/10
 
 for i in dyn_weights:
     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks", "speed", dynamic_weight = 1, spatial_weight = i, timeframe=31, init_links=bottlenecks1, show_weights=True)
-    
+
 ### Sessions
 sessions = list(range(0, 81, 20))
 print(sessions)
@@ -1797,4 +1799,4 @@ for t in timesteps:
 
 ### Low and High Speeds
 for t in timesteps:
-    kmeans_clustering(0, "kmeans_speed_clusters_low_and_high", "speed", timeframe=t, init_links=combinations1)
+    kmeans_clustering(0, "kmeans_speed_clusters_low_and_high", "speed", timeframe=t, init_links=combinations1)'''
