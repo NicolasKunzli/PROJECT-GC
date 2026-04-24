@@ -19,10 +19,10 @@ matplotlib.use("Agg")
 from DataLoad import DataLoader
 
 
-# ── Color used for segments flagged as "no data" (Case C in the NaN policy) ──
+#  Color used for segments flagged as "no data" (Case C in the NaN policy) 
 NODATA_COLOR = "#cccccc"
 
-# ── Paths ──────────────────────────────────────────────────────────────────────
+#  Paths 
 DATA_ROOT   = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 FIGURE_PATH = os.path.join(DATA_ROOT, "figure")
 LOCAL_FIGURE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figure")
@@ -32,7 +32,7 @@ os.makedirs(FIGURE_PATH, exist_ok=True)
 os.makedirs(LOCAL_FIGURE, exist_ok=True)
 os.makedirs(LOCAL_GIF,    exist_ok=True)
 
-# ── Metadata DataFrames ────────────────────────────────────────────────────────
+#  Metadata DataFrames 
 _meta = os.path.join(DATA_ROOT, "metadata")
 
 centroid    = pd.read_csv(os.path.join(_meta, "centroid_pos.csv"))
@@ -51,10 +51,10 @@ with open(os.path.join(_meta, "sections_of_interest.txt"), "r") as f:
 links["c_x"] = (links["from_x"] + links["to_x"]) / 2
 links["c_y"] = (links["from_y"] + links["to_y"]) / 2
 
-# ── DataLoader singleton ───────────────────────────────────────────────────────
+#  DataLoader singleton 
 # DL._vdist_3min[session, timestamp, link_id]
 # DL.segment_lengths[link_id]
 DL = DataLoader()
 
-# ── Network connectivity (sparse, for Ward clustering) ────────────────────────
+#  Network connectivity (sparse, for Ward clustering) 
 NETWORK_CONNECTIVITY = sparse.csr_matrix(DL.adjacency)
