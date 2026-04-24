@@ -18,6 +18,9 @@ from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.preprocessing import StandardScaler
 
 ############################# FILES/CLASS INSTANCES #############################
+### Color used for segments flagged as "no data" (Case C in the NaN policy)
+NODATA_COLOR = "#cccccc"
+
 ### Files
 path = os.path.join(os.path.expanduser("~"), "Documents", "simbarca_upload")
 figure_path = os.path.join(path, "figure")
@@ -101,8 +104,9 @@ def link(ax, grad = False, color = "red", zorder = 2, norm=None, p=None, t=None,
         for j, row in links.iterrows():
             x = np.array([row["from_x"], row["to_x"]])
             y = np.array([row["from_y"], row["to_y"]])
-            if pd.isna(p[0,t,j]):  
-                z = "lime"
+            if pd.isna(p[0,t,j]):
+                # No-data: gray so viewers don't confuse it with valid zero speed.
+                z = NODATA_COLOR
             else:
                 if cmap is None:
                     raise ValueError("Colormap is missing")
@@ -224,7 +228,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
         for j, row in links.iterrows():
             x, y = sublink(row)
             if pd.isna(p[0,0,j]):
-                color = "lime"
+                color = NODATA_COLOR
             else:
                 color = cmap(norm(p[0,0,j]))
             coll = ax.plot(x, y, c=color, linewidth=1)[0]  
@@ -245,7 +249,7 @@ def gradient_gif(param: list, param_name:list, fps : int):
                 ### Updating the colors
                 for j, coll in enumerate(link_collections):
                     if pd.isna(p[0,t,j]):
-                        color = "lime"
+                        color = NODATA_COLOR
                     else:
                         color = cmap(norm(p[0,t,j]))
                     coll.set_color(color)
@@ -571,12 +575,17 @@ def kmeans_clustering(n_clusters, name, feature_type, spatial_weight=1.75, dynam
             out=np.full(vdist.shape, np.nan, dtype=float),
             where=vtime != 0,
         )
-    speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max)
-    speed = np.mean(speed, axis = 0)
-    
+    # mean_over_sessions already ignores NaNs via nansum / valid_counts,
+    # so we do NOT replace NaN with 0 before averaging (that would falsely
+    # lower the mean). Then fill_speed_nans handles per-segment filling and
+    # flags no-data segments.
+    speed_profile = mean_over_sessions(speed, min=session_min, max=session_max)
+    speed_profile, _ = fill_speed_nans(speed_profile)
+    speed = np.nanmean(speed_profile, axis=0)
+
     for k in range(n_clusters):
         cluster_idx = np.where(labels == k)[0]          # indices des liens du cluster k
-        mean_speed_real = speed[cluster_idx].mean()
+        mean_speed_real = np.nanmean(speed[cluster_idx])
         handles.append(
             plt.Line2D(
                 [0], [0], 
@@ -659,16 +668,68 @@ def mean_over_sessions(values, min=0, max=None):
     )
 
 
-def fill_profile_nans(profile):
+def fill_speed_nans(profile, minor_threshold=0.30, nodata_threshold=0.90):
     """
-    Fills the NaNs with the median of each column of the profile, i.e. the 2D NumPy array of the mean_over_session of a parameter.
+    Tiered NaN-handling policy for a speed / speed-like profile.
+
+    The rationale: NaN means "no vehicle observed on this segment at this time",
+    NOT that the speed is zero. Replacing NaN with 0 would falsely label the
+    segment as fully congested. We therefore apply three cases per segment
+    (column j):
+
+      - Case A (minor NaN, frac <= minor_threshold):
+            fill NaNs with the segment's own temporal median.
+      - Case C (majority / all NaN, frac > minor_threshold):
+            leave as NaN and flag in `nodata_mask` so downstream viz can
+            render the segment in NODATA_COLOR (gray) instead of using a
+            misleading value.
+      - Case B (neighbour fill for frac in (minor_threshold, nodata_threshold]):
+            not implemented yet -- will later fill from graph-adjacent
+            segments (DL.adjacency). For now, Case B is merged into Case C.
+
+    Parameters
+    ----------
+    profile : np.ndarray
+        Shape (T, N) aggregated profile (e.g. output of mean_over_sessions),
+        or shape (N,) already time-aggregated. NaNs are expected at
+        (time, segment) cells without valid observations.
+    minor_threshold : float
+        Max NaN fraction per segment that still allows local median fill.
+    nodata_threshold : float
+        Threshold above which a segment is definitively "no data". Currently
+        only used to distinguish Case B from Case C in future work.
+
+    Returns
+    -------
+    filled : np.ndarray
+        Same shape as `profile`. Case-A segments are fully filled; Case-C
+        segments keep their NaNs (callers must use nan-aware ops or the mask).
+    nodata_mask : np.ndarray, shape (N,), bool
+        True for segments flagged as no-data (majority NaN).
     """
-    filled = profile.copy() 
-    time_medians = np.nanmedian(filled, axis=0) 
-    time_medians = np.where(np.isnan(time_medians), 0.0, time_medians) 
-    nan_rows, nan_cols = np.where(np.isnan(filled)) 
-    filled[nan_rows, nan_cols] = time_medians[nan_cols] 
-    return filled
+    profile = np.asarray(profile, dtype=float)
+
+    if profile.ndim == 1:
+        nodata_mask = np.isnan(profile)
+        return profile.copy(), nodata_mask
+
+    filled = profile.copy()
+    nan_frac = np.mean(np.isnan(filled), axis=0)   # (N,)
+    fillable = nan_frac <= minor_threshold         # Case A
+    nodata_mask = ~fillable                        # Cases B + C (gray for now)
+
+    fill_cols = np.where(fillable)[0]
+    if fill_cols.size:
+        col_medians = np.nanmedian(filled[:, fill_cols], axis=0)
+        # nanmedian returns NaN only if a "fillable" column is fully NaN,
+        # which contradicts frac <= minor_threshold unless the column has 0 rows.
+        # Guard anyway to avoid propagating NaNs when T is tiny.
+        col_medians = np.where(np.isnan(col_medians), 0.0, col_medians)
+        for i, c in enumerate(fill_cols):
+            nan_rows = np.isnan(filled[:, c])
+            filled[nan_rows, c] = col_medians[i]
+
+    return filled, nodata_mask
 
 
 def rowwise_zscore(profile):
@@ -706,10 +767,21 @@ def temporal_cluster_features(profile, peak_mode, spatial_weight=2.5, dynamic_we
     These dynamic features are combined with spatial node
     coordinates to produce a feature matrix suitable for clustering.
         """
-    filled = fill_profile_nans(profile)
+    filled, nodata_mask = fill_speed_nans(profile)
+    # Case C segments still carry NaN after fill_speed_nans; clustering math
+    # (argmin/mean/std/SVD) cannot handle NaN, so we substitute the global
+    # cross-segment mean as a neutral placeholder. These segments are still
+    # flagged via nodata_mask so downstream viz can gray them out.
+    if nodata_mask.any():
+        neutral = np.nanmean(filled)
+        if np.isnan(neutral):
+            neutral = 0.0
+        nan_cells = np.isnan(filled)
+        filled[nan_cells] = neutral
+
     peak_idx = np.argmin(filled, axis=1) if peak_mode == "min" else np.argmax(filled, axis=1)
     peak_time = peak_idx / max(filled.shape[1] - 1, 1)
-    
+
     dynamic = np.column_stack([
         filled.mean(axis=1),
         filled.std(axis=1),
@@ -774,6 +846,10 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
         )
 
         speed_profile = mean_over_sessions(speed, min=session_min, max=session_max)
+        # Apply the tiered NaN policy: Case A values are filled with the
+        # segment's temporal median, Case C segments remain NaN and are
+        # flagged so we can neutralize them before StandardScaler.
+        speed_profile, nodata_mask = fill_speed_nans(speed_profile)
 
         ### FILTER ###
         if filter:
@@ -781,11 +857,18 @@ def build_cluster_features(feature_type, timeframe, spatial_weight=2.5, dynamic_
                 mask = np.ones(speed_profile.shape[1], dtype=bool)
                 mask[threshold] = False
                 speed_profile = speed_profile[:, mask]
+                nodata_mask = nodata_mask[mask]
         ##############
 
         if one_timeframe:
-            #  speed snapshot 
-            speed_snapshot = np.nan_to_num(speed_profile[timeframe, :], nan=0.0)
+            # Snapshot at `timeframe`. Case C segments are NaN here; replace
+            # them with the mean of the valid snapshot so StandardScaler does
+            # not choke, while keeping nodata_mask for downstream gray viz.
+            speed_snapshot = speed_profile[timeframe, :].copy()
+            neutral = np.nanmean(speed_snapshot)
+            if np.isnan(neutral):
+                neutral = 0.0
+            speed_snapshot = np.where(np.isnan(speed_snapshot), neutral, speed_snapshot)
 
             #  spatial features 
             spatial = np.column_stack([
@@ -922,11 +1005,14 @@ def thresholds(max_speed = 0, max_length = 0, session_min=0, session_max=100):
             where=vtime != 0,
         )
     
-    speed =  mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max)
-    speed_85 = np.percentile(speed, 85, axis=0)
+    speed_profile = mean_over_sessions(speed, min=session_min, max=session_max)
+    speed_profile, nodata_mask = fill_speed_nans(speed_profile)
+    # nanpercentile returns NaN for segments flagged no-data; we exclude them
+    # from the returned set because we don't know their real speed.
+    speed_85 = np.nanpercentile(speed_profile, 85, axis=0)
 
-    low_speed_links = np.where((speed_85 <= max_speed))[0]
-    
+    low_speed_links = np.where((speed_85 <= max_speed) & ~nodata_mask)[0]
+
     smallslow = [link for link in low_speed_links if links.iloc[link]["length"] <= max_length]
             
     return np.array(smallslow)
@@ -1065,7 +1151,7 @@ def simplified_map(distance_threshold, grad=True, color="navy"):
             row = links.iloc[rep_idx]
             x, y = sublink(row)
             if np.isnan(speeds[k]):
-                c = "lime"
+                c = NODATA_COLOR
             else:
                 c = cmap(norm(speeds[k]))
             ax.plot(x, y, c=c, linewidth=0.5)
@@ -1209,19 +1295,27 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     q_values = np.linspace(0, 1, n_q)
 
     if timestep is not None:
-        r_t = r[session, timestep, :]
-        # Replace NaN with 0 (no data = dysfunctional)
-        r_t = np.nan_to_num(r_t, nan=0.0)
+        # Apply the tiered NaN policy on the per-session (T, N) profile so
+        # Case A cells are filled with the segment's temporal median and
+        # Case C segments stay NaN (flagged as no-data).
+        r_session_profile, nodata_mask = fill_speed_nans(r[session])
+        r_t = r_session_profile[timestep]
         time_label = f"session {session}, t={timestep}"
     else:
-        # Average over all sessions and timesteps
-        r_t = np.nanmean(r.reshape(-1, r.shape[2]), axis=0)
-        r_t = np.nan_to_num(r_t, nan=0.0)
+        # Aggregate across sessions first, then across time. No data = NaN,
+        # never 0 (zero would falsely mark the segment as fully congested).
+        r_profile = mean_over_sessions(r, min=0, max=r.shape[0])  # (T, N)
+        r_profile, nodata_mask = fill_speed_nans(r_profile)
+        r_t = np.nanmean(r_profile, axis=0)
         time_label = "mean over all sessions/timesteps"
 
-    # Find q_c
+    # Find q_c. NaN entries in r_t will naturally fail (r_t >= q), which keeps
+    # no-data segments out of the functional subgraph during the sweep.
     qc, giant, second = find_critical_threshold(r_t, adj_directed, q_values)
     print(f"Critical threshold q_c = {qc:.3f} ({time_label})")
+    n_nodata = int(nodata_mask.sum())
+    if n_nodata:
+        print(f"  ({n_nodata} segments flagged no-data and rendered in gray)")
 
     # Find bottlenecks
     bottlenecks = find_bottlenecks(r_t, adj_directed, qc)
@@ -1244,12 +1338,15 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     # --- Plot 2: Network at q_c with bottlenecks highlighted ---
     fig, ax = plt.subplots(dpi=250)
 
+    # NaN >= qc is False, so no-data segments are automatically excluded from
+    # the functional subgraph. They will be painted with NODATA_COLOR below.
     functional = r_t >= qc
 
-    # Plot all segments light gray
+    # Plot all segments in the no-data color as a baseline; functional ones
+    # get repainted afterwards.
     for i, row in links.iterrows():
         x, y = sublink(row)
-        ax.plot(x, y, c="lightgray", linewidth=0.3, zorder=1)
+        ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
 
     # Plot functional segments colored by cluster
     func_idx = np.where(functional)[0]
@@ -1303,21 +1400,29 @@ def congestion_map(qc, session=0, timesteps=[0, 9, 23, 31, 33, 36, 38]):
     folder = f"{localfigure}/congestion_maps"
     os.makedirs(folder, exist_ok=True)
 
+    # Pre-compute the filled profile for this session: Case A cells are
+    # filled with the segment's own temporal median, Case C stays NaN.
+    r_session_profile, nodata_mask = fill_speed_nans(r[session])
+
     for t in timesteps:
-        r_t = np.nan_to_num(r[session, t, :], nan=0.0)
+        r_t = r_session_profile[t]
 
         fig, ax = plt.subplots(dpi=250)
 
         for i, row in links.iterrows():
             x, y = sublink(row)
-            if r_t[i] < qc:
+            if nodata_mask[i] or np.isnan(r_t[i]):
+                ax.plot(x, y, c=NODATA_COLOR, linewidth=1, zorder=0)
+            elif r_t[i] < qc:
                 ax.plot(x, y, c="red", linewidth=1, zorder=2)
             else:
                 ax.plot(x, y, c="green", linewidth=1, zorder=1)
 
         polyg(ax, color="black", alpha=0.3, zorder=-1)
 
-        n_congested = np.sum(r_t < qc)
+        # Count congested only among segments with valid data.
+        valid = ~(nodata_mask | np.isnan(r_t))
+        n_congested = int(np.sum((r_t < qc) & valid))
         ax.set_aspect("equal")
         ax.set_title(f"Congestion at t={t} ({t*3}min) — {n_congested}/{len(links)} congested, $q_c$={qc:.3f}", fontsize=8)
         ax.set_xlabel("X [m]", fontsize=10)
@@ -1375,9 +1480,12 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None, session_min=0, se
     if qc is not None:
         # Mode percolation : on utilise la vitesse normalisée r = v / v_max
         r = compute_normalized_speed()                              # (S, T, N)
-        r_mean = np.nanmean(r.reshape(-1, r.shape[2]), axis=0)      # (N,)
-        r_mean = np.nan_to_num(r_mean, nan=0.0)
+        # Aggregate sessions with the tiered NaN policy, then average in time.
+        r_profile = mean_over_sessions(r, min=0, max=r.shape[0])    # (T, N)
+        r_profile, nodata_mask = fill_speed_nans(r_profile)
+        r_mean = np.nanmean(r_profile, axis=0)                      # (N,)
         links_local["speed_mean"] = r_mean
+        links_local["nodata"] = nodata_mask
 
         cell_speed = (
             links_local
@@ -1392,6 +1500,7 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None, session_min=0, se
             "green",
             "red"
         )
+        links_local.loc[links_local["nodata"], "color"] = NODATA_COLOR
         title = f"Percolation $q_c$ = {qc:.3f} (normalized speed)"
         fname = f"{folder}/grid_perc_qc{qc:.3f}.png"
     else:
@@ -1406,11 +1515,14 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None, session_min=0, se
             where=(vtime != 0) & (~np.isnan(vtime))
         )
 
-        speed = mean_over_sessions(np.nan_to_num(speed, nan=0.0), min=session_min, max=session_max) # (T, N)
-        print(speed.shape)
+        speed_profile = mean_over_sessions(speed, min=session_min, max=session_max)  # (T, N)
+        speed_profile, nodata_mask = fill_speed_nans(speed_profile)
+        print(speed_profile.shape)
 
-        average_speed_per_link = np.nanmean(speed, axis=0)  #  Average speed over 2 hours (N, )
+        # NaN remains only for no-data segments; nanmean + nanpercentile skip them.
+        average_speed_per_link = np.nanmean(speed_profile, axis=0)  # (N,)
         links_local["speed_mean"] = average_speed_per_link
+        links_local["nodata"] = nodata_mask
 
         cell_speed = (
             links_local
@@ -1420,14 +1532,16 @@ def grid_clust(xdiv = 4, ydiv = 4, percentile = 65, qc = None, session_min=0, se
         )
         links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
 
-        perc = np.percentile(average_speed_per_link, percentile, axis=0) # NN-th percentile
+        perc = np.nanpercentile(average_speed_per_link, percentile, axis=0) # NN-th percentile
         print(perc)
 
+        # Default green / red; override to gray for no-data segments afterwards.
         links_local["color"] = np.where(
             links_local["cell_avg_speed"] >= perc,
             "green",
             "red"
         )
+        links_local.loc[links_local["nodata"], "color"] = NODATA_COLOR
         title = f"{percentile}th percentile : Speed = {perc:.2f} m/s"
         fname = f"{folder}/grid{percentile}.png"
 
