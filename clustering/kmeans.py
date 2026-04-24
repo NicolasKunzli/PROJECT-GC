@@ -1,0 +1,225 @@
+"""
+clustering/kmeans.py — KMeans clustering of road segments by traffic behaviour.
+
+Unlike Ward (which enforces network adjacency), KMeans groups links with similar
+speed/distance/time profiles regardless of their spatial position. Cluster spread
+is controlled by the spatial_weight parameter in the feature builder.
+
+HOW KMEANS WORKS — THE FOUR STEPS
+───────────────────────────────────────────────────────────────────────────────
+KMeans partitions N data points into k groups by minimising total within-cluster
+variance (inertia). Each iteration has four conceptual steps:
+
+  STEP 1 – INITIALISE CENTROIDS
+      Place k centroids. Default strategy (k-means++) spreads them far apart,
+      reducing the chance of a bad local minimum. `n_init="auto"` restarts
+      several times and keeps the lowest-inertia result.
+
+  STEP 2 – LABEL EACH DATA POINT
+      Assign every link to its nearest centroid using Euclidean distance in
+      feature space — "nearest" means "most similar traffic behaviour".
+
+  STEP 3 – UPDATE CENTROIDS
+      Recompute each centroid as the mean of its assigned links.
+
+  STEP 4 – REPEAT UNTIL CONVERGENCE
+      Repeat steps 2–3 until centroids shift < tol (1e-4) or max_iter (300).
+      All four steps run inside `.fit_predict(X)`.
+───────────────────────────────────────────────────────────────────────────────
+"""
+
+import os
+
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
+from sklearn.cluster import KMeans
+
+from config import DL, links
+from network.draw import sublink, polyg
+from clustering.features import build_cluster_features
+from processing.speed import mean_over_sessions, fill_speed_nans
+
+
+def kmeans_clustering(
+    n_clusters,
+    name,
+    feature_type,
+    spatial_weight=1.75,
+    dynamic_weight=1,
+    random_state=42,
+    threshold=np.array([]),
+    filter=False,
+    timeframe=None,
+    init_links=None,
+    show_weights=False,
+    session_min=0,
+    session_max=100,
+):
+    """
+    Cluster road links with KMeans and save a colour-coded network map.
+
+    Parameters
+    ----------
+    n_clusters    : int – number of clusters (overridden by len(init_links) if provided)
+    name          : str – subfolder / filename prefix under figure/clustering/
+    feature_type  : str – one of {"geometric", "speed", "distance", "time"}
+    spatial_weight : float – scale factor for spatial coordinates in the feature matrix
+    dynamic_weight : float – scale factor for temporal features in the feature matrix
+    random_state  : int – reproducibility seed
+    threshold     : int ndarray – indices of low-speed / short links
+    filter        : bool – drop threshold segments before clustering
+    timeframe     : int or None – if set, uses a single-timestep feature snapshot
+    init_links    : list or None – force specific links as initial cluster centroids
+    show_weights  : bool – append spatial/dynamic weight values to the output filename
+    session_min, session_max : int – session slice for averaging
+    """
+    folder = f"figure/clustering/{name}"
+    os.makedirs(folder, exist_ok=True)
+
+    # ── Build feature matrix X  (N_links × n_features) ────────────────────────
+    one_tf = timeframe is not None
+    X = build_cluster_features(
+        feature_type,
+        spatial_weight=spatial_weight,
+        dynamic_weight=dynamic_weight,
+        timeframe=timeframe if one_tf else 0,
+        threshold=threshold,
+        filter=filter,
+        one_timeframe=one_tf,
+        session_min=session_min,
+        session_max=session_max,
+    )
+
+    if feature_type == "speed" and threshold.size > 0:
+        print(f"The low speed and short links are: {threshold}")
+
+    # ── Fit KMeans ─────────────────────────────────────────────────────────────
+    spawn_links = []
+
+    if init_links is not None:
+        if len(init_links) != int(n_clusters):
+            print(f"n_clusters doesn't match the amount of init_links")
+            n_clusters = len(init_links)
+            print(f"n_clusters set to {len(init_links)}")
+        init_centroids = X[init_links]
+        n_clusters     = len(init_links)
+        kmeans = KMeans(
+            n_clusters=n_clusters,
+            init=init_centroids,
+            n_init=1,
+            random_state=random_state,
+        )
+    else:
+        kmeans = KMeans(
+            n_clusters=n_clusters,
+            random_state=random_state,
+            n_init="auto",
+        )
+
+    labels    = kmeans.fit_predict(X)
+    centroids = kmeans.cluster_centers_
+
+    # Find the link closest to each centroid (the cluster "spawn point")
+    if init_links is None:
+        for k in range(n_clusters):
+            cluster_idx   = np.where(labels == k)[0]
+            cluster_points = X[cluster_idx]
+            distances      = np.linalg.norm(cluster_points - centroids[k], axis=1)
+            spawn_links.append(cluster_idx[np.argmin(distances)])
+
+    # ── Prepare plot DataFrame ─────────────────────────────────────────────────
+    plot_links           = links.copy()
+    if filter and threshold.size > 0:
+        mask           = np.ones(plot_links.shape[0], dtype=bool)
+        mask[threshold] = False
+        plot_links     = plot_links.loc[mask]
+    plot_links["cluster"] = labels
+
+    cluster_sizes = np.bincount(labels, minlength=n_clusters)
+    print(f"{name}: KMeans clusters, size range {cluster_sizes.min()}-{cluster_sizes.max()}")
+
+    # ── Colour palette ─────────────────────────────────────────────────────────
+    cmap_discrete  = matplotlib.colormaps.get_cmap("tab10").resampled(n_clusters)
+    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clusters))
+
+    fig, ax = plt.subplots(dpi=250)
+    ax.set_aspect("equal")
+    title = f"{name}_filtered (KMeans, k={n_clusters})" if filter else f"{name} (KMeans, k={n_clusters})"
+    ax.set_title(title, fontsize=9)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis="both", labelsize=8)
+
+    # ── Draw links coloured by cluster ─────────────────────────────────────────
+    for idx, row in plot_links.iterrows():
+        x, y  = sublink(row)
+        color = cluster_colors[int(row["cluster"])]
+        z     = 1
+        if idx in threshold:
+            color = "black"
+            z     = 3
+        ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4, zorder=z)
+
+    # ── Highlight spawn / seed links ───────────────────────────────────────────
+    all_spawn = list(spawn_links) + (list(init_links) if init_links is not None else [])
+    for idx in set(all_spawn):
+        row  = plot_links.iloc[idx]
+        x, y = sublink(row)
+        ax.plot(x, y, c="lime", linewidth=2 + row["num_lanes"] * 0.4, zorder=4)
+
+    # ── Draw filtered-out (threshold) links in black ───────────────────────────
+    if filter:
+        for idx, row in links.loc[threshold].iterrows():
+            x, y = sublink(row)
+            ax.plot(x, y, c="black", linewidth=0.4 + row["num_lanes"] * 0.4, zorder=3)
+
+    polyg(ax, color="black", alpha=0.6, zorder=-1)
+
+    # ── Legend: cluster index + mean speed ────────────────────────────────────
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+    speed = np.divide(vdist, vtime,
+                      out=np.full(vdist.shape, np.nan, dtype=float), where=vtime != 0)
+    speed_profile, _ = fill_speed_nans(mean_over_sessions(speed, min=session_min, max=session_max))
+    mean_speed        = np.nanmean(speed_profile, axis=0)
+
+    handles = [
+        plt.Line2D([0], [0], color=cluster_colors[k], lw=3,
+                   label=f"Cluster {k} – {np.nanmean(mean_speed[np.where(labels == k)[0]]):.2f} m/s")
+        for k in range(n_clusters)
+    ]
+    handles.append(plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points"))
+    ax.legend(handles=handles, fontsize=5, loc="upper right")
+
+    # ── Build output filename ──────────────────────────────────────────────────
+    all_sessions = session_min == 0 and session_max == 100
+    if all_sessions:
+        full_folder  = folder
+        session_str  = ""
+    else:
+        session_str  = f"s{session_min}-{session_max}"
+        full_folder  = os.path.join(folder, session_str)
+        os.makedirs(full_folder, exist_ok=True)
+
+    base = f"{n_clusters}_t{timeframe}"
+    if session_str:
+        base += f"_{session_str}"
+    base += f"_{name}"
+
+    if filter:
+        suffix = "filtered"
+    elif init_links is not None:
+        suffix = "_".join(str(int(x)) for x in init_links)
+    else:
+        suffix = "best"
+
+    filename = f"{full_folder}/{base}_{suffix}"
+    if show_weights:
+        filename += f"_spa{spatial_weight}_dyn{dynamic_weight}"
+    filename += ".png"
+
+    fig.savefig(filename)
+    plt.close(fig)
+    print(f"Saved → {filename}")
