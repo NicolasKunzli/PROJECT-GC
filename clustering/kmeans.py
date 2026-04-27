@@ -198,22 +198,28 @@ def kmeans_clustering(
     # ── Build output filename ──────────────────────────────────────────────────
 
     all_sessions = session_min == 0 and session_max == 100
-
     session_str = "" if all_sessions else f"s{session_min}-{session_max}"
 
-    # split name once
+    # ── NORMALIZE PATH (IMPORTANT) ─────────────────────────────────────────────
+    name = name.replace("\\", "/").strip("/")
     name_parts = name.split("/")
+    principal_name = name_parts[0]
 
-    full_folder = os.path.join(folder, session_str, *name_parts)
+    # ── Folder structure ───────────────────────────────────────────────────────
+    full_folder = os.path.join(folder, session_str)
     os.makedirs(full_folder, exist_ok=True)
 
-    base = f"{n_clusters}_t{timeframe}"
+    # ── Base filename ──────────────────────────────────────────────────────────
+    base_parts = [str(n_clusters), f"t{timeframe}"]
+
     if session_str:
-        base += f"_{session_str}"
+        base_parts.append(session_str)
 
-    # on garde uniquement le dernier segment du name pour le fichier
-    base += f"_{name_parts[-1]}"
+    base_parts.append(principal_name)
 
+    base = "_".join(base_parts)
+
+    # ── Suffix ────────────────────────────────────────────────────────────────
     if filter:
         suffix = "filtered"
     elif init_links is not None:
@@ -221,18 +227,20 @@ def kmeans_clustering(
     else:
         suffix = "best"
 
-    filename = os.path.join(full_folder, f"{base}_{suffix}")
+    # ── FINAL FILE ─────────────────────────────────────────────────────────────
+    filename = os.path.join(full_folder, f"{base}_{suffix}.png")
 
     if show_weights:
-        filename += f"_spa{spatial_weight}_dyn{dynamic_weight}"
-
-    filename += ".png"
+        filename = filename.replace(
+            ".png",
+            f"_spa{spatial_weight}_dyn{dynamic_weight}.png"
+        )
 
     fig.savefig(filename)
     plt.close(fig)
 
     print(f"Saved → {filename}")
-    
+    print(base)
     # ── Return spatial centroid ──────────────────────────────────────────────────
     if spatial_centroids:
 
