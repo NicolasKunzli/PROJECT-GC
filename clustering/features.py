@@ -152,7 +152,7 @@ def build_cluster_features(
         speed_profile, nodata_mask = fill_speed_nans(
             mean_over_sessions(speed, min=session_min, max=session_max)
         )
-
+        
         if filter and threshold.size > 0:
             mask = np.ones(speed_profile.shape[1], dtype=bool)
             mask[threshold] = False

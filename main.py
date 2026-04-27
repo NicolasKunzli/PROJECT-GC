@@ -208,17 +208,17 @@ if __name__ == "__main__":
         b for i, b in enumerate(bottlenecks1)
         if i != 5  # lower right
 ]
-    # Bottleneck-seeded clustering
-    for t in timesteps:
-        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks/no_lr",
-                          "speed", timeframe=t, init_links=bottlenecks_no_lr)
+    # # Bottleneck-seeded clustering
+    # for t in timesteps:
+    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks/no_lr",
+    #                       "speed", timeframe=t, init_links=bottlenecks_no_lr)
 
-    # Spatial weight sweep
-    dyn_weights = np.array(list(range(1, 21))) / 10
-    for i in dyn_weights:
-        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights/no_lr",
-                          "speed", dynamic_weight=1, spatial_weight=i,
-                          timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
+    # # Spatial weight sweep
+    # dyn_weights = np.array(list(range(1, 21))) / 10
+    # for i in dyn_weights:
+    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights/no_lr",
+    #                       "speed", dynamic_weight=1, spatial_weight=i,
+    #                       timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
         
 # ### 8 Clusters
 #     # Bottleneck-seeded clustering
@@ -234,16 +234,22 @@ if __name__ == "__main__":
 #                           timeframe=31, init_links=bottlenecks1, show_weights=True)
 
 
-    # # Session-stratified clustering
-    # sessions = list(range(0, 81, 20))
-    # print(sessions)
-    # for t in timesteps:
-    #     for session in sessions:
-    #         kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions",
-    #                           "speed", timeframe=t, init_links=bottlenecks1,
-    #                           session_min=session, session_max=session + 20)
-
-
+    # Session-stratified clustering
+    sessions = [(i, i+19) for i in range(0, 81, 20)] # 81-100 Empty ?
+    print(sessions)
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions",
+                              "speed", timeframe=t, init_links=bottlenecks1,
+                              session_min=s_min, session_max=s_max)
+### No lower right
+    print(sessions)
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/no_lr",
+                              "speed", timeframe=t, init_links=bottlenecks_no_lr,
+                              session_min=s_min, session_max=s_max)
+    
     # # Low and high speed seeds
     # for t in timesteps:
     #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
