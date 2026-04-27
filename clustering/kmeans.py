@@ -51,7 +51,7 @@ def kmeans_clustering(
     dynamic_weight=1,
     random_state=42,
     threshold=np.array([]),
-    filter=False,
+    filter=False, # WARNING : Filtering may mismatch indices, BUGFIX NEEDED
     timeframe=None,
     init_links=None,
     show_weights=False,
@@ -196,11 +196,10 @@ def kmeans_clustering(
     ax.legend(handles=handles, fontsize=5, loc="upper right")
 
     # ── Build output filename ──────────────────────────────────────────────────
-
     all_sessions = session_min == 0 and session_max == 100
     session_str = "" if all_sessions else f"s{session_min}-{session_max}"
 
-    # ── NORMALIZE PATH (IMPORTANT) ─────────────────────────────────────────────
+    # ── Normalize path ─────────────────────────────────────────────
     name = name.replace("\\", "/").strip("/")
     name_parts = name.split("/")
     principal_name = name_parts[0]
@@ -211,12 +210,9 @@ def kmeans_clustering(
 
     # ── Base filename ──────────────────────────────────────────────────────────
     base_parts = [str(n_clusters), f"t{timeframe}"]
-
     if session_str:
         base_parts.append(session_str)
-
     base_parts.append(principal_name)
-
     base = "_".join(base_parts)
 
     # ── Suffix ────────────────────────────────────────────────────────────────
@@ -238,9 +234,8 @@ def kmeans_clustering(
 
     fig.savefig(filename)
     plt.close(fig)
-
     print(f"Saved → {filename}")
-    print(base)
+
     # ── Return spatial centroid ──────────────────────────────────────────────────
     if spatial_centroids:
 

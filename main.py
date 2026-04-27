@@ -219,6 +219,7 @@ if __name__ == "__main__":
         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights/no_lr",
                           "speed", dynamic_weight=1, spatial_weight=i,
                           timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
+        
 # ### 8 Clusters
 #     # Bottleneck-seeded clustering
 #     for t in timesteps:
