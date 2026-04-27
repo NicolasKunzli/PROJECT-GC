@@ -215,7 +215,7 @@ if __name__ == "__main__":
     #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
     #                       "speed", timeframe=t, init_links=combinations1)
 
-    
+    # ── Using spatial centroid to initiate new spawning point ─────────────────────────────────────────────────    
     initial_spawn = bottlenecks1
     for t in timesteps:
         new_spawns = kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks_centroid",

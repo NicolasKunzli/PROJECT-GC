@@ -40,6 +40,7 @@ from config import DL, links
 from network.draw import sublink, polyg
 from clustering.features import build_cluster_features
 from processing.speed import mean_over_sessions, fill_speed_nans
+from utils import closest_link
 
 
 def kmeans_clustering(
@@ -247,20 +248,10 @@ def kmeans_clustering(
             centroids_xy.append((cx, cy))
 
         # ── 2. Find closest link to each spatial centroid ────────────
-        spawn_links_xy = []
-
-        for k in range(n_clusters):
-            cx, cy = centroids_xy[k]
-            cluster_idx = np.where(labels == k)[0]
-            
-            distances = []
-            for idx in cluster_idx:
-                row = links.iloc[idx]
-                x, y = sublink(row)
-                mx, my = np.mean(x), np.mean(y)
-                distances.append((mx - cx)**2 + (my - cy)**2)
-            
-            spawn_links_xy.append(cluster_idx[np.argmin(distances)])
+        spawn_links_xy = [
+            closest_link(cx, cy, np.where(labels == k)[0])
+            for k, (cx, cy) in enumerate(centroids_xy)
+        ]
 
         # ── 3. Return links ──────────────────────────────────────────
         print(spawn_links_xy)
