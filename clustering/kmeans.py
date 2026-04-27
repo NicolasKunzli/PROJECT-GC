@@ -196,19 +196,23 @@ def kmeans_clustering(
     ax.legend(handles=handles, fontsize=5, loc="upper right")
 
     # ── Build output filename ──────────────────────────────────────────────────
+
     all_sessions = session_min == 0 and session_max == 100
-    if all_sessions:
-        full_folder  = folder
-        session_str  = ""
-    else:
-        session_str  = f"s{session_min}-{session_max}"
-        full_folder  = os.path.join(folder, session_str)
-        os.makedirs(full_folder, exist_ok=True)
+
+    session_str = "" if all_sessions else f"s{session_min}-{session_max}"
+
+    # split name once
+    name_parts = name.split("/")
+
+    full_folder = os.path.join(folder, session_str, *name_parts)
+    os.makedirs(full_folder, exist_ok=True)
 
     base = f"{n_clusters}_t{timeframe}"
     if session_str:
         base += f"_{session_str}"
-    base += f"_{name}"
+
+    # on garde uniquement le dernier segment du name pour le fichier
+    base += f"_{name_parts[-1]}"
 
     if filter:
         suffix = "filtered"
@@ -217,13 +221,16 @@ def kmeans_clustering(
     else:
         suffix = "best"
 
-    filename = f"{full_folder}/{base}_{suffix}"
+    filename = os.path.join(full_folder, f"{base}_{suffix}")
+
     if show_weights:
         filename += f"_spa{spatial_weight}_dyn{dynamic_weight}"
+
     filename += ".png"
 
     fig.savefig(filename)
     plt.close(fig)
+
     print(f"Saved → {filename}")
     
     # ── Return spatial centroid ──────────────────────────────────────────────────
@@ -239,7 +246,7 @@ def kmeans_clustering(
             for idx in cluster_idx:
                 row = links.iloc[idx]
                 x, y = sublink(row)
-                xy.append((np.mean(x), np.mean(y)))  # centre du lien
+                xy.append((np.mean(x), np.mean(y)))
             
             xy = np.array(xy)
             cx = xy[:, 0].mean()

@@ -187,19 +187,51 @@ if __name__ == "__main__":
         int(closest_link(431450, 4581820)),  # middle right
         int(closest_link(432200, 4581370)),  # lower right
         int(closest_link(430000, 4581800)),  # lower middle
+        int(closest_link(429060, 4582220)),  # middle left
     ]
+    
+# ### 7 Clusters
+#     # Bottleneck-seeded clustering
+#     for t in timesteps:
+#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
+#                           "speed", timeframe=t, init_links=bottlenecks1[:-1])
 
-    # # Bottleneck-seeded clustering
-    # for t in timesteps:
-    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
-    #                       "speed", timeframe=t, init_links=bottlenecks1)
+#     # Spatial weight sweep
+#     dyn_weights = np.array(list(range(1, 21))) / 10
+#     for i in dyn_weights:
+#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights",
+#                           "speed", dynamic_weight=1, spatial_weight=i,
+#                           timeframe=31, init_links=bottlenecks1[:-1], show_weights=True)
 
-    # # Spatial weight sweep
-    # dyn_weights = np.array(list(range(1, 21))) / 10
-    # for i in dyn_weights:
-    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks",
-    #                       "speed", dynamic_weight=1, spatial_weight=i,
-    #                       timeframe=31, init_links=bottlenecks1, show_weights=True)
+### 7 Clusters
+    bottlenecks_no_lr = [
+        b for i, b in enumerate(bottlenecks1)
+        if i != 5  # lower right
+]
+    # Bottleneck-seeded clustering
+    for t in timesteps:
+        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks/no_lr",
+                          "speed", timeframe=t, init_links=bottlenecks_no_lr)
+
+    # Spatial weight sweep
+    dyn_weights = np.array(list(range(1, 21))) / 10
+    for i in dyn_weights:
+        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights/no_lr",
+                          "speed", dynamic_weight=1, spatial_weight=i,
+                          timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
+# ### 8 Clusters
+#     # Bottleneck-seeded clustering
+#     for t in timesteps:
+#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
+#                           "speed", timeframe=t, init_links=bottlenecks1)
+
+#     # Spatial weight sweep
+#     dyn_weights = np.array(list(range(1, 21))) / 10
+#     for i in dyn_weights:
+#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights",
+#                           "speed", dynamic_weight=1, spatial_weight=i,
+#                           timeframe=31, init_links=bottlenecks1, show_weights=True)
+
 
     # # Session-stratified clustering
     # sessions = list(range(0, 81, 20))
@@ -210,15 +242,19 @@ if __name__ == "__main__":
     #                           "speed", timeframe=t, init_links=bottlenecks1,
     #                           session_min=session, session_max=session + 20)
 
+
     # # Low and high speed seeds
     # for t in timesteps:
     #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
     #                       "speed", timeframe=t, init_links=combinations1)
 
+
     # ── Using spatial centroid to initiate new spawning point ─────────────────────────────────────────────────    
-    initial_spawn = bottlenecks1
-    for t in timesteps:
-        new_spawns = kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks_centroid",
-                          "speed", timeframe=t, init_links=initial_spawn)
-        initial_spawn = new_spawns
+    # initial_spawn = bottlenecks1
+    # for t in timesteps:
+    #     new_spawns = kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks_centroid",
+    #                       "speed", timeframe=t, init_links=initial_spawn)
+    #     initial_spawn = new_spawns
+        
+        
         
