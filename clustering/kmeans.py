@@ -56,6 +56,7 @@ def kmeans_clustering(
     show_weights=False,
     session_min=0,
     session_max=100,
+    spatial_centroids=False
 ):
     """
     Cluster road links with KMeans and save a colour-coded network map.
@@ -223,3 +224,44 @@ def kmeans_clustering(
     fig.savefig(filename)
     plt.close(fig)
     print(f"Saved → {filename}")
+    
+    # ── Return spatial centroid ──────────────────────────────────────────────────
+    if spatial_centroids:
+
+        # ── 1. Compute spatial centroids ─────────────────────────────
+        centroids_xy = []
+
+        for k in range(n_clusters):
+            cluster_idx = np.where(labels == k)[0]
+            
+            xy = []
+            for idx in cluster_idx:
+                row = links.iloc[idx]
+                x, y = sublink(row)
+                xy.append((np.mean(x), np.mean(y)))  # centre du lien
+            
+            xy = np.array(xy)
+            cx = xy[:, 0].mean()
+            cy = xy[:, 1].mean()
+            
+            centroids_xy.append((cx, cy))
+
+        # ── 2. Find closest link to each spatial centroid ────────────
+        spawn_links_xy = []
+
+        for k in range(n_clusters):
+            cx, cy = centroids_xy[k]
+            cluster_idx = np.where(labels == k)[0]
+            
+            distances = []
+            for idx in cluster_idx:
+                row = links.iloc[idx]
+                x, y = sublink(row)
+                mx, my = np.mean(x), np.mean(y)
+                distances.append((mx - cx)**2 + (my - cy)**2)
+            
+            spawn_links_xy.append(cluster_idx[np.argmin(distances)])
+
+        # ── 3. Return links ──────────────────────────────────────────
+        print(spawn_links_xy)
+        return spawn_links_xy

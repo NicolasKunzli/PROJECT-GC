@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # ── Grid clustering ───────────────────────────────────────────────────────
     n_clus = 8
-    grid_clust(20, 16, 85)
+    # grid_clust(20, 16, 85)
     # grid_clust(20, 16, 65)
     # grid_clust(20, 16, 55)
     # grid_clust(20, 16, 45)
@@ -79,13 +79,13 @@ if __name__ == "__main__":
     # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
     # ── Simplified map ────────────────────────────────────────────────────────
-    simplified_map(distance_threshold=50.0, grad=True)
+    # simplified_map(distance_threshold=50.0, grad=True)
     # simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
     # ── Percolation analysis ──────────────────────────────────────────────────
-    qc, bottlenecks = percolation_analysis(session=0)
-    congestion_map(qc, session=0)
-    grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
+    # qc, bottlenecks = percolation_analysis(session=0)
+    # congestion_map(qc, session=0)
+    # grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
 
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     timesteps = [0, 9, 23, 31, 33, 36, 38]
 
-    '''
+ 
     bottlenecks1 = [
         int(closest_link(431900, 4582650)),  # upper right
         int(closest_link(430570, 4582390)),  # upper middle
@@ -189,29 +189,36 @@ if __name__ == "__main__":
         int(closest_link(430000, 4581800)),  # lower middle
     ]
 
-    # Bottleneck-seeded clustering
-    for t in timesteps:
-        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
-                          "speed", timeframe=t, init_links=bottlenecks1)
+    # # Bottleneck-seeded clustering
+    # for t in timesteps:
+    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
+    #                       "speed", timeframe=t, init_links=bottlenecks1)
 
-    # Spatial weight sweep
-    dyn_weights = np.array(list(range(1, 21))) / 10
-    for i in dyn_weights:
-        kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks",
-                          "speed", dynamic_weight=1, spatial_weight=i,
-                          timeframe=31, init_links=bottlenecks1, show_weights=True)
+    # # Spatial weight sweep
+    # dyn_weights = np.array(list(range(1, 21))) / 10
+    # for i in dyn_weights:
+    #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks",
+    #                       "speed", dynamic_weight=1, spatial_weight=i,
+    #                       timeframe=31, init_links=bottlenecks1, show_weights=True)
 
-    # Session-stratified clustering
-    sessions = list(range(0, 81, 20))
-    print(sessions)
-    for t in timesteps:
-        for session in sessions:
-            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions",
-                              "speed", timeframe=t, init_links=bottlenecks1,
-                              session_min=session, session_max=session + 20)
+    # # Session-stratified clustering
+    # sessions = list(range(0, 81, 20))
+    # print(sessions)
+    # for t in timesteps:
+    #     for session in sessions:
+    #         kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions",
+    #                           "speed", timeframe=t, init_links=bottlenecks1,
+    #                           session_min=session, session_max=session + 20)
 
-    # Low and high speed seeds
+    # # Low and high speed seeds
+    # for t in timesteps:
+    #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
+    #                       "speed", timeframe=t, init_links=combinations1)
+
+    
+    initial_spawn = bottlenecks1
     for t in timesteps:
-        kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
-                          "speed", timeframe=t, init_links=combinations1)
-    '''
+        new_spawns = kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks_centroid",
+                          "speed", timeframe=t, init_links=initial_spawn)
+        initial_spawn = new_spawns
+        
