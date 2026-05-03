@@ -235,7 +235,14 @@ if __name__ == "__main__":
 
 
     # Session-stratified clustering
-    sessions = [(i, i+19) for i in range(0, 81, 20)] # 81-100 Empty ?
+    sessions = [
+        (0, 0),
+        (1, 20),
+        (21, 40),
+        (41, 60),
+        (61, 80),
+        (81, 100)
+        ] # 81-100 Empty ?
     print(sessions)
     for t in timesteps:
         for s_min, s_max in sessions:
