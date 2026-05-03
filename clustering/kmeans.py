@@ -75,7 +75,7 @@ def kmeans_clustering(
     timeframe     : int or None – if set, uses a single-timestep feature snapshot
     init_links    : list or None – force specific links as initial cluster centroids
     show_weights  : bool – append spatial/dynamic weight values to the output filename
-    session_min, session_max : int – session slice for averaging
+    session_min, session_max : int – session slice for averaging, session_max is included
     """
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)

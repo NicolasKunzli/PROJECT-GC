@@ -25,7 +25,7 @@ def thresholds(max_speed=0, max_length=0, session_min=0, session_max=100):
     ----------
     max_speed  : float – 85th-pctile speed ceiling [m/s]; np.inf means no speed filter
     max_length : float – length ceiling [m]; np.inf means no length filter
-    session_min, session_max : int – session slice passed to mean_over_sessions
+    session_min, session_max : int – session slice passed to mean_over_sessions, session_max is included
     """
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
@@ -129,7 +129,7 @@ def build_cluster_features(
     threshold     : int ndarray – low-speed/short-link indices for optional filtering
     filter        : bool – drop threshold segments from the feature matrix
     one_timeframe : bool – build a snapshot (single-timestep) feature instead of temporal
-    session_min, session_max : int – session slice for mean_over_sessions
+    session_min, session_max : int – session slice for mean_over_sessions, session_max is included
     """
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)

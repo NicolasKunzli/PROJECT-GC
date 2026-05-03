@@ -9,7 +9,7 @@ import numpy as np
 
 def mean_over_sessions(values, min=0, max=None):
     """
-    Session-averaged mean of `values` (axis 0) over the subset [min, max).
+    Session-averaged mean of `values` (axis 0) over the subset [min, max+1).
 
     NaN-aware: cells with no valid observations return NaN rather than 0,
     so downstream callers never confuse "no data" with "zero speed".
@@ -17,7 +17,7 @@ def mean_over_sessions(values, min=0, max=None):
     if max is None:
         max = values.shape[0]
 
-    subset = values[min:max]
+    subset = values[min:max+1]
     valid_counts = np.sum(~np.isnan(subset), axis=0)
     summed = np.nansum(subset, axis=0)
 
