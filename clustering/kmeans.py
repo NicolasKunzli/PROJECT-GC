@@ -182,17 +182,35 @@ def kmeans_clustering(
     # ── Legend: cluster index + mean speed ────────────────────────────────────
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
-    speed = np.divide(vdist, vtime,
-                      out=np.full(vdist.shape, np.nan, dtype=float), where=vtime != 0)
-    speed_profile, _ = fill_speed_nans(mean_over_sessions(speed, min=session_min, max=session_max))
-    mean_speed        = np.nanmean(speed_profile, axis=0)
+
+    cluster_mean_speeds = []
+
+    for k in range(n_clusters):
+        cluster_idx = np.where(labels == k)[0]
+
+        vdist_k = vdist[:, :, cluster_idx]
+        vtime_k = vtime[:, :, cluster_idx]
+
+        total_dist = np.nansum(vdist_k)
+        total_time = np.nansum(vtime_k)
+
+        mean_cluster_speed = total_dist / total_time if total_time > 0 else np.nan
+        cluster_mean_speeds.append(mean_cluster_speed)
 
     handles = [
-        plt.Line2D([0], [0], color=cluster_colors[k], lw=3,
-                   label=f"Cluster {k} – {np.nanmean(mean_speed[np.where(labels == k)[0]]):.2f} m/s")
+        plt.Line2D(
+            [0], [0],
+            color=cluster_colors[k],
+            lw=3,
+            label=f"Cluster {k} – {cluster_mean_speeds[k]:.2f} m/s"
+        )
         for k in range(n_clusters)
     ]
-    handles.append(plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points"))
+
+    handles.append(
+        plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points")
+    )
+
     ax.legend(handles=handles, fontsize=5, loc="upper right")
 
     # ── Build output filename ──────────────────────────────────────────────────
