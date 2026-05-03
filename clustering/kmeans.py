@@ -79,7 +79,19 @@ def kmeans_clustering(
     """
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
-
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+    speed = np.divide(
+        vdist, vtime,
+        out=np.full(vdist.shape, np.nan),
+        where=vtime != 0
+    )
+    
+    speed_sel = speed[session_min:session_max + 1, :, :] # Sessions
+    nan_ratio = np.mean(np.isnan(speed_sel), axis=(0, 1))  # (link_idx,)
+    bad_links = np.where(nan_ratio > 0.3)[0]
+    bad_links_set = set(bad_links)
+    threshold_set = set(threshold)
     # ── Build feature matrix X  (N_links × n_features) ────────────────────────
     one_tf = timeframe is not None
     X = build_cluster_features(
@@ -156,13 +168,25 @@ def kmeans_clustering(
 
     # ── Draw links coloured by cluster ─────────────────────────────────────────
     for idx, row in plot_links.iterrows():
-        x, y  = sublink(row)
+        x, y = sublink(row)
+
+        z = 1
         color = cluster_colors[int(row["cluster"])]
-        z     = 1
-        if idx in threshold:
+
+        if idx in bad_links_set:
             color = "black"
-            z     = 3
-        ax.plot(x, y, c=color, linewidth=0.4 + row["num_lanes"] * 0.4, zorder=z)
+            z = 3
+
+        elif idx in threshold_set:
+            color = "black"
+            z = 3
+
+        ax.plot(
+            x, y,
+            c=color,
+            linewidth=0.4 + row["num_lanes"] * 0.4,
+            zorder=z
+        )
 
     # ── Highlight spawn / seed links ───────────────────────────────────────────
     all_spawn = list(spawn_links) + (list(init_links) if init_links is not None else [])
@@ -180,9 +204,8 @@ def kmeans_clustering(
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
     # ── Legend: cluster index + mean speed ────────────────────────────────────
-    vdist = DL._vdist_3min.astype(float)
-    vtime = DL._vtime_3min.astype(float)
 
+    
     cluster_mean_speeds = []
 
     for k in range(n_clusters):
@@ -284,3 +307,4 @@ def kmeans_clustering(
         # ── 3. Return links ──────────────────────────────────────────
         print(spawn_links_xy)
         return spawn_links_xy
+

@@ -189,7 +189,31 @@ if __name__ == "__main__":
         int(closest_link(430000, 4581800)),  # lower middle
         int(closest_link(429060, 4582220)),  # middle left
     ]
+    mixed1 = [#bottlenecks
+        int(closest_link(431900, 4582650)),  # upper right
+        int(closest_link(430570, 4582390)),  # upper middle
+        int(closest_link(428730, 4582880)),  # upper left
+        int(closest_link(428700, 4581420)),  # lower left
+        int(closest_link(431450, 4581820)),  # middle right
+        int(closest_link(432200, 4581370)),  # lower right
+        int(closest_link(430000, 4581800)),  # lower middle
+        int(closest_link(429060, 4582220)),  # middle left
+        #not bottleneckws
+        int(closest_link(429800, 4582800)),  # middle top
+    ]
     
+    mixed2 = [#bottlenecks
+        int(closest_link(431900, 4582650)),  # upper right
+        int(closest_link(430570, 4582390)),  # upper middle
+        int(closest_link(428730, 4582880)),  # upper left
+        int(closest_link(428700, 4581420)),  # lower left
+        int(closest_link(431450, 4581820)),  # middle right
+        int(closest_link(432200, 4581370)),  # lower right
+        int(closest_link(430000, 4581800)),  # lower middle
+        int(closest_link(429060, 4582220)),  # middle left
+        #not bottleneckws
+        int(closest_link(428400, 4582300)),  # middle left
+    ]        
 # ### 7 Clusters
 #     # Bottleneck-seeded clustering
 #     for t in timesteps:
@@ -207,7 +231,9 @@ if __name__ == "__main__":
     bottlenecks_no_lr = [
         b for i, b in enumerate(bottlenecks1)
         if i != 5  # lower right
-]
+    ]
+
+
     # # Bottleneck-seeded clustering
     # for t in timesteps:
     #     kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks/no_lr",
@@ -243,20 +269,34 @@ if __name__ == "__main__":
         (61, 80),
         (81, 100)
         ] # 81-100 Empty ?
-    print(sessions)
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions",
-                              "speed", timeframe=t, init_links=bottlenecks1,
-                              session_min=s_min, session_max=s_max)
-### No lower right
-    print(sessions)
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/no_lr",
-                              "speed", timeframe=t, init_links=bottlenecks_no_lr,
-                              session_min=s_min, session_max=s_max)
     
+### bottlenecks1
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/8",
+                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=bottlenecks1, show_weights=True,
+                              session_min=s_min, session_max=s_max)
+
+### No lower right
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
+                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=bottlenecks_no_lr, show_weights=True,
+                              session_min=s_min, session_max=s_max)
+
+### mixed1, with middle top
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(9, "kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
+                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=mixed1, show_weights=True,
+                              session_min=s_min, session_max=s_max)
+
+### mixed2, with middle left
+    for t in timesteps:
+        for s_min, s_max in sessions:
+            kmeans_clustering(9, "kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
+                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=mixed2, show_weights=True,
+                              session_min=s_min, session_max=s_max)           
     # # Low and high speed seeds
     # for t in timesteps:
     #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
