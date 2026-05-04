@@ -81,16 +81,19 @@ def kmeans_clustering(
     """
     folder = f"figure/clustering/{name}"
     os.makedirs(folder, exist_ok=True)
+    
+    
     vdist = DL._vdist_3min.astype(float)
     vtime = DL._vtime_3min.astype(float)
+    
     speed = np.divide(
         vdist, vtime,
         out=np.full(vdist.shape, np.nan),
         where=vtime != 0
     )
     
-    speed_sel = speed[session_min:session_max + 1, :, :] # Sessions
-    nan_ratio = np.mean(np.isnan(speed_sel), axis=(0, 1))  # (link_idx,)
+    speed_sel = speed[session_min:session_max + 1, timeframe, :] # Sessions
+    nan_ratio = np.mean(np.isnan(speed_sel), axis=(0))  # (link_idx,)
     bad_links = np.where(nan_ratio > 0.3)[0]
     bad_links_set = set(bad_links)
     threshold_set = set(threshold)
@@ -212,8 +215,6 @@ def kmeans_clustering(
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
     # ── Legend: cluster index + mean speed ────────────────────────────────────
-
-    
     cluster_mean_speeds = []
 
     for k in range(n_clusters):
@@ -326,7 +327,7 @@ def plot_cluster_speed(
     colors=None,
 ):
     """
-    Plot already computed cluster speeds.
+    Plot already computed cluster speeds on a graph with time on the x-axis and speed on the y-axis.
 
     Parameters
     ----------
@@ -380,30 +381,38 @@ def plot_cluster_speed(
     print(f"Saved → {filename}")
     
 def run_kmeans_graph(
-    k,
+    n_clusters,
     name,
-    links_set,
-    timesteps,
+    init_links,
+    timeframe,
     cluster_colors,
     session_min=0,
     session_max=100
 ):
     """
-    Run KMeans over time for a single session range.
+    Helper function combining the kmeans_clustering function and the plot_cluster_speed function.
+    
+    Parameters
+    ----------
+    n_clusters    : int – number of clusters (len(init_links) if not provided)
+    name          : str – subfolder / filename prefix under figure/clustering/
+    timeframe     : int or None – if set, uses a single-timestep feature snapshot
+    init_links    : list or None – force specific links as initial cluster centroids
+    session_min, session_max : int – session slice for averaging, session_max is included
     """
 
     mean_speed_time = None
     folder = None
 
-    for t in timesteps:
+    for t in timeframe:
         cluster_mean_speed, _, folder = kmeans_clustering(
-            k,
+            n_clusters,
             name,
             "speed",
             spatial_weight=2.0,
             dynamic_weight=1,
             timeframe=t,
-            init_links=links_set,
+            init_links=init_links,
             session_min=session_min,
             session_max=session_max,
             colors=cluster_colors,
@@ -418,7 +427,7 @@ def run_kmeans_graph(
     mean_speed_time = np.array(mean_speed_time)
 
     plot_cluster_speed(
-        timesteps=timesteps,
+        timesteps=timeframe,
         values=mean_speed_time,
         name=f"{name}_s{session_min}-{session_max}",
         folder=folder,
