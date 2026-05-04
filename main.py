@@ -25,7 +25,7 @@ from network.draw     import graph
 from network.simplify import simplified_map
 
 from clustering.features import thresholds
-from clustering.kmeans   import kmeans_clustering
+from clustering.kmeans   import kmeans_clustering, plot_cluster_speed, run_kmeans_graph
 from clustering.ward     import clustering
 
 from percolation.core import percolation_analysis
@@ -34,6 +34,15 @@ from percolation.maps import congestion_map, grid_clust
 from gif   import gradient_gif
 from utils import closest_link
 
+import matplotlib.pyplot as plt
+
+# ── colors ──────────────────────────────────────────────────────────
+global_cmap = plt.get_cmap("tab10")
+
+cluster_colors = {
+    k: global_cmap(np.linspace(0, 1, k, endpoint=False))
+    for k in range(1, 11)
+}
 
 if __name__ == "__main__":
 
@@ -246,11 +255,20 @@ if __name__ == "__main__":
     #                       "speed", dynamic_weight=1, spatial_weight=i,
     #                       timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
         
-# ### 8 Clusters
-#     # Bottleneck-seeded clustering
-#     for t in timesteps:
-#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_bottlenecks",
-#                           "speed", timeframe=t, init_links=bottlenecks1)
+### 8 Clusters
+    # Bottleneck-seeded clustering
+
+    # mean_speed_time = run_kmeans_graph(
+    #     k=len(bottlenecks1),
+    #     name="kmeans_speed_clusters_bottlenecks",
+    #     links_set=bottlenecks1,
+    #     timesteps=timesteps,
+    #     cluster_colors=cluster_colors[len(bottlenecks1)],
+    #     session_min=0,
+    #     session_max=100
+    # )
+    
+
 
 #     # Spatial weight sweep
 #     dyn_weights = np.array(list(range(1, 21))) / 10
@@ -270,38 +288,51 @@ if __name__ == "__main__":
         (81, 100)
         ] # 81-100 Empty ?
     
-### bottlenecks1
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/8",
-                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=bottlenecks1, show_weights=True,
-                              session_min=s_min, session_max=s_max)
+for s_min, s_max in sessions:
 
-### No lower right
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(0, "kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
-                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=bottlenecks_no_lr, show_weights=True,
-                              session_min=s_min, session_max=s_max)
+    # bottlenecks1
+    run_kmeans_graph(
+        k=len(bottlenecks1),
+        name="kmeans_speed_clusters_bottlenecks_sessions/8",
+        links_set=bottlenecks1,
+        timesteps=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks1)],
+        session_min=s_min,
+        session_max=s_max
+    )
 
-### mixed1, with middle top
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(9, "kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
-                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=mixed1, show_weights=True,
-                              session_min=s_min, session_max=s_max)
+    # No lower right
+    run_kmeans_graph(
+        k=len(bottlenecks_no_lr),
+        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
+        links_set=bottlenecks_no_lr,
+        timesteps=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+        session_min=s_min,
+        session_max=s_max
+    )
 
-### mixed2, with middle left
-    for t in timesteps:
-        for s_min, s_max in sessions:
-            kmeans_clustering(9, "kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
-                              "speed", spatial_weight=2.0, dynamic_weight=1, timeframe=t, init_links=mixed2, show_weights=True,
-                              session_min=s_min, session_max=s_max)           
-    # # Low and high speed seeds
-    # for t in timesteps:
-    #     kmeans_clustering(0, "kmeans_speed_clusters_low_and_high",
-    #                       "speed", timeframe=t, init_links=combinations1)
+    # mixed1, middle top
+    run_kmeans_graph(
+        k=len(mixed1),
+        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
+        links_set=mixed1,
+        timesteps=timesteps,
+        cluster_colors=cluster_colors[len(mixed1)],
+        session_min=s_min,
+        session_max=s_max
+    )
 
+    # mixed2, middle left
+    run_kmeans_graph(
+        k=len(mixed2),
+        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
+        links_set=mixed2,
+        timesteps=timesteps,
+        cluster_colors=cluster_colors[len(mixed2)],
+        session_min=s_min,
+        session_max=s_max
+    )           
 
     # ── Using spatial centroid to initiate new spawning point ─────────────────────────────────────────────────    
     # initial_spawn = bottlenecks1

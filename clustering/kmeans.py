@@ -43,6 +43,7 @@ from processing.speed import mean_over_sessions, fill_speed_nans
 from utils import closest_link
 
 
+
 def kmeans_clustering(
     n_clusters,
     name,
@@ -57,7 +58,8 @@ def kmeans_clustering(
     show_weights=False,
     session_min=0,
     session_max=100,
-    spatial_centroids=False
+    spatial_centroids=False,
+    colors=None
 ):
     """
     Cluster road links with KMeans and save a colour-coded network map.
@@ -155,9 +157,15 @@ def kmeans_clustering(
     print(f"{name}: KMeans clusters, size range {cluster_sizes.min()}-{cluster_sizes.max()}")
 
     # ── Colour palette ─────────────────────────────────────────────────────────
-    cmap_discrete  = matplotlib.colormaps.get_cmap("tab10").resampled(n_clusters)
-    cluster_colors = cmap_discrete(np.linspace(0, 1, n_clusters))
-
+    if colors is None:
+        cmap = matplotlib.colormaps.get_cmap("tab10")
+        cluster_colors = cmap(np.linspace(0, 1, n_clusters))
+    else:
+        cluster_colors = np.asarray(colors)
+    if cluster_colors.shape[0] != n_clusters:
+        raise ValueError(
+            f"colors size ({cluster_colors.shape[0]}) != n_clusters ({n_clusters})"
+        )
     fig, ax = plt.subplots(dpi=250)
     ax.set_aspect("equal")
     title = f"{name}_filtered (KMeans, k={n_clusters})" if filter else f"{name} (KMeans, k={n_clusters})"
@@ -307,4 +315,114 @@ def kmeans_clustering(
         # ── 3. Return links ──────────────────────────────────────────
         print(spawn_links_xy)
         return spawn_links_xy
+    return cluster_mean_speeds, cluster_colors, folder
 
+
+def plot_cluster_speed(
+    timesteps,
+    values,
+    name,
+    folder,
+    colors=None,
+):
+    """
+    Plot already computed cluster speeds.
+
+    Parameters
+    ----------
+    timesteps       : array-like (T) – time values for each timestep
+    values          : array-like (T, K) – mean speed per cluster over time
+    name            : str – plot name
+    folder          : str – output directory for saving the figure
+    colors          : array-like (K, 4) or None – cluster colors (RGBA), optional
+    """
+
+    values = np.array(values)
+
+    plt.figure()
+
+    for k in range(values.shape[1]):
+
+        plt.plot(
+            timesteps,
+            values[:, k],
+            color=colors[k] if colors is not None else None,
+            label=f"Cluster {k}"
+        )
+
+        plt.scatter(
+            timesteps,
+            values[:, k],
+            color=colors[k] if colors is not None else None,
+            s=15
+        )
+
+    # ── ensure folder exists ─────────────────────────────
+    os.makedirs(folder, exist_ok=True)
+
+    # ── sanitize name ─────────────────────────
+    name = name.replace("\\", "/").strip("/")
+    name_parts = name.split("/")
+    safe_name = "_".join(name_parts)
+
+    # ── simple filename ───────────────────────────────────
+    filename = os.path.join(folder, f"{safe_name}.png")
+
+    plt.xlabel("Time step")
+    plt.ylabel("Mean speed (m/s)")
+    plt.title(f"{name}")
+    plt.legend()
+    plt.grid()
+
+    plt.savefig(filename)
+    plt.close()
+
+    print(f"Saved → {filename}")
+    
+def run_kmeans_graph(
+    k,
+    name,
+    links_set,
+    timesteps,
+    cluster_colors,
+    session_min=0,
+    session_max=100
+):
+    """
+    Run KMeans over time for a single session range.
+    """
+
+    mean_speed_time = None
+    folder = None
+
+    for t in timesteps:
+        cluster_mean_speed, _, folder = kmeans_clustering(
+            k,
+            name,
+            "speed",
+            spatial_weight=2.0,
+            dynamic_weight=1,
+            timeframe=t,
+            init_links=links_set,
+            session_min=session_min,
+            session_max=session_max,
+            colors=cluster_colors,
+            show_weights=True
+        )
+
+        if mean_speed_time is None:
+            mean_speed_time = []
+
+        mean_speed_time.append(cluster_mean_speed)
+
+    mean_speed_time = np.array(mean_speed_time)
+
+    plot_cluster_speed(
+        timesteps=timesteps,
+        values=mean_speed_time,
+        name=f"{name}_s{session_min}-{session_max}",
+        folder=folder,
+        colors=cluster_colors
+    )
+
+    return mean_speed_time
