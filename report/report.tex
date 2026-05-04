@@ -1,0 +1,267 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{xcolor}
+
+\geometry{margin=2.5cm}
+\graphicspath{{../figure/}}
+
+% ── Title ─────────────────────────────────────────────────────────────────
+\title{Identifying Congested and Uncongested Regions \\
+       in the Barcelona Road Network}
+\author{Arthus Duval}
+\date{\today}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+% TODO
+\end{abstract}
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:intro}
+
+\subsection{Context and motivation}
+% TODO
+
+\subsection{Problem statement}
+% TODO
+
+\subsection{Contributions and outline}
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Data Analysis}
+\label{sec:data}
+
+\subsection{The SimBarca dataset}
+\label{sec:data:dataset}
+% Source, format, raw fields (vdist, vtime, sessions), spatial extent.
+% TODO
+
+\subsection{Network representation}
+\label{sec:data:network}
+% Links, nodes, lengths, lanes, coordinates; primitive drawing layer.
+% TODO
+
+\subsection{Temporal structure: sessions and 3-minute aggregation}
+\label{sec:data:temporal}
+% Sessions, 3-min bins, mean-over-sessions construction.
+% TODO
+
+\subsection{Speed reconstruction}
+\label{sec:data:speed}
+% Speed = vdist / vtime, units, range.
+% TODO
+
+\subsection{Missing-data analysis}
+\label{sec:data:nan}
+
+\subsubsection{Spatial and temporal distribution of NaNs}
+% Where and when NaNs occur, clustering of NaNs.
+% TODO
+
+\subsubsection{NaN handling policy}
+% Case A: temporal median for $\leq 30\%$ NaNs.
+% Case C: gray out segments with $> 30\%$ NaNs.
+% Case B (neighbour fill) discarded as unreliable.
+% TODO
+
+\subsection{Network-level descriptive statistics}
+\label{sec:data:stats}
+
+\subsubsection{Average speed map}
+% TODO
+
+\subsubsection{Network mean speed over time}
+% TODO
+
+\subsubsection{Slowest segments}
+% TODO
+
+\subsubsection{Data reliability map}
+% TODO
+
+\subsection{Network simplification}
+\label{sec:data:simplify}
+% Merging short consecutive segments; rationale for downstream analyses.
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Identifying Congested and Uncongested Regions}
+\label{sec:methods}
+
+\subsection{Overview of the two approaches}
+\label{sec:methods:overview}
+% Merge-based vs.\ clustering; what each tries to capture.
+% TODO
+
+% ──────────────────────────────────────────────────────────────────────────
+\subsection{Approach 1 — Merge methods}
+\label{sec:methods:merge}
+
+\subsubsection{Threshold-based segment selection}
+\label{sec:methods:threshold}
+% 85th-pctile speed ceiling, length ceiling, low-speed/short-link mask.
+% TODO
+
+\subsubsection{Spatial grid aggregation}
+\label{sec:methods:grid}
+% grid\_clust: cell-based merging, congestion percentile.
+% TODO
+
+\subsubsection{Percolation analysis}
+\label{sec:methods:percolation}
+% Speed threshold sweep, connected components, giant cluster transition.
+% TODO
+
+\subsubsection{Bottleneck detection}
+\label{sec:methods:bottlenecks}
+% Critical links emerging from percolation.
+% TODO
+
+\subsubsection{Congestion maps}
+\label{sec:methods:congmaps}
+% Snapshots at representative timesteps.
+% TODO
+
+% ──────────────────────────────────────────────────────────────────────────
+\subsection{Approach 2 — Clustering}
+\label{sec:methods:clustering}
+
+\subsubsection{Feature engineering}
+\label{sec:methods:features}
+% Mean / std / peak time / SVD components of row-wise z-score; spatial coords;
+% spatial vs.\ dynamic weighting.
+% TODO
+
+\subsubsection{Feature variants}
+\label{sec:methods:featvariants}
+% geometric, speed, distance, time; single timeframe vs.\ temporal profile.
+% TODO
+
+\subsubsection{K-means clustering}
+\label{sec:methods:kmeans}
+% Algorithm, scaling, with/without bottleneck weighting, with/without sessions.
+% TODO
+
+\subsubsection{Ward (agglomerative) clustering}
+\label{sec:methods:ward}
+% Connectivity-constrained agglomerative clustering.
+% TODO
+
+\subsubsection{Integrating thresholding with clustering}
+\label{sec:methods:hybrid}
+% Filtering low-speed/short links before building features.
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Evaluation}
+\label{sec:eval}
+
+\subsection{Evaluation framework}
+\label{sec:eval:framework}
+% What we are measuring: spatial coherence, temporal stability, separability,
+% interpretability.
+% TODO
+
+\subsection{Metrics}
+\label{sec:eval:metrics}
+
+\subsubsection{Internal cluster-quality metrics}
+% Silhouette, Davies--Bouldin, inertia.
+% TODO
+
+\subsubsection{Stability metrics}
+% Cross-session stability, sensitivity to $k$, sensitivity to weights.
+% TODO
+
+\subsubsection{Spatial-coherence metrics}
+% Compactness, fragmentation, neighbour agreement.
+% TODO
+
+\subsubsection{Congestion-recovery metrics}
+% Agreement with threshold/percolation labels.
+% TODO
+
+\subsection{Choosing the number of clusters}
+\label{sec:eval:k}
+% evaluate\_k figures: $k=4..8$, conclusion.
+% TODO
+
+\subsection{Results — Merge methods}
+\label{sec:eval:merge}
+
+\subsubsection{Threshold and grid aggregation}
+% TODO
+
+\subsubsection{Percolation transition and bottlenecks}
+% TODO
+
+\subsection{Results — Clustering}
+\label{sec:eval:clustering}
+
+\subsubsection{K-means: speed / distance / time / geometric features}
+% TODO
+
+\subsubsection{K-means with bottleneck weighting}
+% TODO
+
+\subsubsection{K-means stability across sessions}
+% TODO
+
+\subsubsection{Ward vs.\ K-means}
+% TODO
+
+\subsection{Comparison of the two approaches}
+\label{sec:eval:compare}
+% Where they agree, where they disagree, complementarity.
+% TODO
+
+\subsection{Limitations}
+\label{sec:eval:limits}
+% NaN coverage, session imbalance, parameter sensitivity.
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+\subsection{Summary of findings}
+% TODO
+
+\subsection{Future work}
+% TODO
+
+% ══════════════════════════════════════════════════════════════════════════
+\appendix
+
+\section{Implementation overview}
+\label{app:impl}
+% Module map: config, processing.speed, network.{draw,simplify},
+% clustering.{features,kmeans,ward}, percolation.{core,maps}, gif, utils.
+% TODO
+
+\section{Parameter reference}
+\label{app:params}
+% TODO
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
