@@ -219,8 +219,8 @@ def kmeans_clustering(
     for k in range(n_clusters):
         cluster_idx = np.where(labels == k)[0]
 
-        vdist_k = vdist[session_min:session_max+1, :, cluster_idx]
-        vtime_k = vtime[session_min:session_max+1, :, cluster_idx]
+        vdist_k = vdist[session_min:session_max+1, timeframe, cluster_idx]
+        vtime_k = vtime[session_min:session_max+1, timeframe, cluster_idx]
 
         total_dist = np.nansum(vdist_k)
         total_time = np.nansum(vtime_k)

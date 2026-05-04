@@ -256,17 +256,17 @@ if __name__ == "__main__":
     #                       timeframe=31, init_links=bottlenecks_no_lr, show_weights=True)
         
 ### 8 Clusters
-    # Bottleneck-seeded clustering
 
-    # mean_speed_time = run_kmeans_graph(
-    #     k=len(bottlenecks1),
-    #     name="kmeans_speed_clusters_bottlenecks",
-    #     links_set=bottlenecks1,
-    #     timesteps=timesteps,
-    #     cluster_colors=cluster_colors[len(bottlenecks1)],
-    #     session_min=0,
-    #     session_max=100
-    # )
+    # Bottleneck-seeded clustering
+    mean_speed_time = run_kmeans_graph(
+        k=len(bottlenecks1),
+        name="kmeans_speed_clusters_bottlenecks",
+        links_set=bottlenecks1,
+        timesteps=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks1)],
+        session_min=0,
+        session_max=100
+    )
     
 
 
