@@ -372,7 +372,7 @@ def plot_cluster_speed(
     plt.xlabel("Time step")
     plt.ylabel("Mean speed (m/s)")
     plt.title(f"{name}")
-    plt.legend()
+    plt.legend(fontsize=6)
     plt.grid()
 
     plt.savefig(filename)
