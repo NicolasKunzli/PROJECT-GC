@@ -29,7 +29,7 @@ from clustering.kmeans   import kmeans_clustering, plot_cluster_speed, run_kmean
 from clustering.ward     import clustering
 
 from percolation.core import percolation_analysis
-from percolation.maps import congestion_map, grid_clust
+from percolation.maps import compare_congestion_methods, congestion_map, grid_clust
 
 from gif   import gradient_gif
 from utils import closest_link
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     # qc, bottlenecks = percolation_analysis(session=0)
     # congestion_map(qc, session=0)
     # grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
+    # compare_congestion_methods(session=0, timestep=31, percentile=65)
 
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
