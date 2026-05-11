@@ -325,6 +325,7 @@ def plot_cluster_speed(
     name,
     folder,
     colors=None,
+    ylabel="Mean speed (m/s)",
 ):
     """
     Plot already computed cluster speeds on a graph with time on the x-axis and speed on the y-axis.
@@ -343,7 +344,6 @@ def plot_cluster_speed(
     plt.figure()
 
     for k in range(values.shape[1]):
-
         plt.plot(
             timesteps,
             values[:, k],
@@ -358,20 +358,16 @@ def plot_cluster_speed(
             s=15
         )
 
-    # ── ensure folder exists ─────────────────────────────
     os.makedirs(folder, exist_ok=True)
 
-    # ── sanitize name ─────────────────────────
     name = name.replace("\\", "/").strip("/")
-    name_parts = name.split("/")
-    safe_name = "_".join(name_parts)
+    safe_name = "_".join(name.split("/"))
 
-    # ── simple filename ───────────────────────────────────
     filename = os.path.join(folder, f"{safe_name}.png")
 
     plt.xlabel("Time step")
-    plt.ylabel("Mean speed (m/s)")
-    plt.title(f"{name}")
+    plt.ylabel(ylabel)
+    plt.title(name)
     plt.legend(fontsize=6)
     plt.grid()
 
@@ -392,6 +388,7 @@ def run_kmeans_graph(
     """
     Helper function combining the kmeans_clustering function and the plot_cluster_speed function.
     
+    WARNING: We recompute de clustering, so don't forget to readjust the weights
     Parameters
     ----------
     n_clusters    : int – number of clusters (len(init_links) if not provided)
@@ -401,7 +398,9 @@ def run_kmeans_graph(
     session_min, session_max : int – session slice for averaging, session_max is included
     """
 
-    mean_speed_time = None
+    mean_speed_time = []
+    median_speed_time = []
+    max_speed_time = []
     folder = None
 
     for t in timeframe:
@@ -419,19 +418,97 @@ def run_kmeans_graph(
             show_weights=True
         )
 
-        if mean_speed_time is None:
-            mean_speed_time = []
+        X = build_cluster_features(
+            "speed",
+            spatial_weight=2.0,
+            dynamic_weight=1,
+            timeframe=t,
+            threshold=np.array([]),
+            filter=False,
+            one_timeframe=True,
+            session_min=session_min,
+            session_max=session_max,
+        )
+
+        init_centroids = X[init_links]
+        kmeans = KMeans(
+            n_clusters=len(init_links),
+            init=init_centroids,
+            n_init=1,
+            random_state=42,
+        )
+
+        labels = kmeans.fit_predict(X)
+
+        vdist = DL._vdist_3min.astype(float)
+        vtime = DL._vtime_3min.astype(float)
+
+        speed = np.divide(
+            vdist,
+            vtime,
+            out=np.full(vdist.shape, np.nan),
+            where=vtime != 0
+        )
+
+        cluster_medians = []
+        cluster_maxs = []
+
+        for k in range(len(init_links)):
+            cluster_idx = np.where(labels == k)[0]
+
+            speed_k = speed[session_min:session_max + 1, t, cluster_idx]
+
+            cluster_medians.append(np.nanmedian(speed_k))
+            cluster_maxs.append(np.nanmax(speed_k))
 
         mean_speed_time.append(cluster_mean_speed)
+        median_speed_time.append(cluster_medians)
+        max_speed_time.append(cluster_maxs)
 
     mean_speed_time = np.array(mean_speed_time)
+    median_speed_time = np.array(median_speed_time)
+    max_speed_time = np.array(max_speed_time)
+
+    # ── Graph folder outside timestep folders ──────────────────────────
+    base_folder = folder
+
+    all_sessions = session_min == 0 and session_max == 100
+
+    if all_sessions:
+        graph_folder = os.path.join(base_folder, "graphs")
+    else:
+        graph_folder = os.path.join(
+            base_folder,
+            f"graphs-s{session_min}-{session_max}"
+        )
+
+    os.makedirs(graph_folder, exist_ok=True)
 
     plot_cluster_speed(
         timesteps=timeframe,
         values=mean_speed_time,
-        name=f"{name}_s{session_min}-{session_max}",
-        folder=folder,
-        colors=cluster_colors
+        name=f"{name}_mean_s{session_min}-{session_max}",
+        folder=graph_folder,
+        colors=cluster_colors,
+        ylabel="Mean speed (m/s)"
     )
 
-    return mean_speed_time
+    plot_cluster_speed(
+        timesteps=timeframe,
+        values=median_speed_time,
+        name=f"{name}_median_s{session_min}-{session_max}",
+        folder=graph_folder,
+        colors=cluster_colors,
+        ylabel="Median speed (m/s)"
+    )
+
+    plot_cluster_speed(
+        timesteps=timeframe,
+        values=max_speed_time,
+        name=f"{name}_max_s{session_min}-{session_max}",
+        folder=graph_folder,
+        colors=cluster_colors,
+        ylabel="Max speed (m/s)"
+    )
+
+    return mean_speed_time, median_speed_time, max_speed_time

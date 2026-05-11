@@ -186,7 +186,12 @@ if __name__ == "__main__":
         + high_speeds.iloc[idx_high].index.tolist()
     )
 
-    timesteps = [0, 9, 23, 31, 33, 36, 38]
+    timesteps = [1, 3, 5, 7, 9, 
+                 13, 
+                 17, 19, 21, 23, 25, 
+                 29, 
+                 33, 36, 38
+                 ]
 
     bottlenecks1 = [
         int(closest_link(431900, 4582650)),  # upper right
@@ -225,6 +230,24 @@ if __name__ == "__main__":
         int(closest_link(428400, 4582300)),  # middle lefter
     ]        
 
+     
+    
+#     # Spatial weight sweep
+#     dyn_weights = np.array(list(range(1, 21))) / 10
+#     for i in dyn_weights:
+#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights",
+#                           "speed", dynamic_weight=1, spatial_weight=i,
+#                           timeframe=31, init_links=bottlenecks1, show_weights=True)
+
+    # Session-stratified clustering
+    sessions = [
+        (0, 0),
+        (1, 20),
+        (21, 40),
+        (41, 60),
+        (61, 80),
+        (81, 100) # 81-100 Empty ?
+        ]
     # 7 Clusters no lr
     bottlenecks_no_lr = [
         b for i, b in enumerate(bottlenecks1)
@@ -283,25 +306,7 @@ if __name__ == "__main__":
         cluster_colors=cluster_colors[len(mixed2)],
         session_min=0,
         session_max=100
-    )       
-    
-#     # Spatial weight sweep
-#     dyn_weights = np.array(list(range(1, 21))) / 10
-#     for i in dyn_weights:
-#         kmeans_clustering(len(bottlenecks1), "kmeans_speed_clusters_t_31_bottlenecks_weights",
-#                           "speed", dynamic_weight=1, spatial_weight=i,
-#                           timeframe=31, init_links=bottlenecks1, show_weights=True)
-
-    # Session-stratified clustering
-    sessions = [
-        (0, 0),
-        (1, 20),
-        (21, 40),
-        (41, 60),
-        (61, 80),
-        (81, 100) # 81-100 Empty ?
-        ]
-
+    )  
 
 ### Graphs for sessions     
 for s_min, s_max in sessions:
@@ -320,7 +325,7 @@ for s_min, s_max in sessions:
     # 7 Clusters no middle left
     mean_speed_time = run_kmeans_graph(
         n_clusters=len(bottlenecks1[:-1]),
-        name="kmeans_speed_clusters_bottlenecks/7-no_ml",
+        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_ml",
         init_links=bottlenecks1[:-1],
         timeframe=timesteps,
         cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
