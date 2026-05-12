@@ -142,11 +142,13 @@ def _draw_grid_congestion(ax, values, nodata_mask, threshold, xdiv, ydiv, title,
 def compare_congestion_methods(
     session=0,
     timestep=31,
-    percentile=65,
-    xdiv=20,
-    ydiv=16,
+    percentile=30,
+    grid_percentile=50,
+    xdiv=10,
+    ydiv=8,
     qc=None,
     speed_threshold=None,
+    grid_threshold=None,
     n_q=100,
     output=None,
 ):
@@ -159,9 +161,11 @@ def compare_congestion_methods(
     session         : int        - simulation session index
     timestep        : int        - 3-minute timestep index
     percentile      : int/float  - raw-speed percentile used when speed_threshold is None
+    grid_percentile : int/float  - raw-speed percentile used when grid_threshold is None
     xdiv, ydiv      : int        - grid divisions for the aggregation method
     qc              : float/None - percolation threshold; computed from the snapshot if None
     speed_threshold : float/None - raw-speed threshold in m/s; percentile is used if None
+    grid_threshold  : float/None - grid threshold in m/s; grid_percentile is used if None
     n_q             : int        - q sweep resolution when qc is computed
     output          : str/None   - optional output path
     """
@@ -172,6 +176,8 @@ def compare_congestion_methods(
     raw_valid = ~(raw_nodata | np.isnan(raw_speed))
     if speed_threshold is None:
         speed_threshold = np.nanpercentile(raw_speed[raw_valid], percentile)
+    if grid_threshold is None:
+        grid_threshold = np.nanpercentile(raw_speed[raw_valid], grid_percentile)
 
     if qc is None:
         adj_directed = build_directed_adjacency()
@@ -199,10 +205,10 @@ def compare_congestion_methods(
         axes[1],
         raw_speed,
         raw_nodata,
-        speed_threshold,
+        grid_threshold,
         xdiv,
         ydiv,
-        f"Grid aggregation\n{xdiv}x{ydiv}, cell mean v < {speed_threshold:.2f}",
+        f"Grid aggregation\n{xdiv}x{ydiv}, cell mean v < {grid_threshold:.2f} (p{grid_percentile})",
         bounds,
     )
     _draw_segment_congestion(

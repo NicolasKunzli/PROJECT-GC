@@ -88,15 +88,22 @@ if __name__ == "__main__":
     # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
     # ── Simplified map ────────────────────────────────────────────────────────
-    # simplified_map(distance_threshold=50.0, grad=True)
-    # simplified_map(distance_threshold=50.0, grad=False, color="navy")
+    simplified_map(distance_threshold=50.0, grad=True)
+    simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
     # ── Percolation analysis ──────────────────────────────────────────────────
-    # qc, bottlenecks = percolation_analysis(session=0)
-    # congestion_map(qc, session=0)
-    # grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
-    # compare_congestion_methods(session=0, timestep=31, percentile=65)
-
+    qc, bottlenecks = percolation_analysis(session=0)
+    congestion_map(qc, session=0)
+    grid_clust(10, 8, qc=qc)  # grid coloured by percolation threshold
+    compare_congestion_methods(
+        session=0,
+        timestep=31,
+        percentile=30,
+        grid_percentile=50,
+        xdiv=10,
+        ydiv=8,
+    )
+'''
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
     x_min_lim = np.min(links["from_x"])
@@ -309,6 +316,7 @@ if __name__ == "__main__":
     )  
 
 ### Graphs for sessions     
+
 for s_min, s_max in sessions:
 
     # bottlenecks1
@@ -368,3 +376,4 @@ for s_min, s_max in sessions:
         
         
         
+'''
