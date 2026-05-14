@@ -17,6 +17,7 @@ from percolation.core import (
     build_directed_adjacency,
     compute_normalized_speed,
     find_critical_threshold,
+    find_top_clusters,
 )
 from processing.speed import fill_speed_nans, mean_over_sessions
 
@@ -292,6 +293,82 @@ def congestion_map(qc, session=0, timesteps=None):
         fig.savefig(f"{folder}/congestion_t{t}.png")
         plt.close(fig)
         print(f"Saved congestion map t={t} ({t*3}min): {n_congested} congested segments")
+
+
+def plot_cluster_speed_profiles(qc=None, n_q=100, session=None, timestep=None, output=None):
+    """
+    Plot median normalised speed over time for the top-5 percolation clusters.
+
+    Clusters are the top-5 strongly connected components at q_c, identified on
+    a single snapshot (session/timestep) or the time-mean when both are None.
+    Each curve shows the per-timestep median r across cluster members.
+
+    Parameters
+    ----------
+    qc       : float or None – critical threshold; computed from the snapshot if None
+    n_q      : int           – q sweep resolution when qc is computed
+    session  : int or None   – session index; averages over all sessions if None
+    timestep : int or None   – timestep used to define clusters; time-mean if None
+    output   : str or None   – output path; auto-generated if None
+    """
+    r = compute_normalized_speed()
+    adj_directed = build_directed_adjacency()
+
+    if session is not None:
+        r_profile, _ = fill_speed_nans(r[session])
+    else:
+        r_profile, _ = fill_speed_nans(mean_over_sessions(r, min=0, max=r.shape[0]))
+
+    r_mean = r_profile[timestep] if timestep is not None else np.nanmean(r_profile, axis=0)
+
+    if qc is None:
+        q_values = np.linspace(0, 1, n_q)
+        qc, _, _ = find_critical_threshold(r_mean, adj_directed, q_values)
+
+    clusters = find_top_clusters(r_mean, adj_directed, qc)
+    if not clusters:
+        print("No functional segments at q_c — cannot plot cluster profiles.")
+        return None
+
+    palette = ["green", "blue", "orange", "purple", "cyan"]
+    T = r_profile.shape[0]
+    time_axis = np.arange(T) * 3  # minutes
+
+    fig, ax = plt.subplots(figsize=(10, 5), dpi=200)
+
+    for k, members in enumerate(clusters):
+        medians = np.array([np.nanmedian(r_profile[t, members]) for t in range(T)])
+        ax.plot(time_axis, medians, color=palette[k], linewidth=1.5,
+                label=f"Cluster {k + 1} ({len(members)} links)")
+
+    ax.axhline(qc, color="gray", linestyle="--", linewidth=0.8, label=f"$q_c$ = {qc:.3f}")
+    ax.set_xlabel("Time [min]", fontsize=10)
+    ax.set_ylabel("Median normalised speed $r$", fontsize=10)
+    if session is not None and timestep is not None:
+        label_snapshot = f"session {session}, t={timestep}"
+        sfx = f"s{session}_t{timestep}"
+    elif session is not None:
+        label_snapshot = f"session {session}, time-mean"
+        sfx = f"s{session}_mean"
+    else:
+        label_snapshot = "mean over sessions"
+        sfx = "mean"
+
+    ax.set_title(f"Median speed of top-5 percolation clusters ({label_snapshot})", fontsize=10)
+    ax.legend(fontsize=8)
+    ax.tick_params(axis="both", labelsize=8)
+
+    if output is None:
+        folder = f"{LOCAL_FIGURE}/congestion_maps"
+        os.makedirs(folder, exist_ok=True)
+        output = f"{folder}/cluster_speed_profiles_{sfx}.png"
+    else:
+        os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
+
+    fig.savefig(output, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Saved cluster speed profiles -> {output}")
+    return output
 
 
 def grid_clust(xdiv=4, ydiv=4, percentile=65, qc=None, session_min=0, session_max=100):

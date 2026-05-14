@@ -108,6 +108,27 @@ def find_bottlenecks(r_t, adj_directed, qc, delta=0.01):
     return bottlenecks
 
 
+def find_top_clusters(r_t, adj_directed, qc, n=5):
+    """
+    Return segment indices for the top-n strongly connected components at qc.
+
+    Returns a list of arrays (one per cluster), sorted by descending component size.
+    """
+    func_idx = np.where(r_t >= qc)[0]
+    if len(func_idx) == 0:
+        return []
+
+    sub_adj = adj_directed[np.ix_(func_idx, func_idx)]
+    _, comp_labels = connected_components(sub_adj, directed=True, connection="strong")
+    comp_sizes = np.bincount(comp_labels)
+    size_order = np.argsort(comp_sizes)[::-1]
+
+    return [
+        func_idx[comp_labels == size_order[k]]
+        for k in range(min(n, len(size_order)))
+    ]
+
+
 def percolation_analysis(session=0, timestep=None, n_q=100):
     """
     Full percolation analysis pipeline.
@@ -169,7 +190,7 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     functional = r_t >= qc
 
     # Draw all segments gray first; functional ones are repainted below
-    for i, row in links.iterrows():
+    for _, row in links.iterrows():
         x, y = sublink(row)
         ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
 
