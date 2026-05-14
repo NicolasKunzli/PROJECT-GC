@@ -17,13 +17,14 @@ from percolation.core import (
     build_directed_adjacency,
     compute_normalized_speed,
     find_critical_threshold,
-    find_top_clusters,
 )
 from processing.speed import fill_speed_nans, mean_over_sessions
 
 
 CONGESTED_COLOR = "red"
 FUNCTIONAL_COLOR = "green"
+
+_CLUSTER_PALETTE = ["#e6194b", "#4363d8", "#f58231", "#911eb4", "#42d4f4"]
 
 
 def _network_bounds(tol=100):
@@ -192,18 +193,10 @@ def compare_congestion_methods(
     else:
         os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
 
-    fig, axes = plt.subplots(1, 3, figsize=(16, 4.6), dpi=250)
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), dpi=250)
 
-    _draw_segment_congestion(
-        axes[0],
-        raw_speed,
-        raw_nodata,
-        speed_threshold,
-        f"Speed threshold\nv < {speed_threshold:.2f} m/s (p{percentile})",
-        bounds,
-    )
     _draw_grid_congestion(
-        axes[1],
+        axes[0],
         raw_speed,
         raw_nodata,
         grid_threshold,
@@ -213,7 +206,7 @@ def compare_congestion_methods(
         bounds,
     )
     _draw_segment_congestion(
-        axes[2],
+        axes[1],
         norm_speed,
         norm_nodata,
         qc,
@@ -293,82 +286,6 @@ def congestion_map(qc, session=0, timesteps=None):
         fig.savefig(f"{folder}/congestion_t{t}.png")
         plt.close(fig)
         print(f"Saved congestion map t={t} ({t*3}min): {n_congested} congested segments")
-
-
-def plot_cluster_speed_profiles(qc=None, n_q=100, session=None, timestep=None, output=None):
-    """
-    Plot median normalised speed over time for the top-5 percolation clusters.
-
-    Clusters are the top-5 strongly connected components at q_c, identified on
-    a single snapshot (session/timestep) or the time-mean when both are None.
-    Each curve shows the per-timestep median r across cluster members.
-
-    Parameters
-    ----------
-    qc       : float or None – critical threshold; computed from the snapshot if None
-    n_q      : int           – q sweep resolution when qc is computed
-    session  : int or None   – session index; averages over all sessions if None
-    timestep : int or None   – timestep used to define clusters; time-mean if None
-    output   : str or None   – output path; auto-generated if None
-    """
-    r = compute_normalized_speed()
-    adj_directed = build_directed_adjacency()
-
-    if session is not None:
-        r_profile, _ = fill_speed_nans(r[session])
-    else:
-        r_profile, _ = fill_speed_nans(mean_over_sessions(r, min=0, max=r.shape[0]))
-
-    r_mean = r_profile[timestep] if timestep is not None else np.nanmean(r_profile, axis=0)
-
-    if qc is None:
-        q_values = np.linspace(0, 1, n_q)
-        qc, _, _ = find_critical_threshold(r_mean, adj_directed, q_values)
-
-    clusters = find_top_clusters(r_mean, adj_directed, qc)
-    if not clusters:
-        print("No functional segments at q_c — cannot plot cluster profiles.")
-        return None
-
-    palette = ["green", "blue", "orange", "purple", "cyan"]
-    T = r_profile.shape[0]
-    time_axis = np.arange(T) * 3  # minutes
-
-    fig, ax = plt.subplots(figsize=(10, 5), dpi=200)
-
-    for k, members in enumerate(clusters):
-        medians = np.array([np.nanmedian(r_profile[t, members]) for t in range(T)])
-        ax.plot(time_axis, medians, color=palette[k], linewidth=1.5,
-                label=f"Cluster {k + 1} ({len(members)} links)")
-
-    ax.axhline(qc, color="gray", linestyle="--", linewidth=0.8, label=f"$q_c$ = {qc:.3f}")
-    ax.set_xlabel("Time [min]", fontsize=10)
-    ax.set_ylabel("Median normalised speed $r$", fontsize=10)
-    if session is not None and timestep is not None:
-        label_snapshot = f"session {session}, t={timestep}"
-        sfx = f"s{session}_t{timestep}"
-    elif session is not None:
-        label_snapshot = f"session {session}, time-mean"
-        sfx = f"s{session}_mean"
-    else:
-        label_snapshot = "mean over sessions"
-        sfx = "mean"
-
-    ax.set_title(f"Median speed of top-5 percolation clusters ({label_snapshot})", fontsize=10)
-    ax.legend(fontsize=8)
-    ax.tick_params(axis="both", labelsize=8)
-
-    if output is None:
-        folder = f"{LOCAL_FIGURE}/congestion_maps"
-        os.makedirs(folder, exist_ok=True)
-        output = f"{folder}/cluster_speed_profiles_{sfx}.png"
-    else:
-        os.makedirs(os.path.dirname(output) or ".", exist_ok=True)
-
-    fig.savefig(output, bbox_inches="tight")
-    plt.close(fig)
-    print(f"Saved cluster speed profiles -> {output}")
-    return output
 
 
 def grid_clust(xdiv=4, ydiv=4, percentile=65, qc=None, session_min=0, session_max=100):
@@ -480,3 +397,182 @@ def grid_clust(xdiv=4, ydiv=4, percentile=65, qc=None, session_min=0, session_ma
     ax.set_aspect("equal")
     fig.savefig(fname)
     plt.close()
+
+
+def grid_clust_kmeans(xdiv=20, ydiv=16, k=5, qc=None, percentile=65,
+                      distance_threshold=50.0):
+    """
+    Grid K-means clustering on the simplified road network.
+
+    Uses group_segments + compute_group_speeds so each drawn segment represents
+    one physical road (duplicates merged), and speed is the group mean [m/s].
+
+    Each cluster is labelled congested (mean speed < threshold) or functional.
+    Congested cells are hatched; each cluster gets a distinct colour.
+
+    Parameters
+    ----------
+    xdiv, ydiv           : int   – grid divisions
+    k                    : int   – number of K-means clusters (≤ 5 recommended)
+    qc                   : float or None – normalised speed threshold (percolation);
+                           when set, group speeds are normalised by their 95th pct
+    percentile           : int   – raw-speed percentile threshold (used when qc=None)
+    distance_threshold   : float – segment-grouping radius passed to group_segments
+    """
+    from sklearn.cluster import KMeans
+    import matplotlib.patches as mpatches
+    from network.simplify import group_segments, compute_group_speeds
+
+    # ── Simplified network ────────────────────────────────────────────────────
+    groups          = group_segments(distance_threshold)
+    representatives = [max(g, key=lambda idx: links.iloc[idx]["num_lanes"])
+                       for g in groups]
+    group_speeds    = compute_group_speeds(groups)   # m/s, shape (n_groups,)
+
+    rep_link_indices = np.array(representatives)   # original indices into links
+    rep_links = links.iloc[representatives].copy().reset_index(drop=True)
+    rep_links["link_idx"]  = rep_link_indices
+    rep_links["speed_mean"] = group_speeds
+    rep_links["nodata"]     = np.isnan(group_speeds)
+
+    # ── Grid bounds ───────────────────────────────────────────────────────────
+    tol   = 100
+    x_min = np.min(links["from_x"]) - tol
+    x_max = np.max(links["to_x"])   + tol
+    y_min = np.min(links["from_y"]) - tol
+    y_max = np.max(links["to_y"])   + tol
+
+    w  = (x_max - x_min) / xdiv
+    h  = (y_max - y_min) / ydiv
+    xs = np.arange(x_min, x_max, w)
+    ys = np.arange(y_min, y_max, h)
+
+    folder = "figure/clustering/grid_clusters"
+    os.makedirs(folder, exist_ok=True)
+
+    rep_links["cell_x"] = ((rep_links["c_x"] - x_min) // w).astype(int)
+    rep_links["cell_y"] = ((rep_links["c_y"] - y_min) // h).astype(int)
+
+    # ── Per-cell average speed + threshold ───────────────────────────────────
+    if qc is not None:
+        v_max = np.nanpercentile(group_speeds, 95)
+        rep_links["speed_norm"] = np.clip(rep_links["speed_mean"] / v_max, 0, 1)
+        cell_speed = (rep_links.groupby(["cell_x", "cell_y"])["speed_norm"]
+                      .mean().reset_index(name="cell_avg_speed"))
+        threshold  = qc
+        title_mode = f"$q_c$={qc:.3f}"
+        fname      = f"{folder}/grid_kmeans{k}_qc{qc:.3f}.png"
+    else:
+        cell_speed = (rep_links.groupby(["cell_x", "cell_y"])["speed_mean"]
+                      .mean().reset_index(name="cell_avg_speed"))
+        threshold  = np.nanpercentile(group_speeds, percentile)
+        title_mode = f"{percentile}th pct"
+        fname      = f"{folder}/grid_kmeans{k}_{percentile}pct.png"
+
+    # ── K-means on normalised (cell_x, cell_y, speed) ─────────────────────────
+    cells = cell_speed.dropna(subset=["cell_avg_speed"]).copy()
+
+    spd_min   = cells["cell_avg_speed"].min()
+    spd_range = cells["cell_avg_speed"].max() - spd_min or 1.0
+    X = np.column_stack([
+        cells["cell_x"] / max(xdiv - 1, 1),
+        cells["cell_y"] / max(ydiv - 1, 1),
+        (cells["cell_avg_speed"] - spd_min) / spd_range,
+    ])
+
+    n_clusters = min(k, len(cells))
+    km = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)
+    cells["cluster"] = km.fit_predict(X)
+
+    cluster_mean_speed   = cells.groupby("cluster")["cell_avg_speed"].mean()
+    cluster_is_congested = cluster_mean_speed < threshold
+
+    cluster_color = {
+        c: _CLUSTER_PALETTE[i % len(_CLUSTER_PALETTE)]
+        for i, c in enumerate(sorted(cells["cluster"].unique()))
+    }
+
+    # ── Merge cluster labels back to representative segments ──────────────────
+    rep_links = rep_links.merge(
+        cells[["cell_x", "cell_y", "cluster"]], on=["cell_x", "cell_y"], how="left"
+    )
+    rep_links["color"] = rep_links["cluster"].map(cluster_color).fillna(NODATA_COLOR)
+    rep_links.loc[rep_links["nodata"], "color"] = NODATA_COLOR
+
+    # ── Plot ──────────────────────────────────────────────────────────────────
+    fig, ax = plt.subplots(dpi=250)
+
+    for _, row in rep_links.iterrows():
+        x, y = sublink(row)
+        ax.plot(x, y, color=row["color"], linewidth=0.8)
+
+    cell_lookup = cells.set_index(["cell_x", "cell_y"])
+    for xi, x in enumerate(xs):
+        for yi, y in enumerate(ys):
+            key = (xi, yi)
+            if key in cell_lookup.index:
+                cell_row  = cell_lookup.loc[key]
+                clr       = cluster_color[cell_row["cluster"]]
+                hatch     = "///" if cluster_is_congested[cell_row["cluster"]] else ""
+                ax.add_patch(patches.Rectangle(
+                    (x, y), w, h,
+                    edgecolor="black", facecolor=clr, alpha=0.2,
+                    linewidth=0.5, hatch=hatch,
+                ))
+            else:
+                ax.add_patch(patches.Rectangle(
+                    (x, y), w, h,
+                    edgecolor="black", facecolor="none", linewidth=0.5,
+                ))
+
+    handles = [
+        mpatches.Patch(
+            facecolor=cluster_color[c], edgecolor="black",
+            hatch="///" if cluster_is_congested[c] else "",
+            label=f"Cluster {c + 1} — {'congested' if cluster_is_congested[c] else 'functional'}",
+        )
+        for c in sorted(cells["cluster"].unique())
+    ]
+    ax.legend(handles=handles, fontsize=6, loc="best")
+
+    polyg(ax, color="black", zorder=-2)
+    ax.set_title(f"Grid K-means k={k}, {title_mode}")
+    ax.set_xlim(x_min, x_max)
+    ax.set_ylim(y_min, y_max)
+    ax.set_aspect("equal")
+    fig.savefig(fname, bbox_inches="tight")
+    plt.close()
+
+    # ── Median speed per cluster over time ────────────────────────────────────
+    from clustering.kmeans import plot_cluster_speed
+    import matplotlib.colors as mcolors
+
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+    speed = np.divide(vdist, vtime,
+                      out=np.full(vdist.shape, np.nan), where=vtime != 0)
+
+    T             = speed.shape[1]
+    cluster_ids   = sorted(cells["cluster"].unique())
+    timesteps_min = np.arange(T) * 3
+
+    median_speed_time = np.full((T, len(cluster_ids)), np.nan)
+    for ci, c in enumerate(cluster_ids):
+        link_indices = rep_links.loc[rep_links["cluster"] == c, "link_idx"].values
+        if len(link_indices) == 0:
+            continue
+        speed_c = speed[:, :, link_indices]
+        for t in range(T):
+            median_speed_time[t, ci] = np.nanmedian(speed_c[:, t, :])
+
+    colors_rgba = [mcolors.to_rgba(cluster_color[c]) for c in cluster_ids]
+    graph_name  = f"grid_kmeans{k}_{title_mode}_median"
+
+    plot_cluster_speed(
+        timesteps=timesteps_min,
+        values=median_speed_time,
+        name=graph_name,
+        folder=folder,
+        colors=colors_rgba,
+        ylabel="Median speed (m/s)",
+    )
