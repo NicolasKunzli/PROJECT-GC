@@ -92,7 +92,6 @@ if __name__ == "__main__":
     # simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
     # ── Percolation analysis ──────────────────────────────────────────────────
-<<<<<<< Updated upstream
     # qc, bottlenecks = percolation_analysis(session=0)
     # congestion_map(qc, session=0)
     # grid_clust(10, 8, qc=qc)  # grid coloured by percolation threshold
@@ -105,21 +104,6 @@ if __name__ == "__main__":
     #     ydiv=8,
     # )
 
-=======
-    qc, bottlenecks = percolation_analysis(session=0)
-    congestion_map(qc, session=0)
-    grid_clust(10, 8, qc=qc)  # grid coloured by percolation threshold
-    compare_congestion_methods(
-        session=0,
-        timestep=31,
-        percentile=30,
-        grid_percentile=50,
-        xdiv=10,
-        ydiv=8,
-    )
-    plot_cluster_speed_profiles(qc=qc, session=0, timestep=15)
-'''
->>>>>>> Stashed changes
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
     x_min_lim = np.min(links["from_x"])
