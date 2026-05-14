@@ -401,9 +401,12 @@ def run_kmeans_graph(
     mean_speed_time = []
     median_speed_time = []
     max_speed_time = []
+    cluster_size_time = []
     folder = None
 
     for t in timeframe:
+        
+        # Clusters mean
         cluster_mean_speed, _, folder = kmeans_clustering(
             n_clusters,
             name,
@@ -418,6 +421,7 @@ def run_kmeans_graph(
             show_weights=True
         )
 
+        # Clusters median and max
         X = build_cluster_features(
             "speed",
             spatial_weight=2.0,
@@ -461,13 +465,18 @@ def run_kmeans_graph(
             cluster_medians.append(np.nanmedian(speed_k))
             cluster_maxs.append(np.nanmax(speed_k))
 
+        # Cluster sizes
+        cluster_sizes = np.bincount(labels, minlength=len(init_links))
+
         mean_speed_time.append(cluster_mean_speed)
         median_speed_time.append(cluster_medians)
         max_speed_time.append(cluster_maxs)
-
+        cluster_size_time.append(cluster_sizes)
+        
     mean_speed_time = np.array(mean_speed_time)
     median_speed_time = np.array(median_speed_time)
     max_speed_time = np.array(max_speed_time)
+    cluster_size_time = np.array(cluster_size_time)
 
     # ── Graph folder outside timestep folders ──────────────────────────
     base_folder = folder
@@ -511,4 +520,12 @@ def run_kmeans_graph(
         ylabel="Max speed (m/s)"
     )
 
-    return mean_speed_time, median_speed_time, max_speed_time
+    plot_cluster_speed(
+        timesteps=timeframe,
+        values=cluster_size_time,
+        name=f"{name}_clusters_count{session_min}-{session_max}",
+        folder=graph_folder,
+        colors=cluster_colors,
+        ylabel="Number of links"
+    )
+    return mean_speed_time, median_speed_time, max_speed_time, cluster_size_time
