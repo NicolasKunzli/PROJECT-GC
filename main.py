@@ -194,7 +194,7 @@ if __name__ == "__main__":
     #     + high_speeds.iloc[idx_high].index.tolist()
     # )
 
-    timesteps = [1, 3, 5, 7, 9, 
+    timesteps = [0, 1, 3, 5, 7, 9, 
                  13, 
                  17, 19, 21, 23, 25, 
                  29, 
@@ -261,76 +261,79 @@ if __name__ == "__main__":
         b for i, b in enumerate(bottlenecks1)
         if i != 5  # lower right
     ]
-        
-#     # 7 Clusters no middle left
-#     mean_speed_time = run_kmeans_graph(
-#         n_clusters=len(bottlenecks1[:-1]),
-#         name="kmeans_speed_clusters_bottlenecks/7-no_ml",
-#         init_links=bottlenecks1[:-1],
-#         timeframe=timesteps,
-#         cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
-#         session_min=0,
-#         session_max=100
-#     )
     
-#     mean_speed_time = run_kmeans_graph(
-#         n_clusters=len(bottlenecks_no_lr),
-#         name="kmeans_speed_clusters_bottlenecks/7-no_lr",
-#         init_links=bottlenecks_no_lr,
-#         timeframe=timesteps,
-#         cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
-#         session_min=0,
-#         session_max=100
-#     )
+    # 7 Clusters no lower right
+    mean_speed_time = run_kmeans_graph(
+        n_clusters=len(bottlenecks_no_lr),
+        name="kmeans_speed_clusters_bottlenecks/7-no_lr",
+        init_links=bottlenecks_no_lr,
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+        session_min=0,
+        session_max=100
+    )        
         
-#     # 8 Clusters
-#     mean_speed_time = run_kmeans_graph(
-#         n_clusters=len(bottlenecks1),
-#         name="kmeans_speed_clusters_bottlenecks/8",
-#         init_links=bottlenecks1,
-#         timeframe=timesteps,
-#         cluster_colors=cluster_colors[len(bottlenecks1)],
-#         session_min=0,
-#         session_max=100
-#     )
-
-#     # mixed1, middle up
-#     run_kmeans_graph(
-#         n_clusters=len(mixed1),
-#         name="kmeans_speed_clusters_bottlenecks/9-middle-up",
-#         init_links=mixed1,
-#         timeframe=timesteps,
-#         cluster_colors=cluster_colors[len(mixed1)],
-#         session_min=0,
-#         session_max=100
-#     )
-
-#     # mixed2, middle left
-#     run_kmeans_graph(
-#         n_clusters=len(mixed2),
-#         name="kmeans_speed_clusters_bottlenecks/9-middle-left",
-#         init_links=mixed2,
-#         timeframe=timesteps,
-#         cluster_colors=cluster_colors[len(mixed2)],
-#         session_min=0,
-#         session_max=100
-#     )  
-
-# ### Graphs for sessions     
-
-for s_min, s_max in sessions:
-
-    # bottlenecks1
-    run_kmeans_graph(
+    # 7 Clusters no middle left
+    mean_speed_time = run_kmeans_graph(
+        n_clusters=len(bottlenecks1[:-1]),
+        name="kmeans_speed_clusters_bottlenecks/7-no_ml",
+        init_links=bottlenecks1[:-1],
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
+        session_min=0,
+        session_max=100
+    )
+        
+    # 8 Clusters
+    mean_speed_time = run_kmeans_graph(
         n_clusters=len(bottlenecks1),
-        name="kmeans_speed_clusters_bottlenecks_sessions/8",
+        name="kmeans_speed_clusters_bottlenecks/8",
         init_links=bottlenecks1,
         timeframe=timesteps,
         cluster_colors=cluster_colors[len(bottlenecks1)],
+        session_min=0,
+        session_max=100
+    )
+    
+    # 9 mixed2, middle left
+    run_kmeans_graph(
+        n_clusters=len(mixed2),
+        name="kmeans_speed_clusters_bottlenecks/9-middle-left",
+        init_links=mixed2,
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(mixed2)],
+        session_min=0,
+        session_max=100
+    )  
+    
+    # 9 mixed1, middle up
+    run_kmeans_graph(
+        n_clusters=len(mixed1),
+        name="kmeans_speed_clusters_bottlenecks/9-middle-up",
+        init_links=mixed1,
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(mixed1)],
+        session_min=0,
+        session_max=100
+    )
+
+
+
+### Graphs for sessions     
+
+for s_min, s_max in sessions:
+    
+    # 7 No lower right
+    run_kmeans_graph(
+        n_clusters=len(bottlenecks_no_lr),
+        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
+        init_links=bottlenecks_no_lr,
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
         session_min=s_min,
         session_max=s_max
     )
-
+    
     # 7 Clusters no middle left
     mean_speed_time = run_kmeans_graph(
         n_clusters=len(bottlenecks1[:-1]),
@@ -342,18 +345,29 @@ for s_min, s_max in sessions:
         session_max=s_max
     )
     
-    # No lower right
+    # 8 bottlenecks1
     run_kmeans_graph(
-        n_clusters=len(bottlenecks_no_lr),
-        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
-        init_links=bottlenecks_no_lr,
+        n_clusters=len(bottlenecks1),
+        name="kmeans_speed_clusters_bottlenecks_sessions/8",
+        init_links=bottlenecks1,
         timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+        cluster_colors=cluster_colors[len(bottlenecks1)],
         session_min=s_min,
         session_max=s_max
     )
 
-    # mixed1, middle up
+    # 9 mixed2, middle left
+    run_kmeans_graph(
+        n_clusters=len(mixed2),
+        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
+        init_links=mixed2,
+        timeframe=timesteps,
+        cluster_colors=cluster_colors[len(mixed2)],
+        session_min=s_min,
+        session_max=s_max
+    )    
+
+    # 9 mixed1, middle up
     run_kmeans_graph(
         n_clusters=len(mixed1),
         name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
@@ -364,16 +378,7 @@ for s_min, s_max in sessions:
         session_max=s_max
     )
 
-    # mixed2, middle left
-    run_kmeans_graph(
-        n_clusters=len(mixed2),
-        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
-        init_links=mixed2,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed2)],
-        session_min=s_min,
-        session_max=s_max
-    )           
+       
 
         
 

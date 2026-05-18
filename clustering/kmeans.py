@@ -169,7 +169,11 @@ def kmeans_clustering(
         raise ValueError(
             f"colors size ({cluster_colors.shape[0]}) != n_clusters ({n_clusters})"
         )
-    fig, ax = plt.subplots(dpi=250)
+        
+    fig, ax = plt.subplots(
+    figsize=(8, 4.2),
+    dpi=250
+)
     ax.set_aspect("equal")
     title = f"{name}_filtered (KMeans, k={n_clusters})" if filter else f"{name} (KMeans, k={n_clusters})"
     ax.set_title(title, fontsize=9)
@@ -216,25 +220,55 @@ def kmeans_clustering(
 
     # ── Legend: cluster index + mean speed ────────────────────────────────────
     cluster_mean_speeds = []
+    cluster_speed_stds = []
 
     for k in range(n_clusters):
+
         cluster_idx = np.where(labels == k)[0]
 
-        vdist_k = vdist[session_min:session_max+1, timeframe, cluster_idx]
-        vtime_k = vtime[session_min:session_max+1, timeframe, cluster_idx]
+        vdist_k = vdist[
+            session_min:session_max + 1,
+            timeframe,
+            cluster_idx
+        ]
+
+        vtime_k = vtime[
+            session_min:session_max + 1,
+            timeframe,
+            cluster_idx
+        ]
 
         total_dist = np.nansum(vdist_k)
         total_time = np.nansum(vtime_k)
 
-        mean_cluster_speed = total_dist / total_time if total_time > 0 else np.nan
+        mean_cluster_speed = (
+            total_dist / total_time
+            if total_time > 0 else np.nan
+        )
+
+        speed_k = np.divide(
+            vdist_k,
+            vtime_k,
+            out=np.full(vdist_k.shape, np.nan),
+            where=vtime_k != 0
+        )
+
+        std_cluster_speed = np.nanstd(speed_k)
+
         cluster_mean_speeds.append(mean_cluster_speed)
+        cluster_speed_stds.append(std_cluster_speed)
+
 
     handles = [
         plt.Line2D(
             [0], [0],
             color=cluster_colors[k],
             lw=3,
-            label=f"Cluster {k} – {cluster_mean_speeds[k]:.2f} m/s"
+            label=(
+                f"Cluster {k} | "
+                f"{cluster_mean_speeds[k]:.2f} ± "
+                f"{cluster_speed_stds[k]:.2f} m/s"
+            )
         )
         for k in range(n_clusters)
     ]
@@ -243,7 +277,13 @@ def kmeans_clustering(
         plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points")
     )
 
-    ax.legend(handles=handles, fontsize=5, loc="upper right")
+    ax.legend(
+        handles=handles,
+        fontsize=6,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True
+    )
 
     # ── Build output filename ──────────────────────────────────────────────────
     all_sessions = session_min == 0 and session_max == 100
@@ -282,7 +322,11 @@ def kmeans_clustering(
             f"_spa{spatial_weight}_dyn{dynamic_weight}.png"
         )
 
-    fig.savefig(filename)
+    fig.tight_layout()
+    plt.savefig(
+        filename,
+        bbox_inches="tight"
+    )
     plt.close(fig)
     print(f"Saved → {filename}")
 
@@ -368,10 +412,20 @@ def plot_cluster_speed(
     plt.xlabel("Time step")
     plt.ylabel(ylabel)
     plt.title(name)
-    plt.legend(fontsize=6)
+    
+    plt.legend(
+        fontsize=6,
+        loc="center left",
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=True
+    )
+    
     plt.grid()
 
-    plt.savefig(filename)
+    plt.savefig(
+        filename,
+        bbox_inches="tight"
+    )
     plt.close()
 
     print(f"Saved → {filename}")
@@ -523,7 +577,7 @@ def run_kmeans_graph(
     plot_cluster_speed(
         timesteps=timeframe,
         values=cluster_size_time,
-        name=f"{name}_clusters_count{session_min}-{session_max}",
+        name=f"{name}_clusters_count_s{session_min}-{session_max}",
         folder=graph_folder,
         colors=cluster_colors,
         ylabel="Number of links"
