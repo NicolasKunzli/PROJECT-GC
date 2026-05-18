@@ -88,23 +88,23 @@ if __name__ == "__main__":
     # kmeans_clustering(n_clus, "kmeans_time_clusters",     "time")
 
     # ── Simplified map ────────────────────────────────────────────────────────
-    simplified_map(distance_threshold=50.0, grad=True)
-    simplified_map(distance_threshold=50.0, grad=False, color="navy")
+    # simplified_map(distance_threshold=50.0, grad=True)
+    # simplified_map(distance_threshold=50.0, grad=False, color="navy")
 
-    # ── Percolation analysis ──────────────────────────────────────────────────
-    qc, bottlenecks = percolation_analysis(session=0)
-    congestion_map(qc, session=0)
-    grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
-    grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
-    compare_congestion_methods(
-        session=0,
-        timestep=31,
-        percentile=30,
-        grid_percentile=50,
-        xdiv=20,
-        ydiv=16,
-    )
-'''
+    # # ── Percolation analysis ──────────────────────────────────────────────────
+    # qc, bottlenecks = percolation_analysis(session=0)
+    # congestion_map(qc, session=0)
+    # grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
+    # grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
+    # compare_congestion_methods(
+    #     session=0,
+    #     timestep=31,
+    #     percentile=30,
+    #     grid_percentile=50,
+    #     xdiv=20,
+    #     ydiv=16,
+    # )
+
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
     x_min_lim = np.min(links["from_x"])
@@ -170,29 +170,29 @@ if __name__ == "__main__":
 
     # ── Lowest / highest speed weight analysis ────────────────────────────────
     # Mean speed over all sessions (used for identifying representative slow/fast links)
-    speed = np.divide(
-        DL._vdist_3min.astype(float),
-        DL._vtime_3min.astype(float),
-        where=DL._vtime_3min.astype(float) != 0,
-    )
-    from processing.speed import mean_over_sessions
-    speed = mean_over_sessions(speed)
-    speed = np.mean(speed, axis=0)
+    # speed = np.divide(
+    #     DL._vdist_3min.astype(float),
+    #     DL._vtime_3min.astype(float),
+    #     where=DL._vtime_3min.astype(float) != 0,
+    # )
+    # from processing.speed import mean_over_sessions
+    # speed = mean_over_sessions(speed)
+    # speed = np.mean(speed, axis=0)
 
-    df = links.copy()
-    df["speed"] = speed
-    df = df[(df["speed"].notna()) & (df["speed"] != 0)]
-    df_sorted = df.sort_values("speed")
+    # df = links.copy()
+    # df["speed"] = speed
+    # df = df[(df["speed"].notna()) & (df["speed"] != 0)]
+    # df_sorted = df.sort_values("speed")
 
-    low_speeds  = df_sorted.head(20)["speed"]
-    high_speeds = df_sorted.tail(20).iloc[::-1]["speed"]
+    # low_speeds  = df_sorted.head(20)["speed"]
+    # high_speeds = df_sorted.tail(20).iloc[::-1]["speed"]
 
-    idx_low  = [2, 7, 11, 19]
-    idx_high = [3, 10, 15]
-    combinations1 = (
-        low_speeds.iloc[idx_low].index.tolist()
-        + high_speeds.iloc[idx_high].index.tolist()
-    )
+    # idx_low  = [2, 7, 11, 19]
+    # idx_high = [3, 10, 15]
+    # combinations1 = (
+    #     low_speeds.iloc[idx_low].index.tolist()
+    #     + high_speeds.iloc[idx_high].index.tolist()
+    # )
 
     timesteps = [1, 3, 5, 7, 9, 
                  13, 
@@ -262,61 +262,61 @@ if __name__ == "__main__":
         if i != 5  # lower right
     ]
         
-    # 7 Clusters no middle left
-    mean_speed_time = run_kmeans_graph(
-        n_clusters=len(bottlenecks1[:-1]),
-        name="kmeans_speed_clusters_bottlenecks/7-no_ml",
-        init_links=bottlenecks1[:-1],
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
-        session_min=0,
-        session_max=100
-    )
+#     # 7 Clusters no middle left
+#     mean_speed_time = run_kmeans_graph(
+#         n_clusters=len(bottlenecks1[:-1]),
+#         name="kmeans_speed_clusters_bottlenecks/7-no_ml",
+#         init_links=bottlenecks1[:-1],
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
+#         session_min=0,
+#         session_max=100
+#     )
     
-    mean_speed_time = run_kmeans_graph(
-        n_clusters=len(bottlenecks_no_lr),
-        name="kmeans_speed_clusters_bottlenecks/7-no_lr",
-        init_links=bottlenecks_no_lr,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
-        session_min=0,
-        session_max=100
-    )
+#     mean_speed_time = run_kmeans_graph(
+#         n_clusters=len(bottlenecks_no_lr),
+#         name="kmeans_speed_clusters_bottlenecks/7-no_lr",
+#         init_links=bottlenecks_no_lr,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+#         session_min=0,
+#         session_max=100
+#     )
         
-    # 8 Clusters
-    mean_speed_time = run_kmeans_graph(
-        n_clusters=len(bottlenecks1),
-        name="kmeans_speed_clusters_bottlenecks/8",
-        init_links=bottlenecks1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1)],
-        session_min=0,
-        session_max=100
-    )
+#     # 8 Clusters
+#     mean_speed_time = run_kmeans_graph(
+#         n_clusters=len(bottlenecks1),
+#         name="kmeans_speed_clusters_bottlenecks/8",
+#         init_links=bottlenecks1,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks1)],
+#         session_min=0,
+#         session_max=100
+#     )
 
-    # mixed1, middle up
-    run_kmeans_graph(
-        n_clusters=len(mixed1),
-        name="kmeans_speed_clusters_bottlenecks/9-middle-up",
-        init_links=mixed1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed1)],
-        session_min=0,
-        session_max=100
-    )
+#     # mixed1, middle up
+#     run_kmeans_graph(
+#         n_clusters=len(mixed1),
+#         name="kmeans_speed_clusters_bottlenecks/9-middle-up",
+#         init_links=mixed1,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(mixed1)],
+#         session_min=0,
+#         session_max=100
+#     )
 
-    # mixed2, middle left
-    run_kmeans_graph(
-        n_clusters=len(mixed2),
-        name="kmeans_speed_clusters_bottlenecks/9-middle-left",
-        init_links=mixed2,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed2)],
-        session_min=0,
-        session_max=100
-    )  
+#     # mixed2, middle left
+#     run_kmeans_graph(
+#         n_clusters=len(mixed2),
+#         name="kmeans_speed_clusters_bottlenecks/9-middle-left",
+#         init_links=mixed2,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(mixed2)],
+#         session_min=0,
+#         session_max=100
+#     )  
 
-### Graphs for sessions     
+# ### Graphs for sessions     
 
 for s_min, s_max in sessions:
 
@@ -374,7 +374,6 @@ for s_min, s_max in sessions:
         session_min=s_min,
         session_max=s_max
     )           
+
         
-        
-        
-'''
+

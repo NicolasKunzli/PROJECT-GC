@@ -5,7 +5,7 @@ import pickle
 from pathlib import Path
 from typing import Dict, List, Any
 from concurrent.futures import ThreadPoolExecutor
-
+from glob import glob
 import numpy as np
 import pandas as pd
 
@@ -110,17 +110,20 @@ class DataLoader():
         del self._timestamp_5s
         del self._timestamp_3min
 
-    def get_sessions_in_split(self) -> List[Path]:
-        """Return a list of paths that contains the simulation sessions in the split"""
-        if not os.path.exists(self.session_splits):
-            print("No train_test_split.json file found, please use `preprocess/simbarca/choose_train_test.py`")
-            return []
-            
-        with open(self.session_splits, "r") as f:
-            session_ids = json.load(f)[self.split]
 
-        sessions_in_split = [os.path.join(self.data_root, self.session_folder_pattern.replace("*", "{:03d}".format(x))) for x in sorted(session_ids)]
-        
+
+    def get_sessions_in_split(self) -> List[Path]:
+        """Load ALL sessions, ignoring train/test split."""
+
+        sessions_in_split = sorted(
+            glob(
+                os.path.join(
+                    self.data_root,
+                    self.session_folder_pattern.replace("*", "*")
+                )
+            )
+        )
+
         return sessions_in_split
 
 
