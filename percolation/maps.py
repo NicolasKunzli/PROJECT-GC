@@ -141,51 +141,108 @@ def _draw_grid_congestion(ax, values, nodata_mask, threshold, xdiv, ydiv, title,
     return congested
 
 
+def _build_simplified_r_at_t(session, timestep):
+    """
+    Return (rep_df, qc_auto) for the simplified network at a given snapshot.
+
+    rep_df columns: all link columns + 'r' (group mean normalised speed),
+                    'nodata' (bool), 'cell_x', 'cell_y' (set externally).
+
+    The normalised speed r for each group is the mean of its members' r values
+    (excluding members flagged as no-data or NaN).
+    """
+    from network.simplify import group_segments
+
+    norm_speed, norm_nodata = _normalized_speed_snapshot(session, timestep)
+
+    groups = group_segments(distance_threshold=50.0)
+    reps   = [max(g, key=lambda idx: links.iloc[idx]["num_lanes"]) for g in groups]
+
+    group_r = []
+    for group in groups:
+        valid_r = [
+            norm_speed[i]
+            for i in group
+            if not norm_nodata[i] and not np.isnan(norm_speed[i])
+        ]
+        group_r.append(float(np.mean(valid_r)) if valid_r else np.nan)
+
+    rep_df = links.iloc[reps].copy().reset_index(drop=True)
+    rep_df["r"]      = group_r
+    rep_df["nodata"] = np.isnan(rep_df["r"])
+
+    return rep_df, norm_speed, norm_nodata
+
+
 def compare_congestion_methods(
     session=0,
     timestep=31,
-    percentile=30,
-    grid_percentile=50,
-    xdiv=10,
-    ydiv=8,
+    xdiv=20,
+    ydiv=16,
     qc=None,
-    speed_threshold=None,
-    grid_threshold=None,
+    grid_qc=0.52,
     n_q=100,
     output=None,
+    # Legacy parameters kept for call-site compatibility (ignored)
+    percentile=30,
+    grid_percentile=50,
+    speed_threshold=None,
+    grid_threshold=None,
 ):
     """
-    Plot side-by-side congestion maps for direct threshold, grid aggregation,
-    and percolation so the methods can be compared on the same snapshot.
+    Side-by-side congestion maps using the **simplified road network** for both panels.
+
+    Left  panel — Grid aggregation
+        The normalised speed r is averaged per grid cell (xdiv × ydiv).
+        Cells with mean r < grid_qc are congested.  Uses the simplified network.
+
+    Right panel — Percolation
+        Each simplified-network segment is coloured by its normalised speed vs q_c.
+        q_c is computed from the full network's percolation sweep if not supplied.
 
     Parameters
     ----------
-    session         : int        - simulation session index
-    timestep        : int        - 3-minute timestep index
-    percentile      : int/float  - raw-speed percentile used when speed_threshold is None
-    grid_percentile : int/float  - raw-speed percentile used when grid_threshold is None
-    xdiv, ydiv      : int        - grid divisions for the aggregation method
-    qc              : float/None - percolation threshold; computed from the snapshot if None
-    speed_threshold : float/None - raw-speed threshold in m/s; percentile is used if None
-    grid_threshold  : float/None - grid threshold in m/s; grid_percentile is used if None
-    n_q             : int        - q sweep resolution when qc is computed
-    output          : str/None   - optional output path
+    session   : int        – simulation session index
+    timestep  : int        – 3-minute timestep index
+    xdiv,ydiv : int        – grid divisions for the aggregation panel
+    qc        : float/None – percolation q_c; computed automatically if None
+    grid_qc   : float      – normalised-speed threshold for grid aggregation (default 0.52)
+    n_q       : int        – resolution of the q sweep when qc is computed
+    output    : str/None   – optional output path override
     """
-    raw_speed, raw_nodata = _raw_speed_snapshot(session, timestep)
-    norm_speed, norm_nodata = _normalized_speed_snapshot(session, timestep)
     bounds = _network_bounds()
+    x_min, x_max, y_min, y_max = bounds
+    w = (x_max - x_min) / xdiv
+    h = (y_max - y_min) / ydiv
 
-    raw_valid = ~(raw_nodata | np.isnan(raw_speed))
-    if speed_threshold is None:
-        speed_threshold = np.nanpercentile(raw_speed[raw_valid], percentile)
-    if grid_threshold is None:
-        grid_threshold = np.nanpercentile(raw_speed[raw_valid], grid_percentile)
-
+    # ── Compute qc if needed (full network, unfiltered) ────────────────────
+    norm_speed_full, norm_nodata_full = _normalized_speed_snapshot(session, timestep)
     if qc is None:
         adj_directed = build_directed_adjacency()
-        q_values = np.linspace(0, 1, n_q)
-        qc, _, _ = find_critical_threshold(norm_speed, adj_directed, q_values)
+        q_values     = np.linspace(0, 1, n_q)
+        qc, _, _     = find_critical_threshold(norm_speed_full, adj_directed, q_values)
 
+    # ── Build simplified network snapshot ─────────────────────────────────
+    rep_df, _, _ = _build_simplified_r_at_t(session, timestep)
+
+    # Grid-cell assignment for rep segments
+    rep_df["cell_x"] = np.clip(
+        ((rep_df["c_x"] - x_min) // w).astype(int), 0, xdiv - 1
+    )
+    rep_df["cell_y"] = np.clip(
+        ((rep_df["c_y"] - y_min) // h).astype(int), 0, ydiv - 1
+    )
+
+    # Cell mean r (for grid panel)
+    cell_r = (
+        rep_df[~rep_df["nodata"]]
+        .groupby(["cell_x", "cell_y"])["r"]
+        .mean()
+        .reset_index(name="cell_r")
+    )
+    rep_grid = rep_df.merge(cell_r, on=["cell_x", "cell_y"], how="left")
+
+    # ── Output path ────────────────────────────────────────────────────────
     if output is None:
         folder = f"{LOCAL_FIGURE}/congestion_maps"
         os.makedirs(folder, exist_ok=True)
@@ -195,37 +252,85 @@ def compare_congestion_methods(
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), dpi=250)
 
-    _draw_grid_congestion(
-        axes[0],
-        raw_speed,
-        raw_nodata,
-        grid_threshold,
-        xdiv,
-        ydiv,
-        f"Grid aggregation\n{xdiv}x{ydiv}, cell mean v < {grid_threshold:.2f} (p{grid_percentile})",
-        bounds,
-    )
-    _draw_segment_congestion(
-        axes[1],
-        norm_speed,
-        norm_nodata,
-        qc,
-        f"Percolation\nr < q_c={qc:.3f}",
+    # ── LEFT: Grid aggregation (simplified network, r vs grid_qc) ─────────
+    ax = axes[0]
+    n_cong_grid, n_valid_grid = 0, 0
+
+    for _, row in rep_grid.iterrows():
+        xs, ys = sublink(row)
+        cell_rv = row.get("cell_r", np.nan)
+        if row["nodata"] or np.isnan(cell_rv):
+            color = NODATA_COLOR
+        elif cell_rv < grid_qc:
+            color = CONGESTED_COLOR
+            n_cong_grid += 1
+            n_valid_grid += 1
+        else:
+            color = FUNCTIONAL_COLOR
+            n_valid_grid += 1
+        ax.plot(xs, ys, c=color, linewidth=1, zorder=2)
+
+    for ix in range(xdiv):
+        for iy in range(ydiv):
+            ax.add_patch(patches.Rectangle(
+                (x_min + ix * w, y_min + iy * h), w, h,
+                edgecolor="black", facecolor="none",
+                linewidth=0.4, alpha=0.5, zorder=3,
+            ))
+
+    _finish_map_axis(
+        ax,
+        (
+            f"Grid aggregation (simplified network)\n"
+            f"{xdiv}×{ydiv}, cell mean r < {grid_qc:.2f} → congested\n"
+            f"{n_cong_grid}/{n_valid_grid} links in congested cells"
+        ),
         bounds,
     )
 
+    # ── RIGHT: Percolation (simplified network, r vs qc) ──────────────────
+    ax = axes[1]
+    n_cong_perc, n_valid_perc = 0, 0
+
+    for _, row in rep_df.iterrows():
+        xs, ys = sublink(row)
+        if row["nodata"]:
+            color = NODATA_COLOR
+        elif row["r"] < qc:
+            color = CONGESTED_COLOR
+            n_cong_perc += 1
+            n_valid_perc += 1
+        else:
+            color = FUNCTIONAL_COLOR
+            n_valid_perc += 1
+        ax.plot(xs, ys, c=color, linewidth=1, zorder=2)
+
+    _finish_map_axis(
+        ax,
+        (
+            f"Percolation (simplified network)\n"
+            f"r < q_c = {qc:.3f}\n"
+            f"{n_cong_perc}/{n_valid_perc} links congested"
+        ),
+        bounds,
+    )
+
+    # ── Legend + title ─────────────────────────────────────────────────────
     handles = [
         plt.Line2D([0], [0], color=CONGESTED_COLOR, lw=3, label="Congested"),
         plt.Line2D([0], [0], color=FUNCTIONAL_COLOR, lw=3, label="Functional"),
-        plt.Line2D([0], [0], color=NODATA_COLOR, lw=3, label="No data"),
+        plt.Line2D([0], [0], color=NODATA_COLOR,     lw=3, label="No data  (>30 % missing)"),
     ]
     fig.legend(handles=handles, loc="lower center", ncol=3, fontsize=8)
-    fig.suptitle(f"Congested areas comparison - session {session}, t={timestep} ({timestep * 3} min)", fontsize=11)
-    fig.subplots_adjust(left=0.04, right=0.99, top=0.82, bottom=0.17, wspace=0.14)
+    fig.suptitle(
+        f"Congestion comparison — session {session}, t={timestep} ({timestep * 3} min)",
+        fontsize=11,
+    )
+    fig.subplots_adjust(left=0.04, right=0.99, top=0.82, bottom=0.18, wspace=0.14)
     fig.savefig(output, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"Saved congestion-method comparison -> {output}")
+    print(f"Saved congestion-method comparison → {output}")
     return output
 
 

@@ -186,39 +186,78 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     print(f"Saved {LOCAL_FIGURE}/percolation_transition.png")
 
     # ── Plot 2: network at q_c with bottlenecks highlighted ────────────────────
+    # Grey segments fall into two distinct categories:
+    #   • No-data  (nodata_mask[i] = True): >30 % NaN fraction → insufficient observations.
+    #     These segments are excluded from the percolation analysis entirely.
+    #   • Congested (r_t[i] < qc): the segment has data but its normalised speed falls
+    #     below q_c, so it does not contribute to the giant functional component.
+    # Both are non-functional, but they have different meanings.
     fig, ax = plt.subplots(dpi=250)
+
     functional = r_t >= qc
 
-    # Draw all segments gray first; functional ones are repainted below
-    for _, row in links.iterrows():
+    # Pass 1: draw every segment with its explicit state
+    for i, row in links.iterrows():
         x, y = sublink(row)
-        ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
+        if nodata_mask[i] or np.isnan(r_t[i]):
+            # True no-data: insufficient observations → gray
+            ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
+        elif not functional[i]:
+            # Congested: has data but r < q_c → dark salmon to distinguish from no-data
+            ax.plot(x, y, c="#c0392b", linewidth=0.4, zorder=1)
 
+    # Pass 2: paint functional segments by their cluster membership (top-5)
     func_idx = np.where(functional)[0]
     if len(func_idx) > 0:
-        sub_adj       = adj_directed[np.ix_(func_idx, func_idx)]
+        sub_adj        = adj_directed[np.ix_(func_idx, func_idx)]
         _, comp_labels = connected_components(sub_adj, directed=True, connection="strong")
-        comp_sizes    = np.bincount(comp_labels)
-        size_order    = np.argsort(comp_sizes)[::-1]
-        palette       = ["green", "blue", "orange", "purple", "cyan"]
+        comp_sizes     = np.bincount(comp_labels)
+        size_order     = np.argsort(comp_sizes)[::-1]
+        palette        = ["green", "blue", "orange", "purple", "cyan"]
 
         for k, cluster_id in enumerate(size_order[:5]):
             members = func_idx[comp_labels == cluster_id]
-            c = palette[k] if k < len(palette) else "gray"
+            c = palette[k] if k < len(palette) else "#aaaaaa"
             for idx in members:
                 x, y = sublink(links.iloc[idx])
                 ax.plot(x, y, c=c, linewidth=0.5, zorder=2)
 
+        # Remaining functional segments (ranks 6+) in light teal
+        shown = set()
+        for cluster_id in size_order[:5]:
+            shown.update(func_idx[comp_labels == cluster_id].tolist())
+        for idx in func_idx:
+            if idx not in shown:
+                x, y = sublink(links.iloc[idx])
+                ax.plot(x, y, c="#7ecaca", linewidth=0.4, zorder=2)
+
+    # Pass 3: highlight bottleneck segments
     for idx in bottlenecks:
         x, y = sublink(links.iloc[idx])
         ax.plot(x, y, c="red", linewidth=1.5, zorder=3)
 
+    # Legend
+    legend_handles = [
+        plt.Line2D([0], [0], color=p, lw=2, label=f"Functional cluster {k+1}")
+        for k, p in enumerate(palette)
+    ] + [
+        plt.Line2D([0], [0], color="#c0392b",  lw=2, label=f"Congested  (r < {qc:.2f})"),
+        plt.Line2D([0], [0], color=NODATA_COLOR, lw=2,
+                   label="No data  (>30 % missing obs.)"),
+        plt.Line2D([0], [0], color="red", lw=2, label=f"Bottleneck ({len(bottlenecks)})"),
+    ]
+    ax.legend(handles=legend_handles, fontsize=6, loc="upper right", ncol=2)
+
     ax.set_aspect("equal")
-    ax.set_title(f"Network at $q_c$={qc:.3f}, bottlenecks in red ({len(bottlenecks)})", fontsize=9)
+    ax.set_title(
+        f"Percolation network at $q_c$={qc:.3f}\n"
+        f"Dark red = congested  |  Gray = no data  |  Colors = functional clusters  |  Red = bottleneck",
+        fontsize=8,
+    )
     ax.set_xlabel("X [m]", fontsize=10)
     ax.set_ylabel("Y [m]", fontsize=10)
     ax.tick_params(axis="both", labelsize=8)
-    fig.savefig(f"{LOCAL_FIGURE}/percolation_bottlenecks.png")
+    fig.savefig(f"{LOCAL_FIGURE}/percolation_bottlenecks.png", bbox_inches="tight")
     plt.close(fig)
     print(f"Saved {LOCAL_FIGURE}/percolation_bottlenecks.png")
 

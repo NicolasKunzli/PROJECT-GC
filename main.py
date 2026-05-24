@@ -30,6 +30,7 @@ from clustering.ward     import clustering
 
 from percolation.core import percolation_analysis
 from percolation.maps import compare_congestion_methods, congestion_map, grid_clust, grid_clust_kmeans
+from percolation.graph_search import run_graph_search_analysis
 
 from gif   import gradient_gif
 from utils import closest_link
@@ -96,14 +97,28 @@ if __name__ == "__main__":
     # congestion_map(qc, session=0)
     # grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
     # grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
-    # compare_congestion_methods(
-    #     session=0,
-    #     timestep=31,
-    #     percentile=30,
-    #     grid_percentile=50,
-    #     xdiv=20,
-    #     ydiv=16,
-    # )
+
+    # ── Compare methods: simplified graph + q=0.52 threshold ──────────────────
+    # Left panel : grid aggregation on simplified network, r < 0.52 → congested
+    # Right panel: percolation on simplified network, r < q_c (auto-computed)
+    compare_congestion_methods(
+        session=0,
+        timestep=31,
+        xdiv=20,
+        ydiv=16,
+        grid_qc=0.52,        # same threshold as percolation
+    )
+
+    # ── Graph-search grid clustering ──────────────────────────────────────────
+    # Connects adjacent cells in the same state (congested/functional), finds
+    # connected components at every timestep, tracks top-5 sizes over time.
+    run_graph_search_analysis(
+        qc=0.52,
+        xdiv=20,
+        ydiv=16,
+        key_timesteps=[5, 17, 29, 31],   # early / mid-peak / pre-peak / peak
+        use_all_sessions=True,
+    )
 
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
