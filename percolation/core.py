@@ -4,6 +4,13 @@ percolation/core.py — Percolation analysis of the road network (Li et al. 2015
 The key idea: at threshold q, keep only "functional" segments (normalised speed r ≥ q)
 and track the size of strongly connected components. The transition point q_c where the
 second-largest component is maximal marks the onset of network-wide congestion.
+
+Normalisation:
+    r_ij(t) = v_ij(t) / v_max_ij
+
+    v_ij(t) is computed from vehicle distance over vehicle time, and v_max_ij is the
+    95th-percentile speed of segment j across all sessions and timesteps.  This keeps
+    the threshold less strict than using the absolute free-flow maximum.
 """
 
 import numpy as np
@@ -43,7 +50,8 @@ def compute_normalized_speed():
     vtime = DL._vtime_3min.astype(float)
 
     speed = np.divide(
-        vdist, vtime,
+        vdist,
+        vtime,
         out=np.full(vdist.shape, np.nan, dtype=float),
         where=vtime != 0,
     )
@@ -185,58 +193,73 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     plt.close(fig)
     print(f"Saved {LOCAL_FIGURE}/percolation_transition.png")
 
-    # ── Plot 2: network at q_c with bottlenecks highlighted ────────────────────
-    # Grey segments fall into two distinct categories:
-    #   • No-data  (nodata_mask[i] = True): >30 % NaN fraction → insufficient observations.
-    #     These segments are excluded from the percolation analysis entirely.
-    #   • Congested (r_t[i] < qc): the segment has data but its normalised speed falls
-    #     below q_c, so it does not contribute to the giant functional component.
-    # Both are non-functional, but they have different meanings.
+    # ── Plot 2: simplified network at q_c with bottlenecks highlighted ────────
+    # The percolation math (SCC, q_c, bottlenecks) was computed on the full graph.
+    # Visualisation uses the *simplified* graph: parallel/duplicate road segments
+    # are merged into one representative (highest lane count), coloured by their
+    # group-mean r.  This removes visual clutter from dual-carriageways while
+    # preserving the spatial structure of the percolation clusters.
+    from network.simplify import group_segments
+
+    palette = ["green", "blue", "orange", "purple", "cyan"]
+
+    # ── Build segment → SCC-rank lookup (from full-network percolation) ────
+    functional   = (r_t >= qc) & (~nodata_mask) & (~np.isnan(r_t))
+    func_idx     = np.where(functional)[0]
+    seg_to_rank  = {}  # segment index → cluster rank (0 = giant, 1 = 2nd, …)
+
+    if len(func_idx) > 0:
+        sub_adj      = adj_directed[np.ix_(func_idx, func_idx)]
+        _, comp_labels = connected_components(sub_adj, directed=True, connection="strong")
+        comp_sizes   = np.bincount(comp_labels)
+        size_order   = np.argsort(comp_sizes)[::-1]
+        label_to_rank = {label: rank for rank, label in enumerate(size_order)}
+        for local_i, seg_idx in enumerate(func_idx):
+            seg_to_rank[int(seg_idx)] = label_to_rank[comp_labels[local_i]]
+
+    # ── Build simplified groups ────────────────────────────────────────────
+    groups = group_segments(distance_threshold=50.0)
+    reps   = [max(g, key=lambda idx: links.iloc[idx]["num_lanes"]) for g in groups]
+
+    # Group-level r = nanmean of member r values (nodata members excluded)
+    bottleneck_set = set(int(b) for b in bottlenecks)
+    group_r            = []
+    group_nodata       = []
+    group_is_bottleneck = []
+    group_rank         = []
+
+    for group in groups:
+        valid_r = [r_t[i] for i in group if not nodata_mask[i] and not np.isnan(r_t[i])]
+        r_grp   = float(np.mean(valid_r)) if valid_r else np.nan
+        group_r.append(r_grp)
+        group_nodata.append(np.isnan(r_grp))
+        group_is_bottleneck.append(any(i in bottleneck_set for i in group))
+        # Cluster rank: use the representative segment's rank (fallback: 5 = teal)
+        group_rank.append(seg_to_rank.get(reps[len(group_r) - 1], 5))
+
+    n_bottleneck_groups = sum(group_is_bottleneck)
+
     fig, ax = plt.subplots(dpi=250)
 
-    # Exclude no-data segments from the functional set even if they happen to have
-    # a valid r_t value at this timestep (they'd otherwise leak into cluster colours).
-    functional = (r_t >= qc) & (~nodata_mask) & (~np.isnan(r_t))
-
-    # Pass 1: draw every segment with its explicit state
-    for i, row in links.iterrows():
-        x, y = sublink(row)
-        if nodata_mask[i] or np.isnan(r_t[i]):
-            # True no-data: insufficient observations → gray
+    # Pass 1 & 2: draw every representative segment
+    for k, rep_idx in enumerate(reps):
+        x, y = sublink(links.iloc[rep_idx])
+        if group_nodata[k]:
             ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
-        elif not functional[i]:
-            # Congested: has data but r < q_c → dark red to distinguish from no-data
-            ax.plot(x, y, c="#c0392b", linewidth=0.4, zorder=1)
+        elif group_r[k] < qc:
+            # Congested barrier
+            ax.plot(x, y, c="#c0392b", linewidth=1.0, zorder=2)
+        else:
+            # Functional — colour by SCC rank
+            rank = group_rank[k]
+            c    = palette[rank] if rank < len(palette) else "#7ecaca"
+            ax.plot(x, y, c=c, linewidth=0.6, zorder=3)
 
-    # Pass 2: paint functional segments by their cluster membership (top-5)
-    func_idx = np.where(functional)[0]
-    if len(func_idx) > 0:
-        sub_adj        = adj_directed[np.ix_(func_idx, func_idx)]
-        _, comp_labels = connected_components(sub_adj, directed=True, connection="strong")
-        comp_sizes     = np.bincount(comp_labels)
-        size_order     = np.argsort(comp_sizes)[::-1]
-        palette        = ["green", "blue", "orange", "purple", "cyan"]
-
-        for k, cluster_id in enumerate(size_order[:5]):
-            members = func_idx[comp_labels == cluster_id]
-            c = palette[k] if k < len(palette) else "#aaaaaa"
-            for idx in members:
-                x, y = sublink(links.iloc[idx])
-                ax.plot(x, y, c=c, linewidth=0.5, zorder=2)
-
-        # Remaining functional segments (ranks 6+) in light teal
-        shown = set()
-        for cluster_id in size_order[:5]:
-            shown.update(func_idx[comp_labels == cluster_id].tolist())
-        for idx in func_idx:
-            if idx not in shown:
-                x, y = sublink(links.iloc[idx])
-                ax.plot(x, y, c="#7ecaca", linewidth=0.4, zorder=2)
-
-    # Pass 3: highlight bottleneck segments
-    for idx in bottlenecks:
-        x, y = sublink(links.iloc[idx])
-        ax.plot(x, y, c="red", linewidth=1.5, zorder=3)
+    # Pass 3: overlay bottleneck representatives in red
+    for k, rep_idx in enumerate(reps):
+        if group_is_bottleneck[k]:
+            x, y = sublink(links.iloc[rep_idx])
+            ax.plot(x, y, c="red", linewidth=1.8, zorder=4)
 
     # Legend
     legend_handles = [
@@ -246,13 +269,14 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
         plt.Line2D([0], [0], color="#c0392b",  lw=2, label=f"Congested  (r < {qc:.2f})"),
         plt.Line2D([0], [0], color=NODATA_COLOR, lw=2,
                    label="No data  (>30 % missing obs.)"),
-        plt.Line2D([0], [0], color="red", lw=2, label=f"Bottleneck ({len(bottlenecks)})"),
+        plt.Line2D([0], [0], color="red", lw=2,
+                   label=f"Bottleneck ({n_bottleneck_groups} groups)"),
     ]
     ax.legend(handles=legend_handles, fontsize=6, loc="upper right", ncol=2)
 
     ax.set_aspect("equal")
     ax.set_title(
-        f"Percolation network at $q_c$={qc:.3f}\n"
+        f"Percolation network at $q_c$={qc:.3f}  (simplified graph)\n"
         f"Dark red = congested  |  Gray = no data  |  Colors = functional clusters  |  Red = bottleneck",
         fontsize=8,
     )
