@@ -194,7 +194,9 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
     # Both are non-functional, but they have different meanings.
     fig, ax = plt.subplots(dpi=250)
 
-    functional = r_t >= qc
+    # Exclude no-data segments from the functional set even if they happen to have
+    # a valid r_t value at this timestep (they'd otherwise leak into cluster colours).
+    functional = (r_t >= qc) & (~nodata_mask) & (~np.isnan(r_t))
 
     # Pass 1: draw every segment with its explicit state
     for i, row in links.iterrows():
@@ -203,7 +205,7 @@ def percolation_analysis(session=0, timestep=None, n_q=100):
             # True no-data: insufficient observations → gray
             ax.plot(x, y, c=NODATA_COLOR, linewidth=0.3, zorder=1)
         elif not functional[i]:
-            # Congested: has data but r < q_c → dark salmon to distinguish from no-data
+            # Congested: has data but r < q_c → dark red to distinguish from no-data
             ax.plot(x, y, c="#c0392b", linewidth=0.4, zorder=1)
 
     # Pass 2: paint functional segments by their cluster membership (top-5)
