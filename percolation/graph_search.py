@@ -164,6 +164,56 @@ def _sorted_sizes(labels, n_comp):
     )
 
 
+def _compute_median_speeds(results, top_n=5):
+    """
+    Median raw speed (m/s) for the top-N congested clusters at every timestep.
+
+    Cluster identity is rank-based: rank 1 = largest congested component at time t.
+    The median is taken over all links whose grid cell belongs to that component.
+
+    Parameters
+    ----------
+    results : dict returned by grid_graph_search_clustering
+    top_n   : int – how many ranked clusters to track
+
+    Returns
+    -------
+    ndarray (T, top_n) – NaN when fewer than top_n clusters exist or no valid speed data
+    """
+    T           = results["T"]
+    raw_profile = results["raw_speed_profile"]   # (T, N)  m/s
+    lc          = results["links_cells"]
+
+    # Vectorised cell lookup per link
+    lx = lc["cell_x"].values.astype(int)         # (N,)
+    ly = lc["cell_y"].values.astype(int)         # (N,)
+
+    median_speeds = np.full((T, top_n), np.nan)
+
+    for t in range(T):
+        cl = results["cong_labels"][t]            # (xdiv, ydiv)
+        nc = int(cl.max())
+        if nc == 0:
+            continue
+
+        # Rank components by size → top_n component ids
+        comp_sizes = [(i, int((cl == i).sum())) for i in range(1, nc + 1)]
+        top_comps  = [cid for cid, _ in
+                      sorted(comp_sizes, key=lambda x: -x[1])[:top_n]]
+
+        # For each link, look up its cell's cluster label (0 = not congested)
+        link_labels = cl[lx, ly]                  # (N,)
+
+        for rank, comp_id in enumerate(top_comps):
+            mask  = link_labels == comp_id
+            valid = raw_profile[t, mask]
+            valid = valid[~np.isnan(valid)]
+            if len(valid):
+                median_speeds[t, rank] = np.median(valid)
+
+    return median_speeds
+
+
 def _simplified_rep_links(bounds, xdiv, ydiv, distance_threshold=50.0):
     """
     Build representative-link DataFrame for the simplified network,
@@ -194,49 +244,74 @@ def grid_graph_search_clustering(
     ydiv=16,
     session=0,
     use_all_sessions=True,
+    use_normalized=True,
 ):
     """
     Run graph-search clustering on the grid for every timestep.
 
     Parameters
     ----------
-    qc              : float – normalised-speed threshold (r̄_cell < qc → congested)
+    qc              : float – congestion threshold.
+                      If use_normalized=True : normalised speed threshold r̄_cell < qc.
+                      If use_normalized=False: raw speed threshold in m/s (v̄_cell < qc).
     xdiv, ydiv      : int   – grid divisions (columns, rows)
     session         : int   – session index used when use_all_sessions=False
-    use_all_sessions: bool  – if True, average r over all sessions before analysis
+    use_all_sessions: bool  – if True, average over all sessions before analysis
+    use_normalized  : bool  – True  → classify cells by normalised speed r ∈ [0,1]
+                              False → classify cells by raw speed (m/s)
 
     Returns
     -------
     dict with keys:
-        'cong_sizes'  : list[list[int]]     – sorted cluster sizes (congested) per timestep
-        'func_sizes'  : list[list[int]]     – sorted cluster sizes (functional) per timestep
-        'grid_states' : list[ndarray]       – (xdiv, ydiv) state grids
-        'cong_labels' : list[ndarray]       – scipy-label arrays for congested components
-        'func_labels' : list[ndarray]       – scipy-label arrays for functional components
-        'T'           : int
-        'qc'          : float
-        'xdiv','ydiv' : int
-        'bounds'      : (x_min, x_max, y_min, y_max)
-        'nodata_mask' : bool ndarray (N,)
+        'cong_sizes'       : list[list[int]]  – sorted cluster sizes (congested) per t
+        'func_sizes'       : list[list[int]]  – sorted cluster sizes (functional) per t
+        'grid_states'      : list[ndarray]    – (xdiv, ydiv) state grids
+        'cong_labels'      : list[ndarray]    – BFS label arrays (congested components)
+        'func_labels'      : list[ndarray]    – BFS label arrays (functional components)
+        'T'                : int
+        'qc'               : float
+        'use_normalized'   : bool
+        'xdiv','ydiv'      : int
+        'bounds'           : (x_min, x_max, y_min, y_max)
+        'nodata_mask'      : bool ndarray (N,)
+        'raw_speed_profile': ndarray (T, N)  – raw speed in m/s (for median computation)
+        'links_cells'      : DataFrame       – per-link cell assignments (cell_x, cell_y)
     """
-    r = compute_normalized_speed()                      # (S, T, N)
-
+    # ── Always compute raw speed profile (needed for median speed subplot) ──
+    vdist     = DL._vdist_3min.astype(float)
+    vtime     = DL._vtime_3min.astype(float)
+    speed_raw = np.divide(vdist, vtime,
+                          out=np.full(vdist.shape, np.nan, dtype=float),
+                          where=vtime != 0)
     if use_all_sessions:
-        r_mean    = mean_over_sessions(r, min=0, max=r.shape[0])   # (T, N)
-        r_profile, nodata_mask = fill_speed_nans(r_mean)
+        raw_mean               = mean_over_sessions(speed_raw, min=0, max=speed_raw.shape[0])
+        raw_profile, raw_nodata = fill_speed_nans(raw_mean)
     else:
-        r_profile, nodata_mask = fill_speed_nans(r[session])       # (T, N)
+        raw_profile, raw_nodata = fill_speed_nans(speed_raw[session])
 
-    T      = r_profile.shape[0]
+    # ── Values used for cell-state classification ───────────────────────────
+    if use_normalized:
+        r = compute_normalized_speed()                           # (S, T, N)
+        if use_all_sessions:
+            r_mean             = mean_over_sessions(r, min=0, max=r.shape[0])
+            values, nodata_mask = fill_speed_nans(r_mean)
+        else:
+            values, nodata_mask = fill_speed_nans(r[session])
+    else:
+        values     = raw_profile
+        nodata_mask = raw_nodata
+
+    T      = values.shape[0]
     bounds = _network_bounds()
     lc     = _links_with_cells(bounds, xdiv, ydiv)
 
     cong_sizes_all, func_sizes_all = [], []
     grid_states, cong_labels_all, func_labels_all = [], [], []
 
-    print(f"  Graph search: processing {T} timesteps …")
+    mode = f"normalised r" if use_normalized else "raw speed m/s"
+    print(f"  Graph search: processing {T} timesteps  ({mode}, q={qc}) …")
     for t in range(T):
-        gs             = _assign_cell_state(r_profile[t], nodata_mask, lc, xdiv, ydiv, qc)
+        gs             = _assign_cell_state(values[t], nodata_mask, lc, xdiv, ydiv, qc)
         cl, nc, fl, nf = _find_components(gs)
 
         cong_sizes_all.append(_sorted_sizes(cl, nc))
@@ -245,7 +320,7 @@ def grid_graph_search_clustering(
         cong_labels_all.append(cl)
         func_labels_all.append(fl)
 
-    print(f"  Done.  (qc={qc}, {xdiv}×{ydiv} grid, {T} timesteps)")
+    print(f"  Done.  (q={qc}, {xdiv}×{ydiv} grid, {T} timesteps)")
 
     return dict(
         cong_sizes=cong_sizes_all,
@@ -255,10 +330,13 @@ def grid_graph_search_clustering(
         func_labels=func_labels_all,
         T=T,
         qc=qc,
+        use_normalized=use_normalized,
         xdiv=xdiv,
         ydiv=ydiv,
         bounds=bounds,
         nodata_mask=nodata_mask,
+        raw_speed_profile=raw_profile,   # always raw m/s, for median plot
+        links_cells=lc,                  # cell assignments per link
     )
 
 
@@ -438,23 +516,25 @@ def run_graph_search_analysis(
     key_timesteps=None,
     session=0,
     use_all_sessions=True,
+    use_normalized=True,
     folder=None,
 ):
     """
-    Full graph-search clustering pipeline:
+    Full graph-search clustering pipeline — 3-panel merged figure:
 
-    1. Compute grid states + connected components for all timesteps.
-    2. Save top-5 congested cluster sizes time-series.
-    3. Save individual maps at `key_timesteps`.
-    4. Save a merged figure (maps in top row, time-series in bottom row).
+      Row 1 : maps at key_timesteps (coloured by cluster rank)
+      Row 2 : top-5 congested cluster sizes over time (# grid cells)
+      Row 3 : median raw speed (m/s) of the same top-5 clusters over time
 
     Parameters
     ----------
-    qc, xdiv, ydiv      : see grid_graph_search_clustering
-    key_timesteps       : list[int] – timesteps shown on maps (default: early/mid/late)
-    session             : int       – used when use_all_sessions=False
-    use_all_sessions    : bool
-    folder              : str       – output directory (default: figure/graph_search)
+    qc              : float – congestion threshold (normalised or m/s, see use_normalized)
+    xdiv, ydiv      : int
+    key_timesteps   : list[int] – timesteps shown on maps; default: early / mid / late
+    session         : int       – session index (use_all_sessions=False only)
+    use_all_sessions: bool
+    use_normalized  : bool      – True → normalised speed; False → raw speed m/s
+    folder          : str       – output directory
 
     Returns
     -------
@@ -469,19 +549,27 @@ def run_graph_search_analysis(
     results = grid_graph_search_clustering(
         qc=qc, xdiv=xdiv, ydiv=ydiv,
         session=session, use_all_sessions=use_all_sessions,
+        use_normalized=use_normalized,
     )
     T = results["T"]
+
+    # Threshold label used in titles
+    q_label = (f"q = {qc:.2f}  (normalised r)"
+               if use_normalized else f"q = {qc} m/s  (raw speed)")
 
     # Default key timesteps: early, mid, late thirds of the recording
     if key_timesteps is None:
         key_timesteps = [max(0, T // 6), T // 2, min(T - 1, 5 * T // 6)]
     key_timesteps = [min(max(t, 0), T - 1) for t in key_timesteps]
 
-    # ── 2. Pre-compute simplified network (done once) ──────────────────────
+    # ── 2. Pre-compute simplified network & median speeds ──────────────────
     print("Building simplified network …")
     rep_links = _simplified_rep_links(results["bounds"], xdiv, ydiv)
 
-    # ── 3. Top-5 cluster sizes time-series ────────────────────────────────
+    print("Computing median speeds per cluster …")
+    median_spd = _compute_median_speeds(results, top_n=5)   # (T, 5)
+
+    # ── 3. Standalone: top-5 cluster sizes ────────────────────────────────
     plot_top5_cluster_sizes(results, folder)
 
     # ── 4. Individual maps ────────────────────────────────────────────────
@@ -494,67 +582,84 @@ def run_graph_search_analysis(
         plt.close(fig)
         print(f"  Saved map t={t} → {out}")
 
-    # ── 5. Merged figure ──────────────────────────────────────────────────
-    n_maps = len(key_timesteps)
-    fig = plt.figure(figsize=(4.5 * n_maps, 8.5), dpi=200)
+    # ── 5. Merged figure  (3 rows) ────────────────────────────────────────
+    n_maps    = len(key_timesteps)
+    ts_labels = [_TS_BASE[i].strftime("%H:%M") for i in range(T)]
+    tick_step = max(1, T // 10)
+
+    fig = plt.figure(figsize=(4.5 * n_maps, 13), dpi=200)
     gs_layout = fig.add_gridspec(
-        2, n_maps,
-        height_ratios=[1.1, 0.7],
-        hspace=0.38,
+        3, n_maps,
+        height_ratios=[1.2, 0.6, 0.6],
+        hspace=0.48,
         wspace=0.10,
     )
 
-    # Top row: maps
+    # ── Row 0: maps ────────────────────────────────────────────────────────
     for col, t in enumerate(key_timesteps):
         ax = fig.add_subplot(gs_layout[0, col])
         _draw_cluster_map(ax, t, results, rep_links)
         if col == 0:
-            ax.legend(handles=_cluster_legend_handles(), fontsize=4, loc="lower left", ncol=1)
+            ax.legend(handles=_cluster_legend_handles(), fontsize=4,
+                      loc="lower left", ncol=1)
 
-    # Bottom row: spanning time-series
-    ax_ts = fig.add_subplot(gs_layout[1, :])
+    # ── Row 1: top-5 cluster sizes ─────────────────────────────────────────
+    ax_sz = fig.add_subplot(gs_layout[1, :])
     top5  = np.zeros((T, 5), dtype=int)
     for t, s in enumerate(results["cong_sizes"]):
         for k, v in enumerate(s[:5]):
             top5[t, k] = v
 
-    ts_labels = [_TS_BASE[i].strftime("%H:%M") for i in range(T)]
-    tick_step = max(1, T // 10)
-
     for k in range(5):
         if top5[:, k].max() == 0:
             continue
-        ax_ts.plot(
-            range(T),
-            top5[:, k],
-            color=_TOP5_COLORS[k],
-            linewidth=1.5 if k == 0 else 1.0,
-            marker="o",
-            markersize=2,
-            label=f"Rank {k + 1}",
-        )
+        ax_sz.plot(range(T), top5[:, k],
+                   color=_TOP5_COLORS[k],
+                   linewidth=1.5 if k == 0 else 1.0,
+                   marker="o", markersize=2,
+                   label=f"Rank {k + 1}")
 
-    # Mark key timesteps with vertical dashed lines
     for t in key_timesteps:
-        ax_ts.axvline(t, color="gray", linestyle="--", linewidth=0.7, alpha=0.6)
+        ax_sz.axvline(t, color="gray", linestyle="--", linewidth=0.7, alpha=0.6)
 
-    ax_ts.set_xticks(range(0, T, tick_step))
-    ax_ts.set_xticklabels(ts_labels[::tick_step], rotation=30, ha="right", fontsize=7)
-    ax_ts.set_xlabel("Time", fontsize=8)
-    ax_ts.set_ylabel("# grid cells", fontsize=8)
-    ax_ts.set_title(
-        f"Top-5 Congested Cluster Sizes  (q = {qc:.2f})",
-        fontsize=9,
-    )
-    ax_ts.legend(fontsize=7, loc="upper left")
-    ax_ts.grid(True, alpha=0.3)
-    ax_ts.tick_params(axis="both", labelsize=7)
+    ax_sz.set_xticks(range(0, T, tick_step))
+    ax_sz.set_xticklabels(ts_labels[::tick_step], rotation=30, ha="right", fontsize=7)
+    ax_sz.set_ylabel("# grid cells", fontsize=8)
+    ax_sz.set_title(f"Top-5 Congested Cluster Sizes", fontsize=9)
+    ax_sz.legend(fontsize=7, loc="upper left")
+    ax_sz.grid(True, alpha=0.3)
+    ax_sz.tick_params(axis="both", labelsize=7)
 
+    # ── Row 2: median raw speed per cluster ────────────────────────────────
+    ax_spd = fig.add_subplot(gs_layout[2, :])
+
+    for k in range(5):
+        col_data = median_spd[:, k]
+        if np.all(np.isnan(col_data)):
+            continue
+        ax_spd.plot(range(T), col_data,
+                    color=_TOP5_COLORS[k],
+                    linewidth=1.5 if k == 0 else 1.0,
+                    marker="o", markersize=2,
+                    label=f"Rank {k + 1}")
+
+    for t in key_timesteps:
+        ax_spd.axvline(t, color="gray", linestyle="--", linewidth=0.7, alpha=0.6)
+
+    ax_spd.set_xticks(range(0, T, tick_step))
+    ax_spd.set_xticklabels(ts_labels[::tick_step], rotation=30, ha="right", fontsize=7)
+    ax_spd.set_xlabel("Time", fontsize=8)
+    ax_spd.set_ylabel("Median speed  (m/s)", fontsize=8)
+    ax_spd.set_title("Median Raw Speed of Top-5 Congested Clusters", fontsize=9)
+    ax_spd.legend(fontsize=7, loc="upper left")
+    ax_spd.grid(True, alpha=0.3)
+    ax_spd.tick_params(axis="both", labelsize=7)
+
+    # ── Suptitle & save ────────────────────────────────────────────────────
     fig.suptitle(
         f"Graph-Search Cluster Evolution  "
-        f"({xdiv}×{ydiv} grid,  q = {qc:.2f},  mean over all sessions)",
-        fontsize=11,
-        fontweight="bold",
+        f"({xdiv}×{ydiv} grid,  {q_label},  mean over all sessions)",
+        fontsize=11, fontweight="bold",
     )
 
     out = os.path.join(folder, "merged_graph_search_analysis.png")
