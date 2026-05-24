@@ -6,8 +6,9 @@ Algorithm (per timestep)
 1. Divide the network into an xdiv × ydiv grid.
 2. Compute the mean normalised speed r̄ for every cell (links assigned by centroid).
 3. Label each cell:  congested (r̄ < qc) | functional (r̄ ≥ qc) | no-data (empty).
-4. Build a 4-connected grid graph; connect adjacent cells that share the same state.
-5. Find connected components (scipy.ndimage.label → equivalent to BFS on the grid).
+4. Build a grid graph where two cells are neighbours iff they share an EDGE
+   (up / down / left / right only — no diagonal corner-touches).
+5. Find connected components with explicit BFS using only those 4 directions.
 6. Track the top-5 component sizes over all timesteps.
 
 Outputs
@@ -23,7 +24,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from scipy.ndimage import label as scipy_label
+from collections import deque
 
 from config import DL, links, LOCAL_FIGURE, NODATA_COLOR
 from network.draw import sublink, polyg
@@ -39,10 +40,8 @@ _TOP5_COLORS = ["#e6194b", "#4363d8", "#f58231", "#3cb44b", "#911eb4"]
 _SMALL_CONG_COLOR = "#ffbbbb"   # faded pink for smaller congested clusters
 _FUNC_COLOR       = "#33aa33"   # green for functional segments
 
-# 4-connectivity structure for scipy label
-_STRUCT_4 = np.array([[0, 1, 0],
-                       [1, 1, 1],
-                       [0, 1, 0]], dtype=int)
+# Explicit 4-neighbours (no diagonals): up, down, left, right
+_NEIGHBOURS_4 = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
 # Dataset timestamps (3-min intervals starting at 08:03)
 _TS_BASE = pd.date_range("2005-05-10 08:03", periods=200, freq="3min")
@@ -98,14 +97,54 @@ def _assign_cell_state(r_t, nodata_mask, links_cells, xdiv, ydiv, qc):
     return grid_state
 
 
+def _bfs_labels(binary_grid):
+    """
+    BFS connected-components with strict 4-connectivity (no diagonals).
+
+    Only the four cardinal neighbours (up / down / left / right) are visited.
+    Diagonal cells that share only a corner are intentionally kept separate.
+
+    Parameters
+    ----------
+    binary_grid : bool ndarray (rows, cols)
+
+    Returns
+    -------
+    labels      : int ndarray (rows, cols) — 0 = background, 1..n = component id
+    n_components: int
+    """
+    rows, cols = binary_grid.shape
+    labels = np.zeros((rows, cols), dtype=int)
+    n_comp = 0
+
+    for r in range(rows):
+        for c in range(cols):
+            if binary_grid[r, c] and labels[r, c] == 0:
+                n_comp += 1
+                labels[r, c] = n_comp
+                queue = deque([(r, c)])
+                while queue:
+                    cr, cc = queue.popleft()
+                    for dr, dc in _NEIGHBOURS_4:   # ← only 4 directions
+                        nr, nc = cr + dr, cc + dc
+                        if (0 <= nr < rows and 0 <= nc < cols
+                                and binary_grid[nr, nc]
+                                and labels[nr, nc] == 0):
+                            labels[nr, nc] = n_comp
+                            queue.append((nr, nc))
+
+    return labels, n_comp
+
+
 def _find_components(grid_state):
     """
-    4-connectivity connected components for congested (1) and functional (0) cells.
+    Find connected components for congested (1) and functional (0) cells
+    using explicit BFS with 4-connectivity only (no diagonals).
 
     Returns: (cong_labels, n_cong, func_labels, n_func)
     """
-    cong_lab, n_cong = scipy_label(grid_state == 1, structure=_STRUCT_4)
-    func_lab, n_func = scipy_label(grid_state == 0, structure=_STRUCT_4)
+    cong_lab, n_cong = _bfs_labels(grid_state == 1)
+    func_lab, n_func = _bfs_labels(grid_state == 0)
     return cong_lab, n_cong, func_lab, n_func
 
 
