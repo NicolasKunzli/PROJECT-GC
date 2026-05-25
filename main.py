@@ -346,92 +346,92 @@ if __name__ == "__main__":
 
 
 
-### Graphs for sessions     
+# ### Graphs for sessions     
 
-if True:
-    s_min = 0
-    s_max = 100
+# if True:
+#     s_min = 0
+#     s_max = 100
     
-    # 5 clusters, spawns from grid clust, total average
-    kmeans_clustering(
-        n_clusters=len(spawns_grid),
-        name="kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average",
-        spatial_weight=1,
-        dynamic_weight=1,
-        init_links=spawns_grid,
-        timeframe=None,
-        session_min=s_min,
-        session_max=s_max
-    )     
+#     # 5 clusters, spawns from grid clust, total average
+#     kmeans_clustering(
+#         n_clusters=len(spawns_grid),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average",
+#         spatial_weight=1,
+#         dynamic_weight=1,
+#         init_links=spawns_grid,
+#         timeframe=None,
+#         session_min=s_min,
+#         session_max=s_max
+#     )     
     
-    s_min = 1
-    s_max = 20
+#     s_min = 1
+#     s_max = 20
     
-    # 5 clusters, spawns from grid clust
-    run_kmeans_graph(
-        n_clusters=len(spawns_grid),
-        name="kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn",
-        init_links=spawns_grid,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(spawns_grid)],
-        session_min=s_min,
-        session_max=s_max
-    ) 
+#     # 5 clusters, spawns from grid clust
+#     run_kmeans_graph(
+#         n_clusters=len(spawns_grid),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn",
+#         init_links=spawns_grid,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(spawns_grid)],
+#         session_min=s_min,
+#         session_max=s_max
+#     ) 
     
-    # 7 No lower right
-    run_kmeans_graph(
-        n_clusters=len(bottlenecks_no_lr),
-        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
-        init_links=bottlenecks_no_lr,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
-        session_min=s_min,
-        session_max=s_max
-    )
+#     # 7 No lower right
+#     run_kmeans_graph(
+#         n_clusters=len(bottlenecks_no_lr),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
+#         init_links=bottlenecks_no_lr,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+#         session_min=s_min,
+#         session_max=s_max
+#     )
     
-    # 7 Clusters no middle left
-    mean_speed_time = run_kmeans_graph(
-        n_clusters=len(bottlenecks1[:-1]),
-        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_ml",
-        init_links=bottlenecks1[:-1],
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
-        session_min=s_min,
-        session_max=s_max
-    )
+#     # 7 Clusters no middle left
+#     mean_speed_time = run_kmeans_graph(
+#         n_clusters=len(bottlenecks1[:-1]),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/7-no_ml",
+#         init_links=bottlenecks1[:-1],
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
+#         session_min=s_min,
+#         session_max=s_max
+#     )
     
-    # 8 bottlenecks1
-    run_kmeans_graph(
-        n_clusters=len(bottlenecks1),
-        name="kmeans_speed_clusters_bottlenecks_sessions/8",
-        init_links=bottlenecks1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1)],
-        session_min=s_min,
-        session_max=s_max
-    )
+#     # 8 bottlenecks1
+#     run_kmeans_graph(
+#         n_clusters=len(bottlenecks1),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/8",
+#         init_links=bottlenecks1,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(bottlenecks1)],
+#         session_min=s_min,
+#         session_max=s_max
+#     )
 
-    # 9 mixed2, middle left
-    run_kmeans_graph(
-        n_clusters=len(mixed2),
-        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
-        init_links=mixed2,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed2)],
-        session_min=s_min,
-        session_max=s_max
-    )    
+#     # 9 mixed2, middle left
+#     run_kmeans_graph(
+#         n_clusters=len(mixed2),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
+#         init_links=mixed2,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(mixed2)],
+#         session_min=s_min,
+#         session_max=s_max
+#     )    
 
-    # 9 mixed1, middle up
-    run_kmeans_graph(
-        n_clusters=len(mixed1),
-        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
-        init_links=mixed1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed1)],
-        session_min=s_min,
-        session_max=s_max
-    )
+#     # 9 mixed1, middle up
+#     run_kmeans_graph(
+#         n_clusters=len(mixed1),
+#         name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
+#         init_links=mixed1,
+#         timeframe=timesteps,
+#         cluster_colors=cluster_colors[len(mixed1)],
+#         session_min=s_min,
+#         session_max=s_max
+#     )
    
 
     

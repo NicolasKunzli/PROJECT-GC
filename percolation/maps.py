@@ -10,8 +10,9 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from scipy.spatial.distance import cdist
 
+from scipy.spatial.distance import cdist
+from sklearn.preprocessing import StandardScaler
 
 from config import DL, links, LOCAL_FIGURE, NODATA_COLOR
 from network.draw import sublink, polyg
@@ -582,10 +583,12 @@ def grid_clust_kmeans(xdiv=20, ydiv=16, k=5, qc=None, percentile=65,
     spd_min   = cells["cell_avg_speed"].min()
     spd_range = cells["cell_avg_speed"].max() - spd_min or 1.0
     X = np.column_stack([
-        cells["cell_x"] / max(xdiv - 1, 1),
-        cells["cell_y"] / max(ydiv - 1, 1),
-        (cells["cell_avg_speed"] - spd_min) / spd_range,
+        cells["cell_x"].to_numpy(),
+        cells["cell_y"].to_numpy(),
+        cells["cell_avg_speed"].to_numpy(),
     ])
+
+    X = StandardScaler().fit_transform(X)
 
     n_clusters = min(k, len(cells))
     km = KMeans(n_clusters=n_clusters, random_state=0, n_init=10, init="k-means++")
