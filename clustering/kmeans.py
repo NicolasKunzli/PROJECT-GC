@@ -47,7 +47,7 @@ from utils import closest_link
 def kmeans_clustering(
     n_clusters,
     name,
-    feature_type,
+    feature_type="speed",
     spatial_weight=1.75,
     dynamic_weight=1,
     random_state=42,
@@ -91,12 +91,16 @@ def kmeans_clustering(
         out=np.full(vdist.shape, np.nan),
         where=vtime != 0
     )
-    
-    speed_sel = speed[session_min:session_max + 1, timeframe, :] # Sessions
+    if timeframe is not None:
+        speed_sel = speed[session_min:session_max + 1, timeframe, :]
+    else:
+        speed_sel = speed[session_min:session_max + 1, :, :]    # Sessions
     nan_ratio = np.mean(np.isnan(speed_sel), axis=(0))  # (link_idx,)
     bad_links = np.where(nan_ratio > 0.3)[0]
     bad_links_set = set(bad_links)
     threshold_set = set(threshold)
+        
+
     # ── Build feature matrix X  (N_links × n_features) ────────────────────────
     one_tf = timeframe is not None
     X = build_cluster_features(
@@ -223,20 +227,31 @@ def kmeans_clustering(
     cluster_speed_stds = []
 
     for k in range(n_clusters):
-
         cluster_idx = np.where(labels == k)[0]
+        if timeframe is None:
+            vdist_k = vdist[
+                session_min:session_max + 1,
+                :,
+                cluster_idx
+            ]
 
-        vdist_k = vdist[
-            session_min:session_max + 1,
-            timeframe,
-            cluster_idx
-        ]
+            vtime_k = vtime[
+                session_min:session_max + 1,
+                :,
+                cluster_idx
+            ]
+        else:
+            vdist_k = vdist[
+                session_min:session_max + 1,
+                timeframe,
+                cluster_idx
+            ]
 
-        vtime_k = vtime[
-            session_min:session_max + 1,
-            timeframe,
-            cluster_idx
-        ]
+            vtime_k = vtime[
+                session_min:session_max + 1,
+                timeframe,
+                cluster_idx
+            ]
 
         total_dist = np.nansum(vdist_k)
         total_time = np.nansum(vtime_k)
@@ -565,14 +580,14 @@ def run_kmeans_graph(
         ylabel="Median speed (m/s)"
     )
 
-    plot_cluster_speed(
-        timesteps=timeframe,
-        values=max_speed_time,
-        name=f"{name}_max_s{session_min}-{session_max}",
-        folder=graph_folder,
-        colors=cluster_colors,
-        ylabel="Max speed (m/s)"
-    )
+    # plot_cluster_speed(
+    #     timesteps=timeframe,
+    #     values=max_speed_time,
+    #     name=f"{name}_max_s{session_min}-{session_max}",
+    #     folder=graph_folder,
+    #     colors=cluster_colors,
+    #     ylabel="Max speed (m/s)"
+    # )
 
     plot_cluster_speed(
         timesteps=timeframe,

@@ -10,6 +10,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from scipy.spatial.distance import cdist
+
 
 from config import DL, links, LOCAL_FIGURE, NODATA_COLOR
 from network.draw import sublink, polyg
@@ -586,8 +588,11 @@ def grid_clust_kmeans(xdiv=20, ydiv=16, k=5, qc=None, percentile=65,
     ])
 
     n_clusters = min(k, len(cells))
-    km = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)
+    km = KMeans(n_clusters=n_clusters, random_state=0, n_init=10, init="k-means++")
     cells["cluster"] = km.fit_predict(X)
+
+    dist = cdist(km.cluster_centers_, X)
+    initial_cell_indices = np.argmin(dist, axis=1)
 
     cluster_mean_speed   = cells.groupby("cluster")["cell_avg_speed"].mean()
     cluster_is_congested = cluster_mean_speed < threshold
@@ -681,3 +686,27 @@ def grid_clust_kmeans(xdiv=20, ydiv=16, k=5, qc=None, percentile=65,
         colors=colors_rgba,
         ylabel="Median speed (m/s)",
     )
+
+    initial_cells = cells.iloc[initial_cell_indices][["cell_x", "cell_y"]]
+
+    starting_links = []
+
+    for _, cell in initial_cells.iterrows():
+        links_in_cell = rep_links[
+            (rep_links["cell_x"] == cell["cell_x"]) &
+            (rep_links["cell_y"] == cell["cell_y"])
+        ].copy()
+
+        links_in_cell["dist_to_cell_center"] = np.sqrt(
+            (links_in_cell["c_x"] - (x_min + (cell["cell_x"] + 0.5) * w)) ** 2 +
+            (links_in_cell["c_y"] - (y_min + (cell["cell_y"] + 0.5) * h)) ** 2
+        )
+
+        closest_link = links_in_cell.loc[
+            links_in_cell["dist_to_cell_center"].idxmin(),
+            "link_idx"
+        ]
+
+        starting_links.append(closest_link)
+
+    return starting_links
