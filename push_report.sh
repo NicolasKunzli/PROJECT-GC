@@ -1,28 +1,31 @@
 #!/bin/bash
-# push_report.sh — push report changes to both main and the Overleaf-linked report branch
-
+# push_report.sh — push report changes to GitHub (main) and directly to Overleaf
 set -e
 
-echo "→ Pushing to main..."
+MSG="${1:-Update report}"
+
+# ── 1. Push to GitHub main ─────────────────────────────────────────────────
+echo "→ Pushing to GitHub (main)..."
 git add report/report.tex report/references.bib
-git diff --cached --quiet && echo "  (no changes to commit)" || \
-  git commit -m "${1:-Update report}" \
-    -m "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-git push origin main
+if git diff --cached --quiet; then
+  echo "  (no changes to commit)"
+else
+  git commit -m "$MSG" -m "Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+  git push origin main
+fi
 
-echo "→ Syncing report branch..."
-git show HEAD:report/report.tex   > /tmp/_report.tex
-git show HEAD:report/references.bib > /tmp/_references.bib
+# ── 2. Push to Overleaf (fetch current state, apply changes, push back) ───
+echo "→ Pushing to Overleaf..."
+git fetch overleaf master:overleaf-master --quiet
+git checkout overleaf-master --quiet
+git checkout main -- report/report.tex report/references.bib
+if git diff --cached --quiet; then
+  echo "  (Overleaf already up to date)"
+else
+  git commit -m "$MSG" --quiet
+  git push overleaf overleaf-master:master --quiet
+fi
+git checkout main --quiet
+git branch -D overleaf-master --quiet
 
-git fetch origin report
-git checkout report
-cp /tmp/_report.tex   report.tex
-cp /tmp/_references.bib references.bib
-git add report.tex references.bib
-git diff --cached --quiet && echo "  (already up to date)" || \
-  git commit -m "${1:-Update report}"
-git push origin report
-
-git checkout main
-rm -f /tmp/_report.tex /tmp/_references.bib
-echo "✓ Done — pull from the report branch on Overleaf."
+echo "✓ Done — Overleaf updated automatically."
