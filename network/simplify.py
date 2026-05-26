@@ -139,17 +139,21 @@ def simplified_map(distance_threshold, grad=True, color="navy"):
 
     fig, ax = plt.subplots(dpi=250)
 
+    # Set black background for better contrast with colored segments and NODATA_COLOR (gray).
+    fig.patch.set_facecolor("black")
+    ax.set_facecolor("black")
+
     if grad:
         speeds       = compute_group_speeds(groups)
         valid_speeds = speeds[~np.isnan(speeds)]
         norm         = mcolors.Normalize(vmin=np.nanmin(valid_speeds), vmax=np.nanmax(valid_speeds))
-        cmap         = plt.get_cmap("RdYlGn")
+        cmap         = plt.get_cmap("viridis")
 
         for k, rep_idx in enumerate(representatives):
             row  = links.iloc[rep_idx]
             x, y = sublink(row)
             c    = NODATA_COLOR if np.isnan(speeds[k]) else cmap(norm(speeds[k]))
-            ax.plot(x, y, c=c, linewidth=0.5)
+            ax.plot(x, y, c=c, linewidth=0.8)
 
         sm = cm.ScalarMappable(norm=norm, cmap=cmap)
         sm.set_array([])
@@ -174,6 +178,9 @@ def simplified_map(distance_threshold, grad=True, color="navy"):
     ax.tick_params(axis="both", labelsize=8)
 
     out = f"{LOCAL_FIGURE}/simplified_map_{suffix}.png"
-    fig.savefig(out)
+
+    # Save with black background and tight layout to minimize whitespace.
+    fig.savefig(out, facecolor="black")
+    
     plt.close(fig)
     print(f"Saved simplified map ({suffix}): {len(groups)} groups from {len(links)} segments")
