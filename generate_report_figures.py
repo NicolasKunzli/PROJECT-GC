@@ -9,33 +9,31 @@ Figures generated:
   figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png
 """
 
+import os
 import numpy as np
+from config import LOCAL_FIGURE
 
 QC = 0.52
 TIMESTEPS = [0, 3, 5, 7, 9, 13, 17, 19, 21, 23, 25, 29, 33, 36, 38]
+KEY_TS    = [0, 7, 19, 38]
 
 print("=" * 60)
 print("Generating report figures")
 print("=" * 60)
 
 # ── Approach 1: BFS graph-search analysis ────────────────────────────────────
-print("\n[1/4] BFS analysis — normalised speed (qc=0.52)...")
+print("\n[1/2] BFS analysis — normalised speed (qc=0.52)...")
 from percolation.graph_search import run_graph_search_analysis
 
-result_norm = run_graph_search_analysis(
-    qc=QC,
-    mode="norm",
-    timesteps=TIMESTEPS,
-    map_timesteps=[0, 7, 19, 38],
+run_graph_search_analysis(
+    qc=QC, use_normalized=True, key_timesteps=KEY_TS,
+    folder=os.path.join(LOCAL_FIGURE, "graph_search", "norm_q0.52"),
 )
 
 print("\n[2/4] BFS analysis — raw speed (q=2.0 m/s)...")
-result_raw = run_graph_search_analysis(
-    qc=QC,
-    mode="raw",
-    raw_threshold=2.0,
-    timesteps=TIMESTEPS,
-    map_timesteps=[0, 7, 19, 38],
+run_graph_search_analysis(
+    qc=2.0, use_normalized=False, key_timesteps=KEY_TS,
+    folder=os.path.join(LOCAL_FIGURE, "graph_search", "raw_q2"),
 )
 
 # ── Approach 2: Grid K-means ─────────────────────────────────────────────────
