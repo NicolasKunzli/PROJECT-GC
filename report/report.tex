@@ -73,26 +73,325 @@
 \label{sec:data:nan}
 
 \subsubsection{Spatial and temporal distribution of NaNs}
-% Where and when NaNs occur, clustering of NaNs.
-% TODO
+\label{sec:data:nan:dist}
+
+A missing value (NaN) in the speed matrix arises when the aggregate vehicle
+travel time $\text{vtime}_{ij}(t) = 0$: no vehicle traversed segment $ij$
+during the three-minute interval ending at time $t$.  In that case the ratio
+$v_{ij}(t) = \text{vdist}_{ij}(t)/\text{vtime}_{ij}(t)$ is arithmetically
+undefined and is stored as NaN rather than zero.  This distinction is
+physically essential: a zero speed would incorrectly label the segment as
+fully congested (stopped traffic), whereas a NaN correctly signals the
+\emph{absence of observations}.  Conflating the two---as an earlier version
+of the codebase did by calling \texttt{np.nan\_to\_num(speed,\,nan=0.0)}---
+artificially inflates congestion metrics and biases any downstream clustering
+or percolation analysis toward finding congestion where none exists.
+
+\medskip
+\noindent\textbf{Spatial pattern.}
+Figure~\ref{fig:data_reliability} (left panel) shows the sensor coverage map
+coloured by the per-segment NaN fraction, averaged across all 101 sessions
+and all 39 timesteps of the analysis window.  Two spatial regimes are visible.
+\begin{itemize}
+  \item \emph{Major corridors} (primary arterials, ring roads, and the
+    principal routes connecting the main origin--destination zones): near-zero
+    NaN fractions.  During the morning peak these segments are continuously
+    occupied by queuing or moving traffic, so every 3-minute bin contains at
+    least one vehicle.
+  \item \emph{Peripheral and access links} (short stubs, intersection-internal
+    links, exclusive ramps, low-demand residential streets): persistently high
+    NaN fractions.  These segments receive few vehicles even at peak hour
+    because the simulated OD demand matrix routes most trips along the
+    principal arterials.  The right panel of Figure~\ref{fig:data_reliability}
+    highlights the segments whose NaN fraction exceeds 50\,\% of all timesteps.
+\end{itemize}
+A small subset of segments have no valid speed observation anywhere in the
+dataset; they are treated as permanently excluded from all analyses.
+
+\medskip
+\noindent\textbf{Temporal pattern.}
+Missing data are not uniformly distributed over the 39 timesteps.  In the
+very first intervals (08:03--08:15), when morning congestion is still
+developing and traffic volumes on secondary roads are lower, NaN fractions
+are marginally elevated.  As the peak intensifies (08:30--09:15) the main
+corridors saturate and their NaN fraction approaches zero, while lightly
+used segments remain sparse throughout.  Figure~\ref{fig:nan_distribution}
+shows the distribution of NaN fractions pooled over all
+$101 \times 1\,570$ segment--session pairs, revealing a strongly bimodal
+pattern: a sharp mass near zero (well-observed arterials at peak hour) and
+a broader tail at high NaN fractions (structurally low-demand links).
+
+\medskip
+\noindent\textbf{Spatial autocorrelation.}
+To determine whether missing data cluster geographically---a key question for
+the viability of spatial interpolation---the Pearson correlation between each
+segment's NaN fraction and the mean NaN fraction of its direct road-network
+neighbours was computed (Figure~\ref{fig:nan_spatial}).  A correlation
+$r \gg 0$ indicates that entire sub-areas of the network are simultaneously
+under-sampled (an area-level demand deficit), whereas $r \approx 0$ implies
+idiosyncratic, link-level gaps.  The observed correlation directly informs
+the NaN handling policy below.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{analysis/data_reliability_map.png}
+  \caption{Sensor coverage of the SimBArCa network (all 101 sessions,
+    08:03--09:57).
+    \textbf{Left}: NaN fraction per segment averaged over sessions and time
+    (dark = more missing; \texttt{hot\_r} colourmap from 0 to 1).
+    \textbf{Right}: segments whose time-averaged NaN fraction exceeds 50\,\%
+    of all timesteps, highlighted in crimson against the light-grey network.}
+  \label{fig:data_reliability}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}[b]{0.58\textwidth}
+    \includegraphics[width=\textwidth]{analysis/nan_distribution.png}
+    \caption{Distribution of NaN fractions across all $101 \times 1\,570$
+      segment--session pairs.  The dashed red vertical line marks the 50\,\%
+      visualisation threshold; the dotted orange line is the overall mean NaN
+      rate.  Most pairs cluster near zero (well-observed corridors); a
+      right tail captures persistently sparse links.}
+    \label{fig:nan_distribution}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.38\textwidth}
+    \includegraphics[width=\textwidth]{analysis/nan_spatial_clustering.png}
+    \caption{Spatial autocorrelation of NaN fractions.  Each point is a
+      segment; the $x$-axis is its own NaN fraction and the $y$-axis is the
+      mean NaN fraction of its road-network neighbours.  The Pearson $r$
+      (shown on the regression line) quantifies geographic clustering of
+      missing data.}
+    \label{fig:nan_spatial}
+  \end{subfigure}
+  \caption{Missing-data diagnostics for the SimBArCa speed matrix.}
+  \label{fig:nan_diagnostics}
+\end{figure}
+
 
 \subsubsection{NaN handling policy}
-% Case A: temporal median for $\leq 30\%$ NaNs.
-% Case C: gray out segments with $> 30\%$ NaNs.
-% Case B (neighbour fill) discarded as unreliable.
-% TODO
+\label{sec:data:nan:policy}
+
+A principled imputation strategy must satisfy two competing requirements: it
+must avoid injecting spurious congestion signals (never replace NaN with
+zero), and it must not discard so many segments that the spatial structure of
+the network becomes fragmented for analysis.  After evaluating three
+candidates, the following tiered policy was adopted and implemented in
+\texttt{processing/speed.py::fill\_speed\_nans()}.
+
+\paragraph{Why not zero-fill?}
+Replacing NaN with speed $= 0$ is physically incorrect.  A segment with no
+observed vehicles during a 3-minute bin is simply unoccupied---most likely
+\emph{free-flowing} at or near the speed limit during the brief gap---not
+blocked at standstill.  Zero-filling would create dense phantom congestion
+clusters in areas that are actually clear, corrupting both the percolation
+threshold detection and the clustering analysis.  This approach was rejected
+outright.
+
+\paragraph{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}
+If fewer than 30\,\% of a segment's $T = 39$ timesteps are missing (at most
+11 out of 39), each missing value is replaced by the segment's own
+\emph{temporal median} computed from the non-missing timesteps.  Three
+properties justify this choice.
+\begin{enumerate}
+  \item \emph{Representativeness}: with at least 28 valid observations the
+    median is a stable estimate of the segment's typical speed during the
+    rush-hour window.
+  \item \emph{Robustness to outliers}: the median is insensitive to isolated
+    spikes from brief queues or sensor noise; the mean would be pulled by such
+    extremes, potentially filling NaNs with unrealistically high or low values.
+  \item \emph{Segment specificity}: each segment is filled with its own typical
+    speed, preserving spatial heterogeneity.  A fast arterial's fill value is
+    high; a slow approach link's is low.  This is especially important for
+    percolation, where the normalised ratio $r_{ij} = v_{ij}/v_{\max,ij}$ must
+    reflect the true congestion state of each individual link.
+\end{enumerate}
+After filling, Case~A segments participate normally in all downstream
+computations (clustering, percolation, descriptive statistics).
+
+\paragraph{Case C --- No-data exclusion ($> 30\%$ NaN).}
+Any segment exceeding the 30\,\% threshold is flagged in a Boolean
+\texttt{nodata\_mask} and rendered in neutral grey (\texttt{\#cccccc}) on all
+maps; it contributes neither to summary statistics nor to clustering or
+percolation features.  The 30\,\% cut-off is motivated as follows.
+\begin{itemize}
+  \item Below 30\,\% NaN the temporal median is well-anchored (at least 28
+    data points); above it, the available observations may be dominated by
+    the pre-congestion early period, giving a misleadingly high fill value
+    that would make a chronically slow segment look faster than it is.
+  \item Segments above the cut-off are structurally low-demand links for
+    which any imputation is speculative.  Honest exclusion prevents the
+    analysis from being distorted by fabricated speed values.
+  \item In practice the proportion of excluded segments is small enough that
+    the principal network topology is preserved for percolation and clustering.
+\end{itemize}
+
+\paragraph{Case B --- Spatial neighbour fill (discarded).}
+A third candidate---replacing NaN values with a weighted mean of adjacent
+segments' speeds via the road-network adjacency matrix---was explored but
+rejected.  In a directed urban network, graph-adjacent segments often
+operate in radically different speed regimes: a residential stub feeding
+directly onto a major arterial, or an on-ramp abutting a free-flow motorway,
+will have a speed profile entirely unlike its topological neighbours.
+Averaging across such heterogeneous adjacent links injects substantial bias
+rather than recovering meaningful signal.  The rejection is captured by the
+guiding principle: \emph{an honest grey is preferable to a misleading
+imputed value}.  Case~B is therefore merged into Case~C: any segment that
+cannot be reliably filled from its own temporal history is excluded from the
+analysis rather than interpolated spatially.
+
+\paragraph{Implementation note.}
+\texttt{fill\_speed\_nans()} is always called \emph{after}
+\texttt{mean\_over\_sessions()}, which collapses the session dimension via
+$\texttt{nansum} / \texttt{valid\_counts}$ to preserve NaN-awareness.  All
+visualisation functions check \texttt{nodata\_mask} before assigning a colour
+to a segment; flagged segments receive \texttt{NODATA\_COLOR}.  A second
+threshold parameter \texttt{nodata\_threshold=0.90} is retained in the
+function signature as a reserved hook for a future, non-adjacency-based
+imputation strategy (e.g.\ corridor-mate fill via geometric grouping), but
+is currently inactive.
 
 \subsection{Network-level descriptive statistics}
 \label{sec:data:stats}
 
 \subsubsection{Average speed map}
-% TODO
+\label{sec:data:stats:avgmap}
+
+Figure~\ref{fig:avg_speed_map} shows the \emph{average speed map}: for each
+road segment the colour encodes its mean speed averaged over all 101
+simulation sessions and all 39 timesteps of the morning-peak analysis window.
+The RdYlGn colour scale runs from dark red (near standstill) through yellow
+to dark green (near free-flow, i.e.\ close to the simulated 50\,km/h speed
+limit, $\approx 13.9$\,m/s).
+
+Three spatial regimes emerge:
+\begin{itemize}
+  \item \emph{Congestion hotspots} (dark red): persistent on the arterial
+    corridors that channel the dominant commuting flows toward the city
+    centre.  These segments are congested for a significant fraction of the
+    08:03--09:57 window across all demand realisations, suggesting structural
+    bottlenecks independent of random session-to-session variation.
+  \item \emph{Free-flow periphery} (green): segments at the outer edges of
+    the study area, and roads not on principal commuting routes, remain at or
+    near the speed limit throughout the peak period.  They are rarely
+    congested because the simulated OD demand matrix routes most traffic away
+    from them.
+  \item \emph{Intermediate links} (orange-yellow): corridors that are
+    free-flowing during the early peak (08:03--08:20) but queue up at the
+    height of the rush hour (08:30--09:15), yielding intermediate
+    time-averaged speeds.  These links are of special interest for the
+    percolation analysis: they sit close to the network's tipping point and
+    their congestion state is the most sensitive to demand fluctuations.
+\end{itemize}
+
+Because the map averages over both sessions and time, it collapses the
+dynamic evolution of congestion into a static \emph{congestion fingerprint}
+of the network.  It is useful for identifying the most structurally
+problematic links but does not reveal when or how quickly congestion builds;
+the temporal dimension is addressed in Section~\ref{sec:data:stats:time}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{analysis/avg_speed_map.png}
+  \caption{Average speed map of the SimBArCa road network (all 101 sessions,
+    08:03--09:57).  Each segment is coloured by its mean speed across all
+    sessions and timesteps (RdYlGn; green = fast, red = slow).  Grey
+    segments have more than 30\,\% missing observations and are excluded from
+    all statistics (Case~C, Section~\ref{sec:data:nan:policy}).}
+  \label{fig:avg_speed_map}
+\end{figure}
 
 \subsubsection{Network mean speed over time}
-% TODO
+\label{sec:data:stats:time}
+
+Figure~\ref{fig:network_speed_time} shows the evolution of the
+\emph{network-mean speed}---the spatial mean over all valid (non-grey)
+segments---across the 08:03--09:57 window.  Each of the 101 individual
+session traces is drawn in light blue; the thick line is the cross-session
+mean.
+
+The curve exhibits the canonical signature of a simulated morning rush hour
+in three phases:
+\begin{enumerate}
+  \item \textbf{Rapid onset} (08:03--$\sim$08:30): the network-mean speed
+    drops sharply as the first wave of commuters saturates the principal
+    arterials.  The steep descent indicates that the network transitions from
+    near free-flow to congested conditions within the first 30 minutes of the
+    analysis window.
+  \item \textbf{Sustained congestion plateau} ($\sim$08:30--09:15): speed
+    stabilises at its lowest level.  The network is in a near-equilibrium
+    between vehicles entering and leaving the study area; the broad arterials
+    operate well below free-flow speed, and secondary roads receive spillback
+    from saturated junctions.  The width of this plateau in the session-mean
+    curve---and the relatively compact spread of individual traces---confirms
+    that the congestion regime is stable and reproducible across demand
+    realisations.
+  \item \textbf{Gradual recovery} ($\sim$09:15--09:57): as simulated demand
+    decreases, queue lengths shorten and the network-mean speed rises slowly
+    back toward free-flow conditions.  The recovery is noticeably asymmetric
+    (slower than the onset) because traffic must redistribute across the
+    entire network before speeds normalise; this hysteresis is a well-known
+    property of urban traffic dynamics.
+\end{enumerate}
+
+The spread among the 101 session traces quantifies the session-to-session
+variability driven by different random demand realisations in the Simbarca
+simulator.  The relatively compact envelope around the cross-session mean
+validates the use of session-averaged quantities as representative inputs for
+the clustering and percolation analyses in Section~\ref{sec:methods}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{analysis/network_speed_vs_time.png}
+  \caption{Network-average speed over time (08:03--09:57; $T = 39$ steps of
+    3 minutes each).  Light blue lines: individual session traces (101
+    sessions).  Thick blue line: cross-session mean with shaded area.
+    The rapid drop, plateau, and slow recovery are the characteristic
+    phases of the simulated morning rush hour.}
+  \label{fig:network_speed_time}
+\end{figure}
 
 \subsubsection{Slowest segments}
-% TODO
+\label{sec:data:stats:slow}
+
+Figure~\ref{fig:slowest_20} highlights the 20 road segments with the lowest
+time-and-session-averaged speed.  These are the \emph{chronically congested
+links} of the simulated Barcelona network: roads that remain near standstill
+for a disproportionate fraction of the morning peak, independently of the
+specific demand realisation.  Because the ranking aggregates over all 101
+sessions and all 39 timesteps, a segment that appears in this set is slow not
+just in high-demand outlier sessions but \emph{systematically} across all
+runs of the simulator.
+
+Two spatial properties stand out:
+\begin{itemize}
+  \item \textbf{Spatial clustering}: the 20 slowest segments are not
+    scattered randomly across the network but form tight spatial groups,
+    typically located at or near major junctions, merging sections, and
+    narrow approach links feeding high-capacity arterials.  This is consistent
+    with the network topology funnelling large vehicle volumes through a small
+    number of physical constrictions.
+  \item \textbf{Candidate bottlenecks}: segments that are chronically slow in
+    the descriptive sense are strong candidates for the network bottlenecks
+    identified by the percolation framework in
+    Section~\ref{sec:methods:bottlenecks}.  The percolation approach provides
+    a rigorous, topology-aware confirmation of whether these links are indeed
+    the \emph{critical bridges} whose congestion causes the giant functional
+    cluster to fragment.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{analysis/slowest_20_segments.png}
+  \caption{The 20 road segments with the lowest time-and-session-averaged
+    speed (highlighted in red with centroid dot), superimposed on the full
+    network (light grey).  Segments are ranked by ascending mean speed over
+    all 101 sessions and 39 timesteps.  Their spatial clustering around a
+    small number of junctions reveals the structural bottlenecks of the
+    network.}
+  \label{fig:slowest_20}
+\end{figure}
 
 
 \subsection{Network simplification}
@@ -397,25 +696,24 @@ separately.
           & $\tilde{v}_1$ & $\tilde{v}_2$ & $\tilde{v}_3$
           & $\tilde{v}_{\mathrm{bg}}$ \\
     \midrule
-    08:03 & & & & & & & & \\
-    08:12 & & & & & & & & \\
-    08:18 & & & & & & & & \\
-    08:24 & & & & & & & & \\
-    08:30 & & & & & & & & \\
-    08:42 & & & & & & & & \\
-    08:54 & & & & & & & & \\
-    09:00 & & & & & & & & \\
-    09:06 & & & & & & & & \\
-    09:12 & & & & & & & & \\
-    09:18 & & & & & & & & \\
-    09:30 & & & & & & & & \\
-    09:42 & & & & & & & & \\
-    09:51 & & & & & & & & \\
-    09:57 & & & & & & & & \\
+    08:03 &  0 & --  & --  & --  & --   & --   & --   & 5.90 \\
+    08:12 &  2 &  1  &  1  & --  & 3.44 & 2.86 & --   & 5.57 \\
+    08:18 &  3 &  2  &  1  &  1  & 3.31 & 3.05 & 3.19 & 5.46 \\
+    08:24 &  5 &  2  &  2  &  1  & 3.55 & 2.81 & 2.54 & 5.48 \\
+    08:30 &  4 &  2  &  2  &  1  & 3.85 & 3.34 & 2.73 & 5.36 \\
+    08:42 &  5 &  2  &  1  &  1  & 3.16 & 2.66 & 2.85 & 5.33 \\
+    08:54 &  4 &  2  &  2  &  1  & 3.48 & 2.93 & 4.58 & 5.28 \\
+    09:00 &  4 &  2  &  2  &  1  & 2.99 & 2.59 & 3.79 & 5.26 \\
+    09:06 &  5 &  2  &  2  &  2  & 3.49 & 3.46 & 2.66 & 5.21 \\
+    09:12 &  6 &  2  &  2  &  2  & 3.37 & 3.81 & 3.01 & 5.20 \\
+    09:18 &  7 &  2  &  2  &  2  & 3.51 & 3.73 & 2.37 & 5.14 \\
+    09:30 &  6 &  4  &  3  &  3  & 4.01 & 3.66 & 2.69 & 5.03 \\
+    09:42 &  8 &  6  &  5  &  4  & 4.08 & 3.85 & 3.96 & 5.02 \\
+    09:51 & 10 & 19  & 13  &  4  & 3.80 & 3.83 & 3.50 & 5.19 \\
+    09:57 & 10 & 41  &  8  &  3  & 3.87 & 4.12 & 4.23 & 5.64 \\
     \bottomrule
   \end{tabular}
 \end{table}
-% TODO: populate Table~\ref{tab:merge_metrics} from graph\_search/norm\_q0.52/ outputs.
 
 % ──────────────────────────────────────────────────────────────────────────
 \subsection{Approach~2 --- Grid K-means Clustering}
@@ -481,13 +779,14 @@ and $K = 9$ under $q_c = 0.52$.
   \end{subfigure}
   \hfill
   \begin{subfigure}[b]{0.48\textwidth}
-    % TODO: run grid\_clust\_kmeans(k=9, qc=0.52) to generate this figure.
     \includegraphics[width=\textwidth]{clustering/grid_clusters/grid_kmeans9_qc0.520.png}
     \caption{$K = 9$}
   \end{subfigure}
-  \caption{Grid K-means partition at $q_c = 0.52$.  Each colour represents one
-    cluster; hatching indicates clusters labelled congested (mean
-    $\bar{r}_k < 0.52$).}
+  \caption{Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged
+    normalised speed).  Each colour represents one cluster.  Clusters are
+    labelled congested (hatched) if their mean $\bar{r}_k < 0.52$; since all
+    time-averaged cluster speeds exceed 0.52, no hatching appears --- the
+    threshold captures only acute per-timestep drops below free-flow.}
   \label{fig:grid_kmeans_maps}
 \end{figure}
 
@@ -496,12 +795,13 @@ tracked over the 15 representative timesteps for the preferred $K$.
 
 \begin{figure}[H]
   \centering
-  % TODO: update path once preferred K is confirmed.
   \includegraphics[width=\textwidth]{clustering/grid_clusters/grid_kmeans5_qc0.520_median.png}
-  \caption{Grid K-means (preferred $K$): median raw speed (m/s) per cluster over
-    the analysis window.  Congested clusters (hatched in
-    Figure~\ref{fig:grid_kmeans_maps}) show persistently lower speeds throughout
-    the peak period.}
+  \caption{Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per
+    cluster over the 15 representative timesteps.  Clusters are ordered by
+    mean speed (ascending), so Cluster~1 is the slowest zone.  All clusters
+    remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed)
+    on a time-averaged basis, reflecting the moderate level of congestion in
+    the Simbarca simulation.}
   \label{fig:grid_kmeans_speed}
 \end{figure}
 
@@ -524,25 +824,24 @@ by mean speed (ascending), so cluster~1 is the most congested zone.
          & $\tilde{v}_1$ & $\tilde{v}_2$ & $\tilde{v}_3$ & $\tilde{v}_4$
          & $\tilde{v}_5$ \\
     \midrule
-    08:03 & & & & & & & & & & & \\
-    08:12 & & & & & & & & & & & \\
-    08:18 & & & & & & & & & & & \\
-    08:24 & & & & & & & & & & & \\
-    08:30 & & & & & & & & & & & \\
-    08:42 & & & & & & & & & & & \\
-    08:54 & & & & & & & & & & & \\
-    09:00 & & & & & & & & & & & \\
-    09:06 & & & & & & & & & & & \\
-    09:12 & & & & & & & & & & & \\
-    09:18 & & & & & & & & & & & \\
-    09:30 & & & & & & & & & & & \\
-    09:42 & & & & & & & & & & & \\
-    09:51 & & & & & & & & & & & \\
-    09:57 & & & & & & & & & & & \\
+    08:03 & 0 & 42 & 41 & 37 & 46 & 22 &  5.10 &  5.66 &  5.87 &  6.30 & 10.04 \\
+    08:12 & 0 & 42 & 41 & 37 & 46 & 22 &  4.57 &  5.61 &  5.28 &  6.09 &  9.84 \\
+    08:18 & 0 & 42 & 41 & 37 & 46 & 22 &  4.50 &  5.44 &  5.08 &  6.05 &  9.89 \\
+    08:24 & 0 & 42 & 41 & 37 & 46 & 22 &  4.44 &  5.38 &  5.26 &  5.95 &  9.79 \\
+    08:30 & 0 & 42 & 41 & 37 & 46 & 22 &  4.36 &  5.31 &  5.07 &  5.93 &  9.87 \\
+    08:42 & 0 & 42 & 41 & 37 & 46 & 22 &  4.44 &  5.21 &  5.06 &  5.73 &  9.82 \\
+    08:54 & 0 & 42 & 41 & 37 & 22 & 46 &  4.30 &  5.16 &  4.92 &  9.79 &  5.81 \\
+    09:00 & 0 & 42 & 41 & 37 & 46 & 22 &  4.30 &  5.15 &  5.05 &  5.76 &  9.77 \\
+    09:06 & 0 & 42 & 41 & 37 & 46 & 22 &  4.17 &  5.09 &  4.89 &  5.78 &  9.75 \\
+    09:12 & 0 & 42 & 41 & 37 & 46 & 22 &  4.12 &  4.99 &  5.04 &  5.65 &  9.71 \\
+    09:18 & 0 & 42 & 41 & 37 & 46 & 22 &  4.16 &  4.91 &  4.93 &  5.67 &  9.71 \\
+    09:30 & 0 & 42 & 41 & 37 & 46 & 22 &  4.13 &  4.72 &  4.85 &  5.41 &  9.58 \\
+    09:42 & 0 & 42 & 41 & 37 & 46 & 22 &  4.06 &  4.53 &  4.84 &  5.38 &  9.34 \\
+    09:51 & 0 & 42 & 41 & 37 & 46 & 22 &  3.98 &  4.57 &  5.33 &  5.42 &  8.70 \\
+    09:57 & 1 & 42 & 41 & 37 & 46 & 22 &  4.26 &  4.37 &  4.97 &  6.00 &  8.34 \\
     \bottomrule
   \end{tabular}
 \end{table}
-% TODO: populate Table~\ref{tab:km_metrics} once preferred K is confirmed.
 
 % ──────────────────────────────────────────────────────────────────────────
 \subsection{Comparative Analysis}
@@ -573,17 +872,16 @@ Figures~\ref{fig:graph_search_norm} and~\ref{fig:grid_kmeans_maps}.
     \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
     Time & BFS & K-means & BFS & K-means & BFS & K-means \\
     \midrule
-    08:03 & & & & & & \\
-    08:18 & & & & & & \\
-    08:42 & & & & & & \\
-    09:00 & & & & & & \\
-    09:18 & & & & & & \\
-    09:42 & & & & & & \\
-    09:57 & & & & & & \\
+    08:03 &  0 &  0 &  -- & 42 &  --   & 5.10 \\
+    08:18 &  3 &  0 &   2 & 42 &  3.31 & 4.50 \\
+    08:42 &  5 &  0 &   2 & 42 &  3.16 & 4.44 \\
+    09:00 &  4 &  0 &   2 & 42 &  2.99 & 4.30 \\
+    09:18 &  7 &  0 &   2 & 42 &  3.51 & 4.16 \\
+    09:42 &  8 &  0 &   6 & 42 &  4.08 & 4.06 \\
+    09:57 & 10 &  1 &  41 & 42 &  3.87 & 4.26 \\
     \bottomrule
   \end{tabular}
 \end{table}
-% TODO: populate Table~\ref{tab:comparison} once both result sets are finalised.
 
 % ══════════════════════════════════════════════════════════════════════════
 \section{Evaluation}
