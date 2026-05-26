@@ -193,34 +193,114 @@ disrupted flow.  This is a stringent, domain-expert criterion that isolates the
 most extreme congestion pockets.
 
 \paragraph{Percolation-based threshold ($q_c = 0.52$, normalised speed).}
-The threshold is derived objectively from the network's percolation transition
-\cite{li2015percolation}.  For each candidate $q \in \{0.00, 0.01, \ldots,
-1.00\}$, segments with $r_{ij} \geq q$ form the \emph{functional subgraph}.
-Strongly connected components (SCCs) of that directed subgraph---built from the
-actual road-adjacency matrix, respecting one-way streets---are computed.  The
-second-largest SCC size $S_G(q)$ peaks at the \emph{percolation transition}:
+
+The threshold is derived objectively from the network's own traffic dynamics,
+following the percolation framework introduced by
+\citeauthor{li2015percolation}~\cite{li2015percolation}.
+
+\medskip
+\noindent\textbf{Intuition.}
+The idea is borrowed from statistical physics, where \emph{percolation} describes
+how a fluid spreads through a porous medium as more and more pores become open.
+Here, each road segment is the analogue of a pore: it is \emph{open} (functional)
+if traffic moves fast enough, and \emph{blocked} (congested) otherwise.  As we
+lower the speed requirement for a road to be called functional, more roads qualify
+and the network of functional roads gradually fills up --- much like water
+progressively filling a sponge.  The critical question is: at what speed threshold
+does a \emph{city-wide} connected path first emerge?  That threshold is $q_c$.
+
+\medskip
+\noindent\textbf{Step 1 --- Normalised speed ratio.}
+For each road segment $ij$ and each 3-minute timestep $t$, the speed ratio is:
 \begin{equation}
-  q_c \;=\; \underset{q}{\arg\max}\; S_G(q).
+  r_{ij}(t) \;=\; \frac{v_{ij}(t)}{v_{\max,ij}},
+  \label{eq:ratio}
+\end{equation}
+where $v_{ij}(t)$ is the loop-detector speed measured on segment $ij$ at time $t$,
+and $v_{\max,ij}$ is the free-flow reference speed for that segment --- taken as
+the maximum loop-detector speed observed on segment $ij$ across all 101 simulation
+sessions and all recorded timestamps (pre-rush, rush and post-rush).  Because
+the Simbarca simulation enforces a 50\,km/h speed limit, $v_{\max,ij}$ converges
+to that limit ($\approx 13.9$\,m/s), giving $r_{ij} \in [0,\,1]$ where $r = 1$
+means free-flow and $r = 0$ means standstill.
+
+\medskip
+\noindent\textbf{Step 2 --- Functional subgraph at threshold $q$.}
+For a candidate threshold $q$, segment $ij$ is declared \emph{functional} if
+$r_{ij} \geq q$ and \emph{dysfunctional} (congested) otherwise:
+\begin{equation}
+  \text{segment } ij \text{ is functional} \;\Longleftrightarrow\; r_{ij} \;\geq\; q.
+\end{equation}
+Retaining only functional segments produces a \emph{functional subgraph} of the
+road network.  When $q = 0$ every road is functional (the full network); when
+$q = 1$ only roads at free-flow speed are functional (the network is nearly empty).
+
+\medskip
+\noindent\textbf{Step 3 --- Strongly connected components (SCCs).}
+The functional subgraph is a \emph{directed} graph, because roads in the dataset
+are one-way: a road from $A$ to $B$ does not necessarily imply a road from $B$ to
+$A$.  A \emph{strongly connected component} (SCC) is a maximal set of segments
+within which every segment is reachable from every other segment by following
+directed road edges --- in other words, a group of roads where a driver can
+circulate freely without leaving the subgraph.  The size of the \emph{giant SCC}
+$G(q)$ is the number of segments in the largest such group; it measures how much
+of the network remains globally connected at threshold $q$.
+
+\medskip
+\noindent\textbf{Step 4 --- Identifying the critical threshold $q_c$.}
+As $q$ increases from 0 to 1, the giant SCC shrinks because more roads become
+dysfunctional.  Just before it finally breaks apart, a characteristic signature
+appears: the \emph{second-largest SCC} $S_G(q)$ reaches a maximum.  This peak
+marks the \emph{percolation transition} --- the precise moment when the giant
+cluster is about to fragment.  The critical threshold is therefore defined as:
+\begin{equation}
+  q_c \;=\; \underset{q \;\in\; [0,1]}{\arg\max}\; S_G(q).
   \label{eq:qc}
 \end{equation}
-Applied to the session-and-time-averaged normalised-speed field, this procedure
-yields $q_c = 0.52$, corresponding to approximately $0.52 \times 50\,\text{km/h}
-\approx 26\,\text{km/h}$ (Figure~\ref{fig:percolation_transition}).  Below this
-threshold the giant functional cluster fragments into isolated sub-networks: a
-topologically motivated definition of network-scale congestion.
+The reasoning is as follows: just below $q_c$ the network still forms one large
+connected cluster; just above $q_c$ it has already broken into fragments.  The
+second-largest cluster is largest precisely at the transition point, when the piece
+that is about to detach from the giant is at its maximum size before fully
+separating.
+
+\medskip
+\noindent\textbf{Step 5 --- Computing $q_c$ on the Barcelona network.}
+In practice, $q$ is swept in 100 steps from 0 to 1.  At each step, the
+functional subgraph is constructed from the real road-adjacency matrix (1\,570
+directed segments), SCCs are computed, and $G(q)$ and $S_G(q)$ are recorded.
+The input speed field is the session-and-time-averaged normalised speed
+$\bar{r}_{ij}$ (mean over all 101 sessions and all 39 analysis-window timesteps).
+Figure~\ref{fig:percolation_transition} shows the resulting transition curve.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.72\textwidth]{percolation_transition.png}
-  \caption{Percolation transition of the road network (session-and-time-averaged
-    normalised speed).
-    \textbf{Blue}: giant SCC size $G(q)$.
+  \caption{Percolation transition of the Barcelona road network.
+    \textbf{Blue}: giant SCC size $G(q)$, i.e.\ the number of road segments
+    forming the largest connected functional cluster as the threshold $q$ increases.
     \textbf{Red}: second-largest SCC size $S_G(q)$.
-    The dashed vertical line marks $q_c = 0.52$, at which $S_G$ is maximised,
-    indicating the onset of network-scale fragmentation.}
+    The dashed vertical line marks $q_c = 0.52$, the value at which $S_G$ is
+    maximised: above this threshold the giant cluster begins to fragment.}
   \label{fig:percolation_transition}
 \end{figure}
 
+\noindent
+The peak of the red curve occurs at $q_c = 0.52$, meaning that the network
+undergoes a \emph{connectivity transition} when the speed threshold is set at
+52\% of the free-flow speed.  In absolute terms:
+\begin{equation}
+  q_c \;\times\; v_{\max} \;=\; 0.52 \;\times\; 50\,\text{km/h}
+  \;\approx\; 26\,\text{km/h}.
+\end{equation}
+Roads travelling faster than 26\,km/h are considered functional; roads below that
+speed act as barriers.  At exactly $q_c = 0.52$, the network is balanced at its
+tipping point: the functional roads just barely form one large connected cluster.
+A slight increase in congestion (raising $q$ above 0.52) causes that cluster to
+fragment into isolated sub-networks, trapping traffic in local pockets with no
+city-wide path.  This provides a \emph{physically grounded, data-driven} definition
+of network-scale congestion, in contrast to an arbitrary expert-chosen threshold.
+
+\medskip
 The percolation threshold $q_c = 0.52$ is retained for the main analysis because
 it is data-driven, reproducible across sessions, and grounded in network topology.
 The raw-speed threshold ($q = 2.0$\,m/s) is shown in parallel in
