@@ -9,7 +9,7 @@
 \usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{geometry}
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
 \usepackage{float}
 \usepackage{siunitx}
@@ -168,40 +168,24 @@ clusters are tracked.
 \subsection{Approach~1 --- Threshold-Based Grid Clustering}
 \label{sec:methods:merge}
 
-\subsubsection{Threshold-Based Segment Pre-Filtering}
-\label{sec:methods:threshold}
-
-Before the grid aggregation, road segments that are \emph{structurally} slow are
-identified and excluded so they do not distort cell-level speed estimates.  A
-segment is flagged if its 85th-percentile speed over all sessions and timesteps
-is at most 2\,m/s (7.2\,km/h).  This threshold captures dead-ends, on-ramps
-with negligible traffic, and sensor artefacts that remain near-stationary
-regardless of network-wide congestion.  Flagged segments are rendered in black
-on all maps and excluded from cell-state computations; they are not assigned to
-any cluster.  Segments with more than 30\% missing observations follow the NaN
-policy described in Section~\ref{sec:data:nan} and are treated similarly.
-
 \subsubsection{Spatial Grid Aggregation}
 \label{sec:methods:grid}
 
 Each of the 1\,570 road segments is assigned to the grid cell containing its
 midpoint centroid.  The cell state $\bar{r}_c(t)$ (Equation~\ref{eq:cell_state})
-is the mean normalised speed of all valid, non-flagged segments in cell $c$.
-For the static threshold-selection step (Section~\ref{sec:methods:percolation}),
-$\bar{r}_c$ is further averaged over all sessions and all timesteps.  For the
-BFS clustering and metric tracking, per-timestep values $\bar{r}_c(t)$ are used
-(each timestep averaged over all 101 sessions).
+is the mean normalised speed of all valid segments in cell $c$; segments with
+more than 30\% missing observations (Section~\ref{sec:data:nan}) are excluded
+and contribute nothing to the cell average.  For the static threshold-selection
+step (Section~\ref{sec:methods:percolation}), $\bar{r}_c$ is further averaged
+over all sessions and all timesteps.  For the BFS clustering and metric
+tracking, per-timestep values $\bar{r}_c(t)$ are used (each timestep averaged
+over all 101 sessions).
 
 \subsubsection{Congestion Threshold Selection}
 \label{sec:methods:percolation}
 
 A key design choice is the value of the global threshold $q_c$.  Two candidates
 are evaluated and compared.
-
-\paragraph{Manual threshold ($q = 2.0$\,m/s, raw speed).}
-A raw-speed ceiling of 2.0\,m/s (7.2\,km/h) targets near-standstill or severely
-disrupted flow.  This is a stringent, domain-expert criterion that isolates the
-most extreme congestion pockets.
 
 \paragraph{Percolation-based threshold ($q_c = 0.52$, normalised speed).}
 The threshold is derived objectively from the network's percolation transition
