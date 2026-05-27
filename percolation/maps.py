@@ -27,7 +27,17 @@ from processing.speed import fill_speed_nans, mean_over_sessions
 CONGESTED_COLOR = "red"
 FUNCTIONAL_COLOR = "green"
 
-_CLUSTER_PALETTE = ["#e6194b", "#4363d8", "#f58231", "#911eb4", "#42d4f4"]
+_CLUSTER_PALETTE = [
+    "#e6194b",
+    "#4363d8",
+    "#f58231",
+    "#911eb4",
+    "#42d4f4",
+    "#3cb44b",
+    "#ffe119",
+    "#f032e6",
+    "#469990",
+]
 
 
 def _network_bounds(tol=100):
@@ -521,7 +531,7 @@ def grid_clust_kmeans(xdiv=20, ydiv=16, k=5, qc=None, percentile=65,
     Parameters
     ----------
     xdiv, ydiv           : int   – grid divisions
-    k                    : int   – number of K-means clusters (≤ 5 recommended)
+    k                    : int   – number of K-means clusters
     qc                   : float or None – normalised speed threshold (percolation);
                            when set, group speeds are normalised by their 95th pct
     percentile           : int   – raw-speed percentile threshold (used when qc=None)

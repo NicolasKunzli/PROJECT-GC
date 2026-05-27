@@ -96,8 +96,10 @@ if __name__ == "__main__":
     qc, bottlenecks = percolation_analysis(session=0)
     # congestion_map(qc, session=0)
     grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
-    spawns_grid = grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
-    print(spawns_grid)
+    spawns_grid_k5 = grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
+    spawns_grid_k9 = grid_clust_kmeans(20, 16, k=9, qc=qc)  # 9 K-means clusters on (x, y, speed)
+    print("Grid K-means k=5 spawn links:", spawns_grid_k5)
+    print("Grid K-means k=9 spawn links:", spawns_grid_k9)
     # # ── Compare methods: simplified graph + q=0.52 threshold ──────────────────
     # # Left panel : grid aggregation on simplified network, r < 0.52 → congested
     # # Right panel: percolation on simplified network, r < q_c (auto-computed)
@@ -439,4 +441,3 @@ if __name__ == "__main__":
        
 
         
-
