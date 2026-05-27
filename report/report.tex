@@ -66,8 +66,94 @@
 
 \subsection{Speed reconstruction}
 \label{sec:data:speed}
-% Speed = vdist / vtime, units, range.
-% TODO
+
+The SimBArCa dataset provides two complementary speed signals for each road segment
+$ij$ at each 3-minute timestep $t$.
+
+\paragraph{Aggregated trajectory speed (\texttt{pred\_speed}).}
+Vehicle-trajectory aggregates supply two cumulative fields per segment per bin:
+$\text{vdist}_{ij}(t)$ [m], the total distance covered by all vehicles crossing
+segment $ij$ in the 3-minute window, and $\text{vtime}_{ij}(t)$ [s], their total
+travel time.  Space-mean speed is then:
+\begin{equation}
+  v^{\mathrm{pred}}_{ij}(t)
+  \;=\; \frac{\text{vdist}_{ij}(t)}{\text{vtime}_{ij}(t)}.
+  \label{eq:pred_speed}
+\end{equation}
+When $\text{vtime}_{ij}(t)=0$ (no vehicle observed), the ratio is undefined
+and stored as NaN; the physical interpretation and imputation policy are
+developed in Section~\ref{sec:data:nan}.
+
+\paragraph{Loop-detector speed (\texttt{ld\_speed}).}
+A second signal is delivered directly by the simulated loop-detector model as a
+pre-computed speed [m/s].  It is generated from the same underlying trajectories
+but aggregated through a different sensor model, producing a slightly smoother
+time-series that is better suited to free-flow normalisation (see
+Section~\ref{sec:methods:percolation}).
+
+\medskip
+\noindent Both signals share the same temporal grid (3-minute bins,
+08:03--09:57), the same spatial coverage ($N = 1\,570$ directed segments),
+and the same upper bound imposed by the simulation's universal
+\SI{50}{\km\per\hour} speed limit ($\approx 13.89$\,m/s).  The two uses in the
+analysis are:
+\begin{itemize}
+  \item \texttt{pred\_speed} (Equation~\ref{eq:pred_speed}): used for the
+    congestion-index characterisation below and as the speed input to the Grid
+    K-means clustering (Section~\ref{sec:methods:clustering}).
+  \item \texttt{ld\_speed}: used for percolation analysis
+    (Section~\ref{sec:methods:percolation}), where both the numerator
+    $v_{ij}(t)$ and the free-flow denominator $v_{\max,ij}$ are drawn from
+    the same sensor to avoid cross-sensor bias.
+\end{itemize}
+
+\paragraph{Congestion index and network-wide dynamics.}
+As a first characterisation of the speed field, a \emph{congestion index}
+\begin{equation}
+  \mathrm{CI}_{ij}(t)
+  \;=\; \min\!\left(1,\;\max\!\left(0,\;
+        1 - \frac{v^{\mathrm{pred}}_{ij}(t)}{v^{\mathrm{ff}}_{ij}}\right)\right),
+  \label{eq:ci}
+\end{equation}
+is defined for each segment, where $v^{\mathrm{ff}}_{ij}$ is the 85th-percentile
+of \texttt{pred\_speed} for segment $ij$ pooled over all sessions and timesteps
+--- a robust proxy for free-flow conditions.  A segment with $\mathrm{CI} > 0.40$
+operates below 60\,\% of its free-flow speed, a standard threshold for
+moderate-to-severe congestion.
+
+Figure~\ref{fig:congestion_share} shows the \emph{network-wide congestion share}
+--- the fraction of valid segments exceeding $\mathrm{CI} > 0.40$ --- as a
+function of time, averaged over all sessions.  Two regimes stand out.
+\begin{enumerate}
+  \item \textbf{Slow early build-up (08:03--09:15):} the share rises gradually
+    from about 8\,\% to 18\,\%, reflecting localised queuing on the principal
+    arterials while the broader network remains near free-flow.  The flat
+    plateau around 08:30--09:00 corresponds to the sustained congestion phase
+    identified in Section~\ref{sec:data:stats:time}.
+  \item \textbf{Late-peak acceleration (09:15--09:57):} from roughly 09:15 the
+    share climbs more steeply, reaching approximately 40\,\% by 09:57.  This
+    second phase captures queue spillback from saturated junctions propagating
+    outward to secondary roads.
+\end{enumerate}
+Critically, the congestion share remains \emph{below 50\,\%} throughout the
+entire analysis window (dashed reference line), confirming that even at the
+height of the rush hour more than half the road segments are still moving at
+adequate speed.  This is consistent with the percolation threshold $q_c = 0.52$
+(Section~\ref{sec:methods:percolation}): the network's giant functional cluster
+only begins to fragment at that threshold, not before.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\textwidth]{analysis/spacetime/network_congestion_share.png}
+  \caption{Network-wide congestion share over time (08:03--09:57; $T = 39$
+    steps of 3 minutes each, averaged over all sessions).  The $y$-axis gives
+    the fraction of road segments with congestion index $\mathrm{CI} > 0.40$,
+    i.e.\ operating below 60\,\% of their free-flow speed.  The dashed line
+    marks the 50\,\% reference.  The two-phase pattern --- slow early build-up
+    followed by steeper late-peak acceleration --- is consistent with localised
+    queue formation giving way to network-wide spillback.}
+  \label{fig:congestion_share}
+\end{figure}
 
 \subsection{Missing-data analysis}
 \label{sec:data:nan}
@@ -396,8 +482,65 @@ Two spatial properties stand out:
 
 \subsection{Network simplification}
 \label{sec:data:simplify}
-% Merging short consecutive segments; rationale for downstream analyses.
-% TODO
+
+The raw SimBArCa directed graph contains $N = 1\,570$ road segments.  A
+significant proportion of these correspond to the same physical road: a
+two-way street is encoded as two antiparallel directed arcs; a multi-lane
+carriageway may appear as several parallel arcs of slightly different length.
+Left unsimplified, this duplication has two adverse effects.
+\begin{itemize}
+  \item \textbf{Visual.}  Overlapping arcs drawn in different colours
+    occlude each other on speed and percolation maps, making the spatial
+    pattern difficult to interpret.
+  \item \textbf{Statistical.}  Computing group-level statistics (e.g.\ the
+    per-group mean speed or the location of bottleneck segments) on the raw
+    graph gives undue weight to roads with many parallel representations,
+    skewing both the clustering feature vectors and the descriptive results.
+\end{itemize}
+
+\subsubsection*{Grouping algorithm}
+
+The simplification is implemented in
+\texttt{network/simplify.py::\allowbreak{}group\_segments()} using three
+geometric matching criteria; any single criterion is sufficient to merge two
+segments $i$ and $j$ into the same group:
+\begin{enumerate}
+  \item \textbf{Forward match.}  Both endpoint pairs are within
+    $d_{\mathrm{ep}} = 35$\,m: $\|p^{\mathrm{from}}_i - p^{\mathrm{from}}_j\|
+    \leq d_{\mathrm{ep}}$ \emph{and}
+    $\|p^{\mathrm{to}}_i - p^{\mathrm{to}}_j\| \leq d_{\mathrm{ep}}$.
+    This captures same-direction parallel lanes.
+  \item \textbf{Reverse match.}  The endpoints cross-pair within
+    $d_{\mathrm{ep}}$: $\|p^{\mathrm{from}}_i - p^{\mathrm{to}}_j\| \leq
+    d_{\mathrm{ep}}$ \emph{and}
+    $\|p^{\mathrm{to}}_i - p^{\mathrm{from}}_j\| \leq d_{\mathrm{ep}}$.
+    This groups the two opposing-direction arcs of a two-way road.
+  \item \textbf{Lateral match.}  Segment midpoints are within
+    $d_{\mathrm{lat}} = 15$\,m.  This catches geometrically adjacent arcs of
+    different lengths (e.g.\ a short access stub alongside a longer
+    through-lane).
+\end{enumerate}
+All matching pairs are fed into a path-compressed union--find (disjoint-set)
+forest, which merges them into equivalence classes in near-linear time.
+Within each group the \emph{representative} segment is the member with the
+highest lane count, the natural proxy for road hierarchy.
+
+\subsubsection*{Scope of application}
+
+The simplified network is used exclusively for \textbf{visualisation} and
+\textbf{descriptive statistics}:
+\begin{itemize}
+  \item Percolation maps and bottleneck overlays
+    (Section~\ref{sec:methods:bottlenecks}) draw one arc per physical road,
+    coloured by SCC membership or speed ratio.
+  \item The average speed map (Section~\ref{sec:data:stats:avgmap}) colours
+    each representative by the nanmean speed of its entire group.
+\end{itemize}
+All topology-sensitive computations --- SCC detection, the percolation sweep,
+and BFS cluster analysis --- operate on the full 1\,570-segment directed graph
+to preserve the exact connectivity structure of the road network.  The
+simplification layer is a purely cosmetic and statistical convenience that
+does not alter the underlying analysis.
 
 % ══════════════════════════════════════════════════════════════════════════
 \section{Identifying Congested and Uncongested Regions}
