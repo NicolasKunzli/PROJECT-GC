@@ -1,5 +1,18 @@
 #!/bin/bash
-# push_report.sh — push report changes to GitHub (main) and directly to Overleaf
+# push_report.sh — push report + figures to GitHub (main) and directly to Overleaf
+#
+# Usage:  bash push_report.sh ["commit message"]
+#
+# What it does:
+#   1. Commits report/report.tex and report/references.bib to GitHub (main).
+#   2. Fetches the current Overleaf state, applies report.tex, references.bib
+#      AND the entire figure/ tree from main onto it, then pushes back to Overleaf.
+#
+# NOTE: any locally modified figures (shown by `git status`) must be committed
+#   to main *before* running this script, otherwise the pre-commit versions are
+#   what gets sent to Overleaf.  Run:
+#       git add figure/ && git commit -m "Regenerate figures"
+#   first if needed.
 set -e
 
 MSG="${1:-Update report}"
@@ -14,14 +27,18 @@ else
   git push origin main
 fi
 
-# ── 2. Push to Overleaf (fetch current state, apply changes, push back) ───
-echo "→ Pushing to Overleaf..."
+# ── 2. Push to Overleaf (fetch current state, apply changes, push back) ────
+# Figures are included so that Overleaf always compiles against the latest PNGs.
+echo "→ Pushing to Overleaf (report + figures)..."
 git fetch overleaf master:overleaf-master --quiet
 git checkout overleaf-master --quiet
-git checkout main -- report/report.tex report/references.bib
+git checkout main -- report/report.tex report/references.bib figure/
 if git diff --cached --quiet; then
   echo "  (Overleaf already up to date)"
 else
+  # Count changed files for a useful log line
+  N=$(git diff --cached --name-only | wc -l | tr -d ' ')
+  echo "  Committing $N changed file(s) to Overleaf..."
   git commit -m "$MSG" --quiet
   git push overleaf overleaf-master:master --quiet
 fi
