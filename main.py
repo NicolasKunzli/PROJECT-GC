@@ -113,26 +113,26 @@ if __name__ == "__main__":
 
     # # ── Graph-search grid clustering  ─────────────────────────────────────────
     # # Run 1: normalised speed, q = 0.52  (same threshold as percolation)
-    # run_graph_search_analysis(
-    #     qc=0.52,
-    #     xdiv=20,
-    #     ydiv=16,
-    #     key_timesteps=[5, 17, 29, 31],
-    #     use_all_sessions=True,
-    #     use_normalized=True,
-    #     folder="figure/graph_search/norm_q0.52",
-    # )
+    run_graph_search_analysis(
+        qc=0.52,
+        xdiv=20,
+        ydiv=16,
+        key_timesteps=[5, 17, 29, 31],
+        use_all_sessions=True,
+        use_normalized=True,
+        folder="figure/graph_search/norm_q0.52",
+    )
 
     # # Run 2: raw speed, q = 2 m/s  ("changed flow" — stricter congestion definition)
-    # run_graph_search_analysis(
-    #     qc=2.0,
-    #     xdiv=20,
-    #     ydiv=16,
-    #     key_timesteps=[5, 17, 29, 31],
-    #     use_all_sessions=True,
-    #     use_normalized=False,
-    #     folder="figure/graph_search/raw_q2",
-    # )
+    run_graph_search_analysis(
+        qc=2.0,
+        xdiv=20,
+        ydiv=16,
+        key_timesteps=[5, 17, 29, 31],
+        use_all_sessions=True,
+        use_normalized=False,
+        folder="figure/graph_search/raw_q2",
+    )
 
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates

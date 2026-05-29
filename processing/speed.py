@@ -29,6 +29,40 @@ def mean_over_sessions(values, min=0, max=None):
     )
 
 
+def fill_trailing_nans_as_freeflow(profile, freeflow_value=1.0):
+    """
+    For each segment, fill NaNs that appear *after the last valid observation*
+    with `freeflow_value`, treating end-of-simulation gaps as uncongested.
+
+    Only trailing NaNs are touched; interior NaNs are left for fill_speed_nans.
+
+    Parameters
+    ----------
+    profile        : ndarray (T, N)
+    freeflow_value : float or ndarray (N,) — value to fill trailing NaNs with.
+                     Use 1.0 for normalised r; use a per-segment speed (m/s) for raw.
+
+    Returns
+    -------
+    ndarray (T, N), same dtype as input
+    """
+    filled = profile.copy()
+    fv = (np.full(filled.shape[1], freeflow_value)
+          if np.ndim(freeflow_value) == 0
+          else np.asarray(freeflow_value, dtype=float))
+
+    for j in range(filled.shape[1]):
+        col       = filled[:, j]
+        valid_idx = np.where(~np.isnan(col))[0]
+        if len(valid_idx) == 0:
+            continue
+        last_valid = valid_idx[-1]
+        if last_valid + 1 < len(col) and not np.isnan(fv[j]):
+            filled[last_valid + 1:, j] = fv[j]
+
+    return filled
+
+
 def fill_speed_nans(profile, minor_threshold=0.30, nodata_threshold=0.90):
     """
     Tiered NaN-handling policy for a speed (or speed-like) profile.
