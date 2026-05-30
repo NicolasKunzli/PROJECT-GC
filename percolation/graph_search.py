@@ -19,7 +19,7 @@ Outputs
 • figure/graph_search/<folder>/graph_search_t<t>.png        — map at one timestep
 • figure/graph_search/<folder>/top5_cluster_sizes.png       — time-series of top-5 sizes
 • figure/graph_search/<folder>/median_speeds.png            — median raw speed per cluster
-• figure/graph_search/<folder>/merged_graph_search_analysis.png — 3-row combined figure
+• figure/graph_search/<folder>/merged_graph_search_analysis.png — 4-row combined figure
 """
 
 import math
@@ -235,6 +235,46 @@ def _compute_ranked_sizes(results, top_n=5):
                 sizes[t, rank - 1] = int((cl == bfs_label).sum())
 
     return sizes
+
+
+def _compute_func_giant_speeds(results, min_cells=1):
+    """
+    Size and median raw speed of the largest functional cluster at every timestep.
+
+    Returns
+    -------
+    func_sizes : ndarray (T,) int   – # grid cells in largest functional component (0 if absent)
+    func_speeds: ndarray (T,) float – median raw speed (m/s) of that component (NaN if absent)
+    """
+    T           = results["T"]
+    raw_profile = results["raw_speed_profile"]   # (T, N)  m/s
+    lc          = results["links_cells"]
+
+    lx = lc["cell_x"].values.astype(int)    # (N,)
+    ly = lc["cell_y"].values.astype(int)    # (N,)
+
+    sizes  = np.zeros(T, dtype=int)
+    speeds = np.full(T, np.nan)
+
+    for t in range(T):
+        fl = results["func_labels"][t]   # (xdiv, ydiv), labels 1..n_func, 0 = non-functional
+        nf = int(fl.max())
+        if nf == 0:
+            continue
+        # Find the largest functional component label
+        label_sizes = {i: int((fl == i).sum()) for i in range(1, nf + 1)}
+        best_label  = max(label_sizes, key=lambda x: label_sizes[x])
+        best_size   = label_sizes[best_label]
+        if best_size < min_cells:
+            continue
+        sizes[t] = best_size
+        mask  = fl[lx, ly] == best_label
+        valid = raw_profile[t, mask]
+        valid = valid[~np.isnan(valid)]
+        if len(valid):
+            speeds[t] = np.median(valid)
+
+    return sizes, speeds
 
 
 def _compute_median_speeds(results, top_n=5, min_cells=1):
@@ -702,14 +742,15 @@ def run_graph_search_analysis(
     session=0,
     use_all_sessions=True,
     use_normalized=True,
-    folder=None,
+    folder=None,cong_frac_threshold=40
 ):
     """
-    Full graph-search clustering pipeline — 3-panel merged figure:
+    Full graph-search clustering pipeline — 4-panel merged figure:
 
       Row 1 : maps at key_timesteps (coloured by cluster rank)
       Row 2 : top-5 congested cluster sizes over time (# grid cells)
       Row 3 : median raw speed (m/s) of the same top-5 clusters over time
+      Row 4 : largest functional cluster — size (left axis) + median speed (right axis)
 
     Parameters
     ----------
@@ -752,6 +793,9 @@ def run_graph_search_analysis(
     print("Computing median speeds per cluster …")
     median_spd = _compute_median_speeds(results, top_n=5)   # (T, 5)
 
+    print("Computing functional giant-component size & median speed …")
+    func_gc_sizes, func_gc_speeds = _compute_func_giant_speeds(results)
+
     # ── 3. Standalone plots ────────────────────────────────────────────────
     plot_top5_cluster_sizes(results, folder)
     plot_median_speeds(results, folder)
@@ -775,10 +819,10 @@ def run_graph_search_analysis(
     ts_labels = [_TS_BASE[i].strftime("%H:%M") for i in range(T)]
     tick_step = max(1, T // 10)
 
-    fig = plt.figure(figsize=(4.5 * n_maps, 13), dpi=200)
+    fig = plt.figure(figsize=(4.5 * n_maps, 17), dpi=200)
     gs_layout = fig.add_gridspec(
-        3, n_maps,
-        height_ratios=[1.2, 0.6, 0.6],
+        4, n_maps,
+        height_ratios=[1.2, 0.6, 0.6, 0.6],
         hspace=0.48,
         wspace=0.10,
     )
@@ -840,9 +884,50 @@ def run_graph_search_analysis(
     ax_spd.grid(True, alpha=0.3)
     ax_spd.tick_params(axis="both", labelsize=7)
 
+    # Row 3: largest functional cluster — size (left axis) + median speed (right axis)
+    ax_func = fig.add_subplot(gs_layout[3, :])
+    ax_func_spd = ax_func.twinx()
+
+    # Left axis: functional cluster size
+    ax_func.plot(range(T), func_gc_sizes,
+                 color=_FUNC_COLOR,
+                 linewidth=1.5,
+                 marker="o", markersize=2,
+                 label="Giant functional cluster (cells)")
+    ax_func.fill_between(range(T), func_gc_sizes,
+                         color=_FUNC_COLOR, alpha=0.10)
+
+    # Right axis: median velocity
+    valid_speeds = np.where(func_gc_sizes > 0, func_gc_speeds, np.nan)
+    ax_func_spd.plot(range(T), valid_speeds,
+                     color="#007755",
+                     linewidth=1.5,
+                     linestyle="--",
+                     marker="s", markersize=2,
+                     label="Median speed (m/s)")
+
+    for t in key_timesteps:
+        ax_func.axvline(t, color="gray", linestyle="--", linewidth=0.7, alpha=0.6)
+
+    ax_func.set_xticks(range(0, T, tick_step))
+    ax_func.set_xticklabels(ts_labels[::tick_step], rotation=30, ha="right", fontsize=7)
+    ax_func.set_xlabel("Time", fontsize=8)
+    ax_func.set_ylabel("# grid cells", fontsize=8, color=_FUNC_COLOR)
+    ax_func.tick_params(axis="y", labelcolor=_FUNC_COLOR, labelsize=7)
+    ax_func.tick_params(axis="x", labelsize=7)
+    ax_func_spd.set_ylabel("Median speed  (m/s)", fontsize=8, color="#007755")
+    ax_func_spd.tick_params(axis="y", labelcolor="#007755", labelsize=7)
+    ax_func.set_title("Largest Functional Cluster — Size & Median Speed", fontsize=9)
+    ax_func.grid(True, alpha=0.3)
+
+    # Combined legend
+    h1, l1 = ax_func.get_legend_handles_labels()
+    h2, l2 = ax_func_spd.get_legend_handles_labels()
+    ax_func.legend(h1 + h2, l1 + l2, fontsize=7, loc="lower left")
+
     fig.suptitle(
         f"Graph-Search Cluster Evolution  "
-        f"({xdiv}×{ydiv} grid,  {q_label},  mean over all sessions)",
+        f"({xdiv}×{ydiv} grid,  {q_label},  mean over all sessions),{cong_frac_threshold}",
         fontsize=11, fontweight="bold",
     )
 

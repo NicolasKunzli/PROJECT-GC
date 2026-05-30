@@ -8,6 +8,7 @@ grid_clust      : rectangular grid overlay with per-cell congestion colour.
 import os
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
@@ -246,14 +247,19 @@ def compare_congestion_methods(
         ((rep_df["c_y"] - y_min) // h).astype(int), 0, ydiv - 1
     )
 
-    # Cell mean r (for grid panel)
-    cell_r = (
+    # Per-segment congestion flag (r < grid_qc), nodata segments excluded
+    rep_df["seg_cong"] = (~rep_df["nodata"]) & (rep_df["r"] < grid_qc)
+
+    # Per-cell counts: total present segments and congested ones
+    cell_counts = (
         rep_df[~rep_df["nodata"]]
-        .groupby(["cell_x", "cell_y"])["r"]
-        .mean()
-        .reset_index(name="cell_r")
+        .groupby(["cell_x", "cell_y"])["seg_cong"]
+        .agg(total="count", n_cong="sum")
+        .reset_index()
     )
-    rep_grid = rep_df.merge(cell_r, on=["cell_x", "cell_y"], how="left")
+    cell_counts["cell_congested"] = cell_counts["n_cong"] / cell_counts["total"] > 0.40
+    rep_grid = rep_df.merge(cell_counts[["cell_x", "cell_y", "cell_congested"]],
+                            on=["cell_x", "cell_y"], how="left")
 
     # ── Output path ────────────────────────────────────────────────────────
     if output is None:
@@ -265,16 +271,15 @@ def compare_congestion_methods(
 
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.6), dpi=250)
 
-    # ── LEFT: Grid aggregation (simplified network, r vs grid_qc) ─────────
+    # ── LEFT: Grid aggregation (simplified network, fraction rule) ─────────
     ax = axes[0]
     n_cong_grid, n_valid_grid = 0, 0
 
     for _, row in rep_grid.iterrows():
         xs, ys = sublink(row)
-        cell_rv = row.get("cell_r", np.nan)
-        if row["nodata"] or np.isnan(cell_rv):
+        if row["nodata"] or pd.isna(row.get("cell_congested")):
             color = NODATA_COLOR
-        elif cell_rv < grid_qc:
+        elif row["cell_congested"]:
             color = CONGESTED_COLOR
             n_cong_grid += 1
             n_valid_grid += 1
@@ -295,7 +300,7 @@ def compare_congestion_methods(
         ax,
         (
             f"Grid aggregation (simplified network)\n"
-            f"{xdiv}×{ydiv}, cell mean r < {grid_qc:.2f} → congested\n"
+            f"{xdiv}×{ydiv}, r < {grid_qc:.2f} per seg, >40% cong → cell congested\n"
             f"{n_cong_grid}/{n_valid_grid} links in congested cells"
         ),
         bounds,
@@ -409,27 +414,19 @@ def congestion_map(qc, session=0, timesteps=None):
 def grid_clust(
     xdiv=4,
     ydiv=4,
-    percentile=65,
-    qc=None,
-    session_min=0,
-    session_max=100,
+    qc=0.525,
     distance_threshold=50.0,
 ):
     """
     Cluster links by rectangular grid and colour each cell by its congestion level.
 
-    Two modes:
-      - qc is None   : raw-speed percentile mode — cells with mean speed below the
-                        `percentile`-th percentile are red, above are green.
-      - qc provided  : percolation mode — cells with mean normalised speed r < q_c
-                        are red (congested), ≥ q_c are green (functional).
+    Cells with mean normalised speed r < qc are red (congested), ≥ qc are green
+    (functional).
 
     Parameters
     ----------
     xdiv, ydiv         : int   – grid divisions along x and y
-    percentile         : int   – raw-speed percentile threshold (ignored when qc is set)
-    qc                 : float or None – percolation critical threshold
-    session_min, session_max : int – session slice (used in raw-speed mode)
+    qc                 : float – percolation critical threshold
     distance_threshold : float – segment-grouping radius for the simplified graph
     """
     from network.simplify import group_segments
@@ -464,84 +461,38 @@ def grid_clust(
         ((links_local["c_y"] - y_min) // h).astype(int), 0, ydiv - 1
     )
 
-    if qc is not None:
-        # ── Percolation mode ───────────────────────────────────────────────────
-        r         = compute_normalized_speed()
-        r_profile, nodata_mask = fill_speed_nans(
-            mean_over_sessions(r, min=0, max=r.shape[0])
-        )
-        r_mean = np.nanmean(r_profile, axis=0)
+    r         = compute_normalized_speed()
+    r_profile, nodata_mask = fill_speed_nans(
+        mean_over_sessions(r, min=0, max=r.shape[0])
+    )
+    r_mean = np.nanmean(r_profile, axis=0)
 
-        group_speed = []
-        group_nodata = []
-        for group in groups:
-            valid = [
-                r_mean[idx]
-                for idx in group
-                if not nodata_mask[idx] and not np.isnan(r_mean[idx])
-            ]
-            group_speed.append(float(np.mean(valid)) if valid else np.nan)
-            group_nodata.append(len(valid) == 0)
+    group_speed = []
+    group_nodata = []
+    for group in groups:
+        valid = [
+            r_mean[idx]
+            for idx in group
+            if not nodata_mask[idx] and not np.isnan(r_mean[idx])
+        ]
+        group_speed.append(float(np.mean(valid)) if valid else np.nan)
+        group_nodata.append(len(valid) == 0)
 
-        links_local["speed_mean"] = group_speed
-        links_local["nodata"]     = group_nodata
+    links_local["speed_mean"] = group_speed
+    links_local["nodata"]     = group_nodata
 
-        cell_speed = (
-            links_local.loc[~links_local["nodata"]]
-            .groupby(["cell_x", "cell_y"])["speed_mean"]
-            .mean()
-            .reset_index(name="cell_avg_speed")
-        )
-        links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
+    cell_speed = (
+        links_local.loc[~links_local["nodata"]]
+        .groupby(["cell_x", "cell_y"])["speed_mean"]
+        .mean()
+        .reset_index(name="cell_avg_speed")
+    )
+    links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
 
-        links_local["color"] = np.where(links_local["cell_avg_speed"] >= qc, "green", "red")
-        links_local.loc[links_local["nodata"] | links_local["cell_avg_speed"].isna(), "color"] = NODATA_COLOR
-        title = f"Percolation $q_c$ = {qc:.3f} (normalized speed, simplified graph)"
-        fname = f"{folder}/grid_perc_qc{qc:.3f}.png"
-
-    else:
-        # ── Raw-speed percentile mode ──────────────────────────────────────────
-        vdist = DL._vdist_3min.astype(float)
-        vtime = DL._vtime_3min.astype(float)
-
-        speed = np.divide(
-            vdist, vtime,
-            out=np.full(vdist.shape, np.nan),
-            where=(vtime != 0) & (~np.isnan(vtime)),
-        )
-        speed_profile, nodata_mask = fill_speed_nans(
-            mean_over_sessions(speed, min=session_min, max=session_max)
-        )
-
-        avg_speed_per_link = np.nanmean(speed_profile, axis=0)
-        group_speed = []
-        group_nodata = []
-        for group in groups:
-            valid = [
-                avg_speed_per_link[idx]
-                for idx in group
-                if not nodata_mask[idx] and not np.isnan(avg_speed_per_link[idx])
-            ]
-            group_speed.append(float(np.mean(valid)) if valid else np.nan)
-            group_nodata.append(len(valid) == 0)
-
-        links_local["speed_mean"] = group_speed
-        links_local["nodata"]     = group_nodata
-
-        cell_speed = (
-            links_local.loc[~links_local["nodata"]]
-            .groupby(["cell_x", "cell_y"])["speed_mean"]
-            .mean()
-            .reset_index(name="cell_avg_speed")
-        )
-        links_local = links_local.merge(cell_speed, on=["cell_x", "cell_y"], how="left")
-
-        perc = np.nanpercentile(group_speed, percentile)
-
-        links_local["color"] = np.where(links_local["cell_avg_speed"] >= perc, "green", "red")
-        links_local.loc[links_local["nodata"] | links_local["cell_avg_speed"].isna(), "color"] = NODATA_COLOR
-        title = f"{percentile}th percentile : Speed = {perc:.2f} m/s (simplified graph)"
-        fname = f"{folder}/grid{percentile}.png"
+    links_local["color"] = np.where(links_local["cell_avg_speed"] >= qc, "green", "red")
+    links_local.loc[links_local["nodata"] | links_local["cell_avg_speed"].isna(), "color"] = NODATA_COLOR
+    title = f"Percolation $q_c$ = {qc:.3f} (normalized speed, simplified graph)"
+    fname = f"{folder}/grid_perc_qc{qc:.3f}.png"
 
     # ── Draw links ─────────────────────────────────────────────────────────────
     for _, row in links_local.iterrows():

@@ -10,7 +10,7 @@ Module map
   clustering.kmeans   — kmeans_clustering
   clustering.ward     — clustering (AgglomerativeClustering / Ward)
   percolation.core    — percolation_analysis, find_bottlenecks
-  percolation.maps    — congestion_map, grid_clust
+  percolation.maps    — congestion_map, grid_clust, grid_clust_kmeans
   gif                 — gradient_gif
   utils               — closest_link
 
@@ -66,17 +66,11 @@ if __name__ == "__main__":
     ]
     # gradient_gif(param, param_name, fps)
 
-    # ── Grid clustering ───────────────────────────────────────────────────────
-    n_clus = 8
-    # grid_clust(20, 16, 85)
-    # grid_clust(20, 16, 65)
-    # grid_clust(20, 16, 55)
-    # grid_clust(20, 16, 45)
-
     # ── Threshold: low-speed and short links ──────────────────────────────────
     th = thresholds(max_speed=2, max_length=np.inf)
 
     # ── Ward (agglomerative) — feature-driven, connectivity-constrained ───────
+    n_clus = 8
     # clustering(n_clus, "geometric_clusters", "geometric")
     # clustering(n_clus, "distance_clusters",  "distance")
     # clustering(n_clus, "time_clusters",      "time")
@@ -103,13 +97,14 @@ if __name__ == "__main__":
     # # ── Compare methods: simplified graph + q=0.52 threshold ──────────────────
     # # Left panel : grid aggregation on simplified network, r < 0.52 → congested
     # # Right panel: percolation on simplified network, r < q_c (auto-computed)
-    # compare_congestion_methods(
-    #     session=0,
-    #     timestep=31,
-    #     xdiv=20,
-    #     ydiv=16,
-    #     grid_qc=0.52,        # same threshold as percolation
-    # )
+    compare_congestion_methods(
+        session=0,
+        timestep=15,
+        xdiv=20,
+        ydiv=16,
+        qc=0.525,
+        grid_qc=0.52,
+    )
 
     # # ── Graph-search grid clustering  ─────────────────────────────────────────
     # # Run 1: normalised speed, q = 0.52  (same threshold as percolation)
