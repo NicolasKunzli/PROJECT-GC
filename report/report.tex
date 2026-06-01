@@ -572,12 +572,13 @@ excluded and rendered in grey on all maps.
 
 \paragraph{Approach~1 (Section~\ref{sec:methods:merge})---Threshold-based grid
 clustering.}
-A global threshold $q_c$ classifies each cell as \emph{congested}
-($\bar{r}_c < q_c$) or \emph{functional} ($\bar{r}_c \geq q_c$).  A
-breadth-first search (BFS) on the resulting binary grid groups contiguous
-congested cells into \emph{connected components}.  At each timestep this
-produces $N(t)$ spatially contiguous congested clusters plus one uncongested
-background cluster, for a total of $N(t)+1$ clusters.
+A global threshold $q_c$ is applied at the \emph{segment} level: segment $ij$
+is labelled congested if $r_{ij}(t) < q_c$.  A grid cell is then classified as
+\emph{congested} if more than 40\,\% of its valid road segments are congested,
+and \emph{functional} otherwise.  A breadth-first search (BFS) on the resulting
+binary grid groups contiguous congested cells into \emph{connected components}.
+At each timestep this produces $N(t)$ spatially contiguous congested clusters
+plus one functional background cluster, for a total of $N(t)+1$ clusters.
 
 \paragraph{Approach~2 (Section~\ref{sec:methods:clustering})---Grid K-means
 clustering.}
@@ -602,9 +603,9 @@ congestion:
     all road segments in cluster $k$ at timestep $t$, reflecting the internal
     severity of congestion.
 \end{enumerate}
-For Approach~1 the top three to five congested components (ranked by size) and
-the uncongested background are tracked individually.  For Approach~2 all $K$
-clusters are tracked.
+For Approach~1 the top five congested components (ranked by size at each
+timestep) and the largest functional connected component are tracked
+individually.  For Approach~2 all $K$ clusters are tracked.
 
 % ──────────────────────────────────────────────────────────────────────────
 \subsection{Approach~1 --- Threshold-Based Grid Clustering}
@@ -614,14 +615,31 @@ clusters are tracked.
 \label{sec:methods:grid}
 
 Each of the 1\,570 road segments is assigned to the grid cell containing its
-midpoint centroid.  The cell state $\bar{r}_c(t)$ (Equation~\ref{eq:cell_state})
-is the mean normalised speed of all valid segments in cell $c$; segments with
-more than 30\% missing observations (Section~\ref{sec:data:nan}) are excluded
-and contribute nothing to the cell average.  For the static threshold-selection
-step (Section~\ref{sec:methods:percolation}), $\bar{r}_c$ is further averaged
-over all sessions and all timesteps.  For the BFS clustering and metric
-tracking, per-timestep values $\bar{r}_c(t)$ are used (each timestep averaged
-over all 101 sessions).
+midpoint centroid.  Segments with more than 30\,\% missing observations
+(Section~\ref{sec:data:nan}) are globally excluded and contribute to no cell.
+Segments that are unobserved at a specific timestep but are not globally
+excluded count as \emph{uncongested} at that timestep: a NaN observation is
+not treated as evidence of congestion.
+
+For the BFS clustering at each timestep $t$ (Section~\ref{sec:methods:bfs}),
+the cell congestion state is determined by the fraction of present segments
+with $r_{ij}(t) < q_c$, as described above.  For the static
+threshold-selection step (Section~\ref{sec:methods:percolation}), the mean
+normalised speed $\bar{r}_c$ (Equation~\ref{eq:cell_state}) is averaged over
+all sessions and all timesteps, and used to fit the K-means clustering of
+Approach~2 (Section~\ref{sec:methods:gridkmeans}).
+
+\paragraph{Trailing-NaN pre-fill before session averaging.}
+Some simulation sessions end before 09:57, leaving trailing NaN values at the
+final timesteps of the analysis window.  Without correction, the session-mean
+at late timesteps would be computed only over the subset of sessions that run
+to completion, introducing a selection bias if those sessions have atypical
+speeds.  To prevent this, each session's trailing NaNs (those appearing
+\emph{after} its last valid observation) are filled with the segment's
+free-flow reference value (1.0 for normalised $r$; the segment's 95th-percentile
+raw speed for m/s units) before the session mean is taken.  This sets
+unobserved end-of-session timesteps as uncongested, which is the physically
+appropriate conservative assumption.
 
 \subsubsection{Congestion Threshold Selection}
 \label{sec:methods:percolation}
@@ -770,37 +788,47 @@ spatial distribution on the simplified network.
 \label{sec:methods:bfs}
 
 At each timestep $t$, the binary congestion map is constructed by labelling every
-cell with $\bar{r}_c(t) < 0.52$ as congested.  A BFS with \textbf{8-connectivity}
+cell as \emph{congested} if more than 40\,\% of its present road segments have
+$r_{ij}(t) < 0.52$.  Segments that are unobserved at $t$ but not globally
+excluded count as uncongested in this fraction, so missing observations do not
+artificially inflate the congestion signal.  A BFS with \textbf{8-connectivity}
 (four cardinal directions plus four diagonals) then identifies every maximal
 spatially contiguous set of congested cells as one component.  At the
 $\approx 250\,\text{m}$ cell resolution, diagonal neighbours almost always share
 road infrastructure; restricting to four-connectivity would artificially split
 zones that are physically contiguous across a grid boundary.  Components are
-ranked by descending size at each timestep (rank 1 = largest congested zone).  The
-set of all functional cells ($\bar{r}_c \geq 0.52$) forms a single
-\emph{uncongested background} cluster, giving the full $N(t) + 1$ partition used
-for metric tracking.
+ranked by descending size at each timestep (cluster~1 = largest congested zone).
+The set of all functional cells (congested fraction $\leq 40\,\%$) forms a
+single \emph{functional background} cluster; within it, the
+\emph{largest functional connected component} is tracked separately as a proxy
+for network-wide connectivity.
 
 \subsubsection{Results: Congestion Maps and Temporal Metrics}
 \label{sec:methods:congmaps}
 
 Figure~\ref{fig:graph_search_norm} shows the temporal evolution of the top-5
 congested clusters under $q_c = 0.52$ (normalised speed, mean over all 101
-sessions).  The three-row layout presents spatial maps at four selected timesteps
-(top row), cluster sizes over time (middle), and median raw speed per cluster
-over time (bottom).
+sessions).  The four-row layout presents: spatial cluster maps at four selected
+timesteps (row~1); congested cluster sizes over time, ranked by size at each
+timestep (row~2); median raw speed per congested cluster over time (row~3); and
+the size and median speed of the largest functional connected component over
+time (row~4).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{graph_search/norm_q0.52/merged_graph_search_analysis.png}
   \caption{Approach~1 --- $q_c = 0.52$, normalised speed, mean over all sessions.
-    \textbf{Top row}: BFS cluster maps at four representative timesteps.
-    Congested clusters are ranked by size (rank~1 = red, rank~2 = blue,
-    rank~3 = orange, etc.); functional cells are green; no-data cells are grey.
-    \textbf{Middle}: number of grid cells in the top-5 congested clusters over
-    time.
-    \textbf{Bottom}: median raw speed (m/s) of segments within each cluster
-    over time.  Vertical dashed lines indicate the timesteps shown in the top row.}
+    \textbf{Row~1}: BFS cluster maps at four representative timesteps.
+    Congested clusters are coloured by per-timestep size rank (cluster~1 = red,
+    cluster~2 = blue, cluster~3 = orange, etc.); functional cells are green;
+    no-data cells are grey.
+    \textbf{Row~2}: number of grid cells in the top-5 congested clusters over
+    time (ranked by size at each timestep independently).
+    \textbf{Row~3}: median raw speed (m/s) of segments within each congested
+    cluster over time.
+    \textbf{Row~4}: size (grid cells, left axis) and median speed (m/s, right
+    axis) of the largest functional connected component over time.
+    Vertical dashed lines indicate the timesteps shown in row~1.}
   \label{fig:graph_search_norm}
 \end{figure}
 
@@ -813,14 +841,15 @@ register as a connected zone under the manual threshold.
   \centering
   \includegraphics[width=\textwidth]{graph_search/raw_q2/merged_graph_search_analysis.png}
   \caption{Approach~1 --- $q = 2.0$\,m/s, raw speed.
-    Layout identical to Figure~\ref{fig:graph_search_norm}.  Only
-    near-standstill cells ($\bar{v}_c < 7.2$\,km/h) are labelled congested.}
+    Same four-row layout as Figure~\ref{fig:graph_search_norm}.  A cell is
+    labelled congested if more than 40\,\% of its segments have raw speed
+    $< 2.0$\,m/s ($= 7.2$\,km/h), targeting only near-standstill traffic.}
   \label{fig:graph_search_raw}
 \end{figure}
 
 Table~\ref{tab:merge_metrics} reports the three evaluation metrics for
 Approach~1 at the 15 representative timesteps under $q_c = 0.52$.  Clusters are
-ranked by size at each timestep; the uncongested background is reported
+ranked by size at each timestep; the functional background is reported
 separately.
 
 \begin{table}[H]
@@ -828,9 +857,9 @@ separately.
   \small
   \caption{Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all
     sessions).  $N$: number of congested BFS components.  $S_k$: size (grid
-    cells) of rank-$k$ congested cluster.  $\tilde{v}_k$: median raw speed
-    (m/s) of that cluster.  $\tilde{v}_{\mathrm{bg}}$: median speed of the
-    uncongested background.}
+    cells) of cluster $k$ (ranked by size at that timestep).  $\tilde{v}_k$:
+    median raw speed (m/s) of that cluster.  $\tilde{v}_{\mathrm{bg}}$: median
+    speed of the functional background.}
   \label{tab:merge_metrics}
   \setlength{\tabcolsep}{5pt}
   \begin{tabular}{l c ccc ccc c}
@@ -989,6 +1018,26 @@ by mean speed (ascending), so cluster~1 is the most congested zone.
 % ──────────────────────────────────────────────────────────────────────────
 \subsection{Comparative Analysis}
 \label{sec:methods:comparison}
+
+Figure~\ref{fig:compare_methods} shows the two approaches side by side on a
+single map at a representative mid-rush timestep.  The left panel is the
+fraction-based grid classification ($q_c = 0.52$); the right panel is the
+percolation network map computed on the simplified graph ($q_c = 0.525$,
+auto-computed from the full percolation sweep).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{congestion_maps/compare_methods_t15.png}
+  \caption{Side-by-side comparison of the two congestion-detection methods at
+    timestep~15 (approximately 08:48).
+    \textbf{Left}: fraction-based grid classification ($20 \times 16$ grid,
+    $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have
+    $r < 0.52$, green otherwise).
+    \textbf{Right}: percolation network map on the simplified graph at
+    $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or
+    congestion state.}
+  \label{fig:compare_methods}
+\end{figure}
 
 Table~\ref{tab:comparison} places the key metrics of both approaches side by
 side at seven representative timesteps spanning the full rush-hour window.  The
