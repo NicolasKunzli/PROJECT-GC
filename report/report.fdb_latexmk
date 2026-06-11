@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex report"] 0 "report.aux" "report.bbl" "report" 0 -1
+["bibtex report"] 1781199322.12391 "report.aux" "report.bbl" "report" 1781199355.3618 2
   "./references.bib" 1780595329 510 22f963c6259837f35fdfabc1e60e0863 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/plain.bst" 1291864736 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "report.aux" 1781193638 33507 d4228b0f065a549494428c8c89cd7323 "pdflatex"
+  "report.aux" 1781199354 33677 219c66374ce9a9083d2a0d43d795ce97 "pdflatex"
   (generated)
   "report.bbl"
   "report.blg"
   (rewritten before read)
-["pdflatex"] 1781193634.01845 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781193639.21508 2
+["pdflatex"] 1781199350.139 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781199355.36239 2
   "../figure/analysis/avg_speed_map.png" 1772917357 307041 38a112189290f5e58a837e29926d349c ""
   "../figure/analysis/data_reliability_map.png" 1772917364 492301 61ad816a07aa6658e3b9394bec2a232e ""
   "../figure/analysis/nan_distribution.png" 1772917365 86803 a5d856b4a476fd50b4594e65804b4a38 ""
@@ -23,6 +23,8 @@
   "../figure/graph_search/raw_q2/merged_graph_search_analysis.png" 1781097514 859716 6ae386b4599e74b7d558ac88805e24f7 ""
   "../figure/percolation_bottlenecks.png" 1781097454 307113 89a01a4b10a93d8cb47e6e0458d5c8f8 ""
   "../figure/percolation_transition.png" 1781097453 92493 23ec81ce4d52b544b7c418b5e1470ccc ""
+  "../graph.png" 1772834358 353292 ed4ef1437df78028f2c7f4148a822cda ""
+  "/graph.png" 0 -1 0 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1781193197 80909 eab91d9745dd2edfd62a31d53cd5fe15 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1000.pk" 1777909626 25420 964b09039395245b6070421f475dee00 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1095.pk" 1777909621 28976 05d9266cdfde0b07e46906575ed9f535 ""
@@ -47,6 +49,8 @@
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecrm1200.tfm" 993062126 3152 4850ff0163852b7fab34bd55e1197f28 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecrm1440.tfm" 993062128 3168 3bd7b08ba4330af81521911744311212 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecrm1728.tfm" 993062128 3168 11457c8185ce67fb79662ba8b03d6db1 ""
+  "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecti0500.tfm" 993062310 2844 cb7d6c6623c8bc69633a87e76975e75a ""
+  "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecti0800.tfm" 993062316 2840 b6fc7cd2d2eed024b253ee3d8fe2d4cb ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ecti1095.tfm" 993062322 2852 cf233cde705f180d95560390f0f826e7 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ectt0800.tfm" 993062338 1348 ad6a25e9916b0e5ddfcc7ffcb8d43448 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/tfm/jknappen/ec/ectt1095.tfm" 993062342 1352 fa21dcb5ddc7d1dc47d14cd897fdeb0f ""
@@ -158,12 +162,14 @@
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/translations/translations.sty" 1644048522 44247 2188b95d0ee74e31eca4d316263c58a7 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" 1781193621 59819 16aecf5575278d6902f48547d86b0a71 ""
-  "report.aux" 1781193638 33507 d4228b0f065a549494428c8c89cd7323 "pdflatex"
-  "report.bbl" 1781193580 385 275a3f713d68cc3587be4f8e3a0775d7 "bibtex report"
-  "report.out" 1781193638 10125 576bf929bcbf2c46c090ecd40eec4147 "pdflatex"
-  "report.tex" 1781193621 59819 16aecf5575278d6902f48547d86b0a71 ""
-  "report.toc" 1781193638 6182 bddede3f3e68e2fc062b41ba371d4ee8 "pdflatex"
+  "PROJECT-GC/graph.png" 0 -1 0 ""
+  "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" 1781199343 61050 a3e0ca10d7e9220d9411edccc76305ff ""
+  "graph.png" 0 -1 0 ""
+  "report.aux" 1781199354 33677 219c66374ce9a9083d2a0d43d795ce97 "pdflatex"
+  "report.bbl" 1781199322 0 d41d8cd98f00b204e9800998ecf8427e "bibtex report"
+  "report.out" 1781199354 10125 576bf929bcbf2c46c090ecd40eec4147 "pdflatex"
+  "report.tex" 1781199343 61050 a3e0ca10d7e9220d9411edccc76305ff ""
+  "report.toc" 1781199354 6183 a569e33bca4dd982258fab744fd7bebe "pdflatex"
   (generated)
   "report.aux"
   "report.log"

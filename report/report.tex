@@ -52,14 +52,21 @@
 \subsection{The SimBarca dataset}
 \label{sec:data:dataset}
 % Source, format, raw fields (vdist, vtime, sessions), spatial extent.
-% TODO
+The dataset is stored in plk files in which we can retrieve two important data types. The first being \textit{vdist}, which stores the total travelled distance among every vehicles on every single link for every time intervals. The second is \textit{vtime} which stores the total time spent on every links for every time intervals.\\
+There are 101 different files, each of them representing a different simulation called session. They are each in a folder labelled as such: \textit{session\_\#\#\#} where the three last characters are digits representing the session id. The folder \textit{session\_000} contain the simulation with a demand rate of 100\%, the following 20 are with a demand rate of 120\%, the following with 140\%, and so on with \textit{session\_081} - \textit{session\_100} with a demand rate of 180\%.\\
+\dots
 
 \subsection{Network representation}
 \label{sec:data:network}
 % Links, nodes, lengths, lanes, coordinates; primitive drawing layer.
-
 The network is built around three main components: links, nodes and polygons. The first being the most important in our congestion analysis, we will focus our attention on it by presenting its main characteristics. The csv file contains these following columns:  \textit{id, from\_x, from\_y, to\_x, to\_y, length, out\_ang, num\_lanes}. The first column is the id of the link. The following four are the coordinates of the box containing the link in which two opposite corners are the starting and ending coordinates of the link. These corners are set by  \textit{out\_ang} which is the angle orientation of the segment. The  \textit{length} column is the length of the segment, and finally, \textit{num\_lanes} are the number of lanes contained in the segment. \\
 Note that the network is simplified by grouping each individual lane with its neighbouring lanes, regardless of their directions.
+Nodes represent the center of the links and are used for the connectivity matrix. Links that are connecting the same roads are grouped under the same node.\\
+The blue polygons delineate the intersection areas. They are displayed solely for visualization purposes and are not involved in the network computations.
+\begin{figure}[h]
+  \includegraphics{../graph.png}
+  \label{fig:graph_main}
+\end{figure}
 
 \subsection{Temporal structure: sessions and 3-minute aggregation}
 \label{sec:data:temporal}

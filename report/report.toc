@@ -7,17 +7,17 @@
 \contentsline {subsection}{\numberline {2.2}Network representation}{2}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}Temporal structure: sessions and 3-minute aggregation}{2}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}Speed reconstruction}{2}{subsection.2.4}%
-\contentsline {paragraph}{Aggregated trajectory speed (\texttt {pred\_speed}).}{2}{section*.2}%
-\contentsline {paragraph}{Loop-detector speed (\texttt {ld\_speed}).}{2}{section*.3}%
-\contentsline {paragraph}{Congestion index and network-wide dynamics.}{3}{section*.4}%
-\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{3}{subsection.2.5}%
-\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{3}{subsubsection.2.5.1}%
-\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{5}{subsubsection.2.5.2}%
-\contentsline {paragraph}{Why not zero-fill?}{6}{section*.8}%
-\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{6}{section*.9}%
-\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{6}{section*.10}%
-\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{6}{section*.11}%
-\contentsline {paragraph}{Implementation note.}{7}{section*.12}%
+\contentsline {paragraph}{Aggregated trajectory speed (\texttt {pred\_speed}).}{2}{section*.3}%
+\contentsline {paragraph}{Loop-detector speed (\texttt {ld\_speed}).}{3}{section*.4}%
+\contentsline {paragraph}{Congestion index and network-wide dynamics.}{3}{section*.5}%
+\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{4}{subsection.2.5}%
+\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{4}{subsubsection.2.5.1}%
+\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{6}{subsubsection.2.5.2}%
+\contentsline {paragraph}{Why not zero-fill?}{6}{section*.9}%
+\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{6}{section*.10}%
+\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{7}{section*.11}%
+\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{7}{section*.12}%
+\contentsline {paragraph}{Implementation note.}{7}{section*.13}%
 \contentsline {subsection}{\numberline {2.6}Network-level descriptive statistics}{7}{subsection.2.6}%
 \contentsline {subsubsection}{\numberline {2.6.1}Average speed map}{7}{subsubsection.2.6.1}%
 \contentsline {subsubsection}{\numberline {2.6.2}Network mean speed over time}{8}{subsubsection.2.6.2}%
@@ -25,14 +25,14 @@
 \contentsline {subsection}{\numberline {2.7}Network simplification}{10}{subsection.2.7}%
 \contentsline {section}{\numberline {3}Identifying Congested and Uncongested Regions}{11}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Overview and Evaluation Framework}{11}{subsection.3.1}%
-\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{11}{section*.18}%
-\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{11}{section*.19}%
-\contentsline {paragraph}{Evaluation metrics.}{12}{section*.20}%
+\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{11}{section*.19}%
+\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{12}{section*.20}%
+\contentsline {paragraph}{Evaluation metrics.}{12}{section*.21}%
 \contentsline {subsection}{\numberline {3.2}Approach~1 --- Threshold-Based Grid Clustering}{12}{subsection.3.2}%
 \contentsline {subsubsection}{\numberline {3.2.1}Spatial Grid Aggregation}{12}{subsubsection.3.2.1}%
-\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{12}{section*.21}%
+\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{12}{section*.22}%
 \contentsline {subsubsection}{\numberline {3.2.2}Congestion Threshold Selection}{12}{subsubsection.3.2.2}%
-\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{12}{section*.22}%
+\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{12}{section*.23}%
 \contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{14}{subsubsection.3.2.3}%
 \contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{15}{subsubsection.3.2.4}%
 \contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{15}{subsubsection.3.2.5}%
