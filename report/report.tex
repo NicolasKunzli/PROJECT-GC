@@ -57,7 +57,9 @@
 \subsection{Network representation}
 \label{sec:data:network}
 % Links, nodes, lengths, lanes, coordinates; primitive drawing layer.
-% TODO
+
+The network is built around three main components: links, nodes and polygons. The first being the most important in our congestion analysis, we will focus our attention on it by presenting its main characteristics. The csv file contains these following columns:  \textit{id, from\_x, from\_y, to\_x, to\_y, length, out\_ang, num\_lanes}. The first column is the id of the link. The following four are the coordinates of the box containing the link in which two opposite corners are the starting and ending coordinates of the link. These corners are set by  \textit{out\_ang} which is the angle orientation of the segment. The  \textit{length} column is the length of the segment, and finally, \textit{num\_lanes} are the number of lanes contained in the segment. \\
+Note that the network is simplified by grouping each individual lane with its neighbouring lanes, regardless of their directions.
 
 \subsection{Temporal structure: sessions and 3-minute aggregation}
 \label{sec:data:temporal}
