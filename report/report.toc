@@ -36,11 +36,14 @@
 \contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{14}{subsubsection.3.2.3}%
 \contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{15}{subsubsection.3.2.4}%
 \contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{15}{subsubsection.3.2.5}%
-\contentsline {subsection}{\numberline {3.3}Approach~2 --- Grid K-means Clustering}{18}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{18}{subsection.3.3}%
 \contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{18}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{18}{subsubsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {3.3.3}Results}{19}{subsubsection.3.3.3}%
-\contentsline {subsection}{\numberline {3.4}Comparative Analysis}{20}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count and Weight Parameters}{18}{subsubsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{19}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{19}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{19}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Results}{19}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{20}{subsection.3.5}%
 \contentsline {section}{\numberline {4}Evaluation}{22}{section.4}%
 \contentsline {subsection}{\numberline {4.1}Evaluation framework}{22}{subsection.4.1}%
 \contentsline {subsection}{\numberline {4.2}Metrics}{22}{subsection.4.2}%

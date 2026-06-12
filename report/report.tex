@@ -896,14 +896,57 @@ separately.
   \end{tabular}
 \end{table}
 
+
 % ──────────────────────────────────────────────────────────────────────────
-\subsection{Approach~2 --- Grid K-means Clustering}
-\label{sec:methods:clustering}
+\subsection{Approach~2--- K-means Clustering}
+\label{sec:methods:kclustering}
 
 \subsubsection{Feature Construction and K-means Setup}
 \label{sec:methods:gridkmeans}
 
-Rather than applying a hard binary threshold, K-means partitions the grid cells
+Rather than applying a hard binary threshold, we use K-means to assign every
+link to a cluster based on features that jointly encode \emph{spatial position}
+and \emph{speed dynamics}. For each link $c$, the feature vector is built as
+\begin{equation}
+  \mathbf{x}_c =
+  \Bigl[
+    w_s\,\tilde{x}^{(c)},\;
+  w_s\,\tilde{y}^{(c)};
+  w_d\,\tilde{\mu}_c,\;
+  w_d\,\tilde{\sigma}_c,\;
+  w_d\,\tilde{t}^{\,\mathrm{peak}}_c,\;
+  w_d\,\tilde{\mathbf{u}}_{c,1:8},\
+  \Bigr],
+  \label{eq:kmeans_features}
+\end{equation}
+where $\mu_c$ and $\sigma_c$ are the mean and standard deviation of the speed
+profile of link $c$, $t^{\mathrm{peak}}_c$ is the normalised time index of the
+minimum speed, and $\mathbf{u}_{c,1:8}$ are the first eight components extracted
+from the row-wise normalised temporal speed profile. The variables $x^{(c)}$
+and $y^{(c)}$ denote the link-centre coordinates.
+
+All dynamic and spatial features are standardised independently using
+\texttt{StandardScaler}, giving zero mean and unit variance before weighting.
+The parameters $w_d$ and $w_s$ control the relative importance of the dynamic
+speed features and the spatial coordinates, respectively. Thus, the final
+feature vector contains 11 speed-related features and 2 spatial features.
+
+
+
+\subsubsection{Cluster Count and Weight Parameters}
+\label{sec:methods:kselect1}
+Multiple numbers of clusters were evaluated, ranging from 5 to 9. A minimum of 5 clusters was considered necessary, as fewer clusters would merge distinct traffic patterns and reduce the interpretability of the results. Conversely, more than 9 clusters tended to produce small fragmented groups with limited practical meaning. The feature space combined dynamic speed characteristics and spatial coordinates. After standardisation, spatial features were assigned a weight of 1.75, while dynamic features were assigned a weight of 1. This weighting favoured geographical continuity in the resulting clusters while still allowing differences in traffic behaviour to influence the clustering process.
+
+
+
+% ──────────────────────────────────────────────────────────────────────────
+\subsection{Approach~3--- Grid K-means Clustering}
+\label{sec:methods:clustering}
+
+\subsubsection{Feature Construction and K-means Setup: Grid}
+\label{sec:methods:gridkmeans}
+
+K-means partitions the grid cells
 into $K$ clusters that jointly encode \emph{spatial position} and \emph{average
 normalised speed}.  The feature vector for each non-empty cell $c$ is:
 \begin{equation}

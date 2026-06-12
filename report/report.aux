@@ -141,40 +141,51 @@
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde  {v}_k$: median raw speed (m/s) of that cluster. $\tilde  {v}_{\mathrm  {bg}}$: median speed of the functional background.}}{18}{table.caption.28}\protected@file@percent }
 \newlabel{tab:merge_metrics}{{1}{18}{Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde {v}_k$: median raw speed (m/s) of that cluster. $\tilde {v}_{\mathrm {bg}}$: median speed of the functional background}{table.caption.28}{}}
 \newlabel{tab:merge_metrics@cref}{{[table][1][]1}{[1][17][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Approach~2 --- Grid K-means Clustering}{18}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:methods:clustering}{{3.3}{18}{Approach~2 --- Grid K-means Clustering}{subsection.3.3}{}}
-\newlabel{sec:methods:clustering@cref}{{[subsection][3][3]3.3}{[1][18][]18}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{18}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:methods:kclustering}{{3.3}{18}{Approach~2--- K-means Clustering}{subsection.3.3}{}}
+\newlabel{sec:methods:kclustering@cref}{{[subsection][3][3]3.3}{[1][18][]18}{}{}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{18}{subsubsection.3.3.1}\protected@file@percent }
 \newlabel{sec:methods:gridkmeans}{{3.3.1}{18}{Feature Construction and K-means Setup}{subsubsection.3.3.1}{}}
 \newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,3]3.3.1}{[1][18][]18}{}{}{}}
 \newlabel{eq:kmeans_features}{{8}{18}{Feature Construction and K-means Setup}{equation.8}{}}
 \newlabel{eq:kmeans_features@cref}{{[equation][8][]8}{[1][18][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{18}{subsubsection.3.3.2}\protected@file@percent }
-\newlabel{sec:methods:kselect}{{3.3.2}{18}{Cluster Count: $K = 5$ vs.\ $K = 9$}{subsubsection.3.3.2}{}}
-\newlabel{sec:methods:kselect@cref}{{[subsubsection][2][3,3]3.3.2}{[1][18][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Results}{19}{subsubsection.3.3.3}\protected@file@percent }
-\newlabel{sec:methods:results_km}{{3.3.3}{19}{Results}{subsubsection.3.3.3}{}}
-\newlabel{sec:methods:results_km@cref}{{[subsubsection][3][3,3]3.3.3}{[1][18][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count and Weight Parameters}{18}{subsubsection.3.3.2}\protected@file@percent }
+\newlabel{sec:methods:kselect1}{{3.3.2}{18}{Cluster Count and Weight Parameters}{subsubsection.3.3.2}{}}
+\newlabel{sec:methods:kselect1@cref}{{[subsubsection][2][3,3]3.3.2}{[1][18][]18}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{19}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:methods:clustering}{{3.4}{19}{Approach~3--- Grid K-means Clustering}{subsection.3.4}{}}
+\newlabel{sec:methods:clustering@cref}{{[subsection][4][3]3.4}{[1][18][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{19}{subsubsection.3.4.1}\protected@file@percent }
+\newlabel{sec:methods:gridkmeans}{{3.4.1}{19}{Feature Construction and K-means Setup: Grid}{subsubsection.3.4.1}{}}
+\newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,4]3.4.1}{[1][18][]19}{}{}{}}
+\newlabel{eq:kmeans_features}{{9}{19}{Feature Construction and K-means Setup: Grid}{equation.9}{}}
+\newlabel{eq:kmeans_features@cref}{{[equation][9][]9}{[1][18][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{19}{subsubsection.3.4.2}\protected@file@percent }
+\newlabel{sec:methods:kselect}{{3.4.2}{19}{Cluster Count: $K = 5$ vs.\ $K = 9$}{subsubsection.3.4.2}{}}
+\newlabel{sec:methods:kselect@cref}{{[subsubsection][2][3,4]3.4.2}{[1][19][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}Results}{19}{subsubsection.3.4.3}\protected@file@percent }
+\newlabel{sec:methods:results_km}{{3.4.3}{19}{Results}{subsubsection.3.4.3}{}}
+\newlabel{sec:methods:results_km@cref}{{[subsubsection][3][3,4]3.4.3}{[1][19][]19}{}{}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar  {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow.}}{19}{figure.caption.29}\protected@file@percent }
 \newlabel{fig:grid_kmeans_maps}{{11}{19}{Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow}{figure.caption.29}{}}
-\newlabel{fig:grid_kmeans_maps@cref}{{[figure][11][]11}{[1][18][]19}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation.}}{19}{figure.caption.30}\protected@file@percent }
-\newlabel{fig:grid_kmeans_speed}{{12}{19}{Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation}{figure.caption.30}{}}
-\newlabel{fig:grid_kmeans_speed@cref}{{[figure][12][]12}{[1][19][]19}{}{}{}}
+\newlabel{fig:grid_kmeans_maps@cref}{{[figure][11][]11}{[1][19][]19}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation.}}{20}{figure.caption.30}\protected@file@percent }
+\newlabel{fig:grid_kmeans_speed}{{12}{20}{Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation}{figure.caption.30}{}}
+\newlabel{fig:grid_kmeans_speed@cref}{{[figure][12][]12}{[1][20][]20}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde  {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed.}}{20}{table.caption.31}\protected@file@percent }
 \newlabel{tab:km_metrics}{{2}{20}{Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed}{table.caption.31}{}}
-\newlabel{tab:km_metrics@cref}{{[table][2][]2}{[1][19][]20}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Comparative Analysis}{20}{subsection.3.4}\protected@file@percent }
-\newlabel{sec:methods:comparison}{{3.4}{20}{Comparative Analysis}{subsection.3.4}{}}
-\newlabel{sec:methods:comparison@cref}{{[subsection][4][3]3.4}{[1][20][]20}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf  {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf  {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state.}}{20}{figure.caption.32}\protected@file@percent }
-\newlabel{fig:compare_methods}{{13}{20}{Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state}{figure.caption.32}{}}
-\newlabel{fig:compare_methods@cref}{{[figure][13][]13}{[1][20][]20}{}{}{}}
+\newlabel{tab:km_metrics@cref}{{[table][2][]2}{[1][20][]20}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{20}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:methods:comparison}{{3.5}{20}{Comparative Analysis}{subsection.3.5}{}}
+\newlabel{sec:methods:comparison@cref}{{[subsection][5][3]3.5}{[1][20][]20}{}{}{}}
 \bibstyle{plain}
 \bibdata{references}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf  {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf  {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state.}}{21}{figure.caption.32}\protected@file@percent }
+\newlabel{fig:compare_methods}{{13}{21}{Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state}{figure.caption.32}{}}
+\newlabel{fig:compare_methods@cref}{{[figure][13][]13}{[1][20][]21}{}{}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde  {v}_1$: its median raw speed (m/s).}}{21}{table.caption.33}\protected@file@percent }
 \newlabel{tab:comparison}{{3}{21}{Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde {v}_1$: its median raw speed (m/s)}{table.caption.33}{}}
-\newlabel{tab:comparison@cref}{{[table][3][]3}{[1][20][]21}{}{}{}}
+\newlabel{tab:comparison@cref}{{[table][3][]3}{[1][21][]21}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Evaluation}{22}{section.4}\protected@file@percent }
 \newlabel{sec:eval}{{4}{22}{Evaluation}{section.4}{}}
 \newlabel{sec:eval@cref}{{[section][4][]4}{[1][21][]22}{}{}{}}
