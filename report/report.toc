@@ -38,32 +38,33 @@
 \contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{15}{subsubsection.3.2.5}%
 \contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{18}{subsection.3.3}%
 \contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{18}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count and Weight Parameters}{18}{subsubsection.3.3.2}%
-\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{19}{subsection.3.4}%
-\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{19}{subsubsection.3.4.1}%
-\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{19}{subsubsection.3.4.2}%
-\contentsline {subsubsection}{\numberline {3.4.3}Results}{19}{subsubsection.3.4.3}%
-\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{20}{subsection.3.5}%
-\contentsline {section}{\numberline {4}Evaluation}{22}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Evaluation framework}{22}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Metrics}{22}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{22}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{22}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{22}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{22}{subsubsection.4.2.4}%
-\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{22}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{22}{subsection.4.4}%
-\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{22}{subsubsection.4.4.1}%
-\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{22}{subsubsection.4.4.2}%
-\contentsline {subsection}{\numberline {4.5}Results — Clustering}{22}{subsection.4.5}%
-\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{22}{subsubsection.4.5.1}%
-\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{22}{subsubsection.4.5.2}%
-\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{22}{subsubsection.4.5.3}%
-\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{22}{subsubsection.4.5.4}%
-\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{22}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}Limitations}{22}{subsection.4.7}%
-\contentsline {section}{\numberline {5}Conclusion}{22}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Summary of findings}{22}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Future work}{22}{subsection.5.2}%
-\contentsline {section}{\numberline {A}Implementation overview}{22}{appendix.A}%
-\contentsline {section}{\numberline {B}Parameter reference}{22}{appendix.B}%
+\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count, Weight Parameters and Spawn points}{18}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Results}{19}{subsubsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{20}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{20}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{21}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Results}{21}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{22}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Evaluation}{24}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Evaluation framework}{24}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Metrics}{24}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{24}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{24}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{24}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{24}{subsubsection.4.2.4}%
+\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{24}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{24}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{24}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{24}{subsubsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.5}Results — Clustering}{24}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{24}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{24}{subsubsection.4.5.2}%
+\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{24}{subsubsection.4.5.3}%
+\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{24}{subsubsection.4.5.4}%
+\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{24}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Limitations}{24}{subsection.4.7}%
+\contentsline {section}{\numberline {5}Conclusion}{24}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Summary of findings}{24}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Future work}{24}{subsection.5.2}%
+\contentsline {section}{\numberline {A}Implementation overview}{24}{appendix.A}%
+\contentsline {section}{\numberline {B}Parameter reference}{24}{appendix.B}%

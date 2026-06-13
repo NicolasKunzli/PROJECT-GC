@@ -292,6 +292,15 @@ def kmeans_clustering(
         plt.Line2D([0], [0], color="lime", lw=3, label="Spawn points")
     )
 
+    handles.append(
+        plt.Line2D(
+            [0], [0],
+            color="black",
+            lw=3,
+            label=">30% missing speed data (NaN)"
+        )
+    )
+
     ax.legend(
         handles=handles,
         fontsize=6,

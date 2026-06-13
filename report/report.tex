@@ -933,10 +933,37 @@ feature vector contains 11 speed-related features and 2 spatial features.
 
 
 
-\subsubsection{Cluster Count and Weight Parameters}
+\subsubsection{Cluster Count, Weight Parameters and Spawn points}
 \label{sec:methods:kselect1}
-Multiple numbers of clusters were evaluated, ranging from 5 to 9. A minimum of 5 clusters was considered necessary, as fewer clusters would merge distinct traffic patterns and reduce the interpretability of the results. Conversely, more than 9 clusters tended to produce small fragmented groups with limited practical meaning. The feature space combined dynamic speed characteristics and spatial coordinates. After standardisation, spatial features were assigned a weight of 1.75, while dynamic features were assigned a weight of 1. This weighting favoured geographical continuity in the resulting clusters while still allowing differences in traffic behaviour to influence the clustering process.
+Multiple numbers of clusters were evaluated, ranging from 5 to 9. A minimum of 5 clusters was considered necessary, as fewer clusters would merge distinct traffic patterns and reduce the interpretability of the results. Conversely, more than 9 clusters tended to produce small fragmented groups with limited practical meaning. The feature space combined dynamic speed characteristics and spatial coordinates. After standardisation, spatial features were assigned a weight of 1.75, while dynamic features were assigned a weight of 1. This weighting favoured geographical continuity in the resulting clusters while still allowing differences in traffic behaviour to influence the clustering process.\\
+The spawn points work as follows: each cluster is assigned a link that serves as its spawning point, from which the K-Means algorithm is initialized. These spawning points provide the initial centroids for the clustering process. During the first assignment step, all links in the network are assigned to the cluster whose centroid is the closest according to the selected distance metric. The centroids are then recomputed based on the assigned links, and the assignment-update process is repeated iteratively until convergence is reached. Convergence is achieved when the cluster assignments no longer change between successive iterations. By default, the Scikit-learn implementation of K-Means uses the k-means++ initialization strategy, which automatically selects well-distributed initial centroids to improve convergence and clustering quality. However, in this study, the spawn points are selected manually based solely on their spatial coordinates. This approach is preferred because it places the initial centroids in geographically meaningful locations, leading to a more interpretable and regionally coherent clustering of the network.
 
+\subsubsection{Results}
+\label{sec:methods:results_km1}
+
+For the sake of simplicity, we first analyze the results averaged over all available timeframes. Then, to better understand the influence of time on the clustering behavior, we examine the results at several well-spaced timeframes.\\
+Missing speed observations (NaN values) are handled using a tiered preprocessing strategy before clustering. For links with at most 30\% missing observations, NaN values are replaced by the median speed of the corresponding link over time. Links with more than 30\% missing observations are flagged as no-data links. Since the K-Means algorithm cannot operate on missing values, any remaining NaN entries are replaced by the global mean of the dataset before clustering. Consequently, these links are still assigned to clusters, although their temporal profiles become more neutral and therefore exert less influence on the clustering process. To indicate their lower data reliability, they are displayed in black in the network visualizations.
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{\textwidth}
+\centering
+\includegraphics[width=\textwidth]{clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png}
+\caption{$K = 5$}
+\end{subfigure}
+
+\vspace{0.5cm}
+
+\begin{subfigure}{\textwidth}
+\centering
+\includegraphics[width=\textwidth]{clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png}
+\caption{$K = 9$}
+\end{subfigure}
+
+\caption{K-means clustering results for $K=5$ and $K=9$. Green links indicate the manually selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations.}
+\label{fig:grid_kmeans_maps1}
+\end{figure}
 
 
 % ──────────────────────────────────────────────────────────────────────────
