@@ -5,66 +5,66 @@
 \contentsline {section}{\numberline {2}Data Analysis}{2}{section.2}%
 \contentsline {subsection}{\numberline {2.1}The SimBarca dataset}{2}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Network representation}{2}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Temporal structure: sessions and 3-minute aggregation}{2}{subsection.2.3}%
-\contentsline {subsection}{\numberline {2.4}Speed reconstruction}{2}{subsection.2.4}%
-\contentsline {paragraph}{Aggregated trajectory speed (\texttt {pred\_speed}).}{2}{section*.3}%
-\contentsline {paragraph}{Loop-detector speed (\texttt {ld\_speed}).}{3}{section*.4}%
-\contentsline {paragraph}{Congestion index and network-wide dynamics.}{3}{section*.5}%
-\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{4}{subsection.2.5}%
-\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{4}{subsubsection.2.5.1}%
-\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{6}{subsubsection.2.5.2}%
-\contentsline {paragraph}{Why not zero-fill?}{6}{section*.9}%
-\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{6}{section*.10}%
-\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{7}{section*.11}%
-\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{7}{section*.12}%
-\contentsline {paragraph}{Implementation note.}{7}{section*.13}%
-\contentsline {subsection}{\numberline {2.6}Network-level descriptive statistics}{7}{subsection.2.6}%
-\contentsline {subsubsection}{\numberline {2.6.1}Average speed map}{7}{subsubsection.2.6.1}%
-\contentsline {subsubsection}{\numberline {2.6.2}Network mean speed over time}{8}{subsubsection.2.6.2}%
-\contentsline {subsubsection}{\numberline {2.6.3}Slowest segments}{9}{subsubsection.2.6.3}%
-\contentsline {subsection}{\numberline {2.7}Network simplification}{10}{subsection.2.7}%
-\contentsline {section}{\numberline {3}Identifying Congested and Uncongested Regions}{11}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Overview and Evaluation Framework}{11}{subsection.3.1}%
-\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{11}{section*.19}%
-\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{12}{section*.20}%
-\contentsline {paragraph}{Evaluation metrics.}{12}{section*.21}%
-\contentsline {subsection}{\numberline {3.2}Approach~1 --- Threshold-Based Grid Clustering}{12}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Spatial Grid Aggregation}{12}{subsubsection.3.2.1}%
-\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{12}{section*.22}%
-\contentsline {subsubsection}{\numberline {3.2.2}Congestion Threshold Selection}{12}{subsubsection.3.2.2}%
-\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{12}{section*.23}%
-\contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{14}{subsubsection.3.2.3}%
-\contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{15}{subsubsection.3.2.4}%
-\contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{15}{subsubsection.3.2.5}%
-\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{18}{subsection.3.3}%
-\contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{18}{subsubsection.3.3.1}%
-\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count, Weight Parameters and Spawn points}{18}{subsubsection.3.3.2}%
-\contentsline {subsubsection}{\numberline {3.3.3}Results}{19}{subsubsection.3.3.3}%
-\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{21}{subsection.3.4}%
-\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{21}{subsubsection.3.4.1}%
-\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{21}{subsubsection.3.4.2}%
-\contentsline {subsubsection}{\numberline {3.4.3}Results}{22}{subsubsection.3.4.3}%
-\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{23}{subsection.3.5}%
-\contentsline {section}{\numberline {4}Evaluation}{25}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Evaluation framework}{25}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Metrics}{25}{subsection.4.2}%
-\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{25}{subsubsection.4.2.1}%
-\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{25}{subsubsection.4.2.2}%
-\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{25}{subsubsection.4.2.3}%
-\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{25}{subsubsection.4.2.4}%
-\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{25}{subsection.4.3}%
-\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{25}{subsection.4.4}%
-\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{25}{subsubsection.4.4.1}%
-\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{25}{subsubsection.4.4.2}%
-\contentsline {subsection}{\numberline {4.5}Results — Clustering}{25}{subsection.4.5}%
-\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{25}{subsubsection.4.5.1}%
-\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{25}{subsubsection.4.5.2}%
-\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{25}{subsubsection.4.5.3}%
-\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{25}{subsubsection.4.5.4}%
-\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{25}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}Limitations}{25}{subsection.4.7}%
-\contentsline {section}{\numberline {5}Conclusion}{25}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Summary of findings}{25}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Future work}{25}{subsection.5.2}%
-\contentsline {section}{\numberline {A}Implementation overview}{25}{appendix.A}%
-\contentsline {section}{\numberline {B}Parameter reference}{25}{appendix.B}%
+\contentsline {subsection}{\numberline {2.3}Temporal structure: sessions and 3-minute aggregation}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Speed reconstruction}{4}{subsection.2.4}%
+\contentsline {paragraph}{Aggregated trajectory speed (\texttt {pred\_speed}).}{4}{section*.3}%
+\contentsline {paragraph}{Loop-detector speed (\texttt {ld\_speed}).}{4}{section*.4}%
+\contentsline {paragraph}{Congestion index and network-wide dynamics.}{4}{section*.5}%
+\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{5}{subsection.2.5}%
+\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{5}{subsubsection.2.5.1}%
+\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{7}{subsubsection.2.5.2}%
+\contentsline {paragraph}{Why not zero-fill?}{7}{section*.9}%
+\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{7}{section*.10}%
+\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{8}{section*.11}%
+\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{8}{section*.12}%
+\contentsline {paragraph}{Implementation note.}{8}{section*.13}%
+\contentsline {subsection}{\numberline {2.6}Network-level descriptive statistics}{8}{subsection.2.6}%
+\contentsline {subsubsection}{\numberline {2.6.1}Average speed map}{8}{subsubsection.2.6.1}%
+\contentsline {subsubsection}{\numberline {2.6.2}Network mean speed over time}{9}{subsubsection.2.6.2}%
+\contentsline {subsubsection}{\numberline {2.6.3}Slowest segments}{10}{subsubsection.2.6.3}%
+\contentsline {subsection}{\numberline {2.7}Network simplification}{11}{subsection.2.7}%
+\contentsline {section}{\numberline {3}Identifying Congested and Uncongested Regions}{12}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Overview and Evaluation Framework}{12}{subsection.3.1}%
+\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{12}{section*.19}%
+\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{13}{section*.20}%
+\contentsline {paragraph}{Evaluation metrics.}{13}{section*.21}%
+\contentsline {subsection}{\numberline {3.2}Approach~1 --- Threshold-Based Grid Clustering}{13}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Spatial Grid Aggregation}{13}{subsubsection.3.2.1}%
+\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{13}{section*.22}%
+\contentsline {subsubsection}{\numberline {3.2.2}Congestion Threshold Selection}{13}{subsubsection.3.2.2}%
+\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{13}{section*.23}%
+\contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{15}{subsubsection.3.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{16}{subsubsection.3.2.4}%
+\contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{16}{subsubsection.3.2.5}%
+\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{19}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{19}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count, Weight Parameters and Spawn points}{19}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Results}{20}{subsubsection.3.3.3}%
+\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{22}{subsection.3.4}%
+\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{22}{subsubsection.3.4.1}%
+\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{22}{subsubsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.3}Results}{23}{subsubsection.3.4.3}%
+\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{24}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Evaluation}{26}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Evaluation framework}{26}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Metrics}{26}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{26}{subsubsection.4.2.1}%
+\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{26}{subsubsection.4.2.2}%
+\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{26}{subsubsection.4.2.3}%
+\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{26}{subsubsection.4.2.4}%
+\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{26}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{26}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{26}{subsubsection.4.4.1}%
+\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{26}{subsubsection.4.4.2}%
+\contentsline {subsection}{\numberline {4.5}Results — Clustering}{26}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{26}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{26}{subsubsection.4.5.2}%
+\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{26}{subsubsection.4.5.3}%
+\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{26}{subsubsection.4.5.4}%
+\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{26}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Limitations}{26}{subsection.4.7}%
+\contentsline {section}{\numberline {5}Conclusion}{26}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Summary of findings}{26}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Future work}{26}{subsection.5.2}%
+\contentsline {section}{\numberline {A}Implementation overview}{26}{appendix.A}%
+\contentsline {section}{\numberline {B}Parameter reference}{26}{appendix.B}%

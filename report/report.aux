@@ -19,225 +19,227 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Network representation}{2}{subsection.2.2}\protected@file@percent }
 \newlabel{sec:data:network}{{2.2}{2}{Network representation}{subsection.2.2}{}}
 \newlabel{sec:data:network@cref}{{[subsection][2][2]2.2}{[1][2][]2}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Temporal structure: sessions and 3-minute aggregation}{2}{subsection.2.3}\protected@file@percent }
-\newlabel{sec:data:temporal}{{2.3}{2}{Temporal structure: sessions and 3-minute aggregation}{subsection.2.3}{}}
-\newlabel{sec:data:temporal@cref}{{[subsection][3][2]2.3}{[1][2][]2}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Speed reconstruction}{2}{subsection.2.4}\protected@file@percent }
-\newlabel{sec:data:speed}{{2.4}{2}{Speed reconstruction}{subsection.2.4}{}}
-\newlabel{sec:data:speed@cref}{{[subsection][4][2]2.4}{[1][2][]2}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Aggregated trajectory speed (\texttt  {pred\_speed}).}{2}{section*.3}\protected@file@percent }
-\newlabel{eq:pred_speed}{{1}{2}{Aggregated trajectory speed (\texttt {pred\_speed})}{equation.1}{}}
-\newlabel{eq:pred_speed@cref}{{[equation][1][]1}{[1][2][]2}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Simplified representation of the SimBarca road network. Links are represented as black segments, nodes as red points, and intersections as blue polygons.}}{3}{figure.caption.2}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:graph_main}{{\caption@xref {fig:graph_main}{ on input line 68}}{3}{Network representation}{figure.caption.2}{}}
-\newlabel{fig:graph_main@cref}{{[subsection][2][2]2.2}{[1][2][]3}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Loop-detector speed (\texttt  {ld\_speed}).}{3}{section*.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Congestion index and network-wide dynamics.}{3}{section*.5}\protected@file@percent }
-\newlabel{eq:ci}{{2}{3}{Congestion index and network-wide dynamics}{equation.2}{}}
-\newlabel{eq:ci@cref}{{[equation][2][]2}{[1][3][]3}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Network-wide congestion share over time (08:03--09:57; $T = 39$ steps of 3 minutes each, averaged over all sessions). The $y$-axis gives the fraction of road segments with congestion index $\mathrm  {CI} > 0.40$, i.e.\ operating below 60\,\% of their free-flow speed. The dashed line marks the 50\,\% reference. The two-phase pattern --- slow early build-up followed by steeper late-peak acceleration --- is consistent with localised queue formation giving way to network-wide spillback.}}{4}{figure.caption.6}\protected@file@percent }
-\newlabel{fig:congestion_share}{{1}{4}{Network-wide congestion share over time (08:03--09:57; $T = 39$ steps of 3 minutes each, averaged over all sessions). The $y$-axis gives the fraction of road segments with congestion index $\mathrm {CI} > 0.40$, i.e.\ operating below 60\,\% of their free-flow speed. The dashed line marks the 50\,\% reference. The two-phase pattern --- slow early build-up followed by steeper late-peak acceleration --- is consistent with localised queue formation giving way to network-wide spillback}{figure.caption.6}{}}
-\newlabel{fig:congestion_share@cref}{{[figure][1][]1}{[1][4][]4}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{4}{subsection.2.5}\protected@file@percent }
-\newlabel{sec:data:nan}{{2.5}{4}{Missing-data analysis}{subsection.2.5}{}}
-\newlabel{sec:data:nan@cref}{{[subsection][5][2]2.5}{[1][4][]4}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{4}{subsubsection.2.5.1}\protected@file@percent }
-\newlabel{sec:data:nan:dist}{{2.5.1}{4}{Spatial and temporal distribution of NaNs}{subsubsection.2.5.1}{}}
-\newlabel{sec:data:nan:dist@cref}{{[subsubsection][1][2,5]2.5.1}{[1][4][]4}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Sensor coverage of the SimBArCa network (all 101 sessions, 08:03--09:57). \textbf  {Left}: NaN fraction per segment averaged over sessions and time (dark = more missing; \texttt  {hot\_r} colourmap from 0 to 1). \textbf  {Right}: segments whose time-averaged NaN fraction exceeds 50\,\% of all timesteps, highlighted in crimson against the light-grey network.}}{5}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:data_reliability}{{2}{5}{Sensor coverage of the SimBArCa network (all 101 sessions, 08:03--09:57). \textbf {Left}: NaN fraction per segment averaged over sessions and time (dark = more missing; \texttt {hot\_r} colourmap from 0 to 1). \textbf {Right}: segments whose time-averaged NaN fraction exceeds 50\,\% of all timesteps, highlighted in crimson against the light-grey network}{figure.caption.7}{}}
-\newlabel{fig:data_reliability@cref}{{[figure][2][]2}{[1][5][]5}{}{}{}}
-\newlabel{fig:nan_distribution}{{3a}{6}{Distribution of NaN fractions across all $101 \times 1\,570$ segment--session pairs. The dashed red vertical line marks the 50\,\% visualisation threshold; the dotted orange line is the overall mean NaN rate. Most pairs cluster near zero (well-observed corridors); a right tail captures persistently sparse links}{figure.caption.8}{}}
-\newlabel{fig:nan_distribution@cref}{{[subfigure][1][3]3a}{[1][5][]6}{}{}{}}
-\newlabel{sub@fig:nan_distribution}{{a}{6}{Distribution of NaN fractions across all $101 \times 1\,570$ segment--session pairs. The dashed red vertical line marks the 50\,\% visualisation threshold; the dotted orange line is the overall mean NaN rate. Most pairs cluster near zero (well-observed corridors); a right tail captures persistently sparse links}{figure.caption.8}{}}
-\newlabel{sub@fig:nan_distribution@cref}{{[subfigure][1][3]3a}{[1][5][]6}{}{}{}}
-\newlabel{fig:nan_spatial}{{3b}{6}{Spatial autocorrelation of NaN fractions. Each point is a segment; the $x$-axis is its own NaN fraction and the $y$-axis is the mean NaN fraction of its road-network neighbours. The Pearson $r$ (shown on the regression line) quantifies geographic clustering of missing data}{figure.caption.8}{}}
-\newlabel{fig:nan_spatial@cref}{{[subfigure][2][3]3b}{[1][5][]6}{}{}{}}
-\newlabel{sub@fig:nan_spatial}{{b}{6}{Spatial autocorrelation of NaN fractions. Each point is a segment; the $x$-axis is its own NaN fraction and the $y$-axis is the mean NaN fraction of its road-network neighbours. The Pearson $r$ (shown on the regression line) quantifies geographic clustering of missing data}{figure.caption.8}{}}
-\newlabel{sub@fig:nan_spatial@cref}{{[subfigure][2][3]3b}{[1][5][]6}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Missing-data diagnostics for the SimBArCa speed matrix.}}{6}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:nan_diagnostics}{{3}{6}{Missing-data diagnostics for the SimBArCa speed matrix}{figure.caption.8}{}}
-\newlabel{fig:nan_diagnostics@cref}{{[figure][3][]3}{[1][5][]6}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{6}{subsubsection.2.5.2}\protected@file@percent }
-\newlabel{sec:data:nan:policy}{{2.5.2}{6}{NaN handling policy}{subsubsection.2.5.2}{}}
-\newlabel{sec:data:nan:policy@cref}{{[subsubsection][2][2,5]2.5.2}{[1][6][]6}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Why not zero-fill?}{6}{section*.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{6}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{7}{section*.11}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{7}{section*.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Implementation note.}{7}{section*.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Network-level descriptive statistics}{7}{subsection.2.6}\protected@file@percent }
-\newlabel{sec:data:stats}{{2.6}{7}{Network-level descriptive statistics}{subsection.2.6}{}}
-\newlabel{sec:data:stats@cref}{{[subsection][6][2]2.6}{[1][7][]7}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.1}Average speed map}{7}{subsubsection.2.6.1}\protected@file@percent }
-\newlabel{sec:data:stats:avgmap}{{2.6.1}{7}{Average speed map}{subsubsection.2.6.1}{}}
-\newlabel{sec:data:stats:avgmap@cref}{{[subsubsection][1][2,6]2.6.1}{[1][7][]7}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Average speed map of the SimBArCa road network (all 101 sessions, 08:03--09:57). Each segment is coloured by its mean speed across all sessions and timesteps (RdYlGn; green = fast, red = slow). Grey segments have more than 30\,\% missing observations and are excluded from all statistics (Case~C, Section~\ref {sec:data:nan:policy}).}}{8}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:avg_speed_map}{{4}{8}{Average speed map of the SimBArCa road network (all 101 sessions, 08:03--09:57). Each segment is coloured by its mean speed across all sessions and timesteps (RdYlGn; green = fast, red = slow). Grey segments have more than 30\,\% missing observations and are excluded from all statistics (Case~C, Section~\ref {sec:data:nan:policy})}{figure.caption.14}{}}
-\newlabel{fig:avg_speed_map@cref}{{[figure][4][]4}{[1][8][]8}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.2}Network mean speed over time}{8}{subsubsection.2.6.2}\protected@file@percent }
-\newlabel{sec:data:stats:time}{{2.6.2}{8}{Network mean speed over time}{subsubsection.2.6.2}{}}
-\newlabel{sec:data:stats:time@cref}{{[subsubsection][2][2,6]2.6.2}{[1][8][]8}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Network-average speed over time (08:03--09:57; $T = 39$ steps of 3 minutes each). Light blue lines: individual session traces (101 sessions). Thick blue line: cross-session mean with shaded area. The rapid drop, plateau, and slow recovery are the characteristic phases of the simulated morning rush hour.}}{9}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:network_speed_time}{{5}{9}{Network-average speed over time (08:03--09:57; $T = 39$ steps of 3 minutes each). Light blue lines: individual session traces (101 sessions). Thick blue line: cross-session mean with shaded area. The rapid drop, plateau, and slow recovery are the characteristic phases of the simulated morning rush hour}{figure.caption.15}{}}
-\newlabel{fig:network_speed_time@cref}{{[figure][5][]5}{[1][9][]9}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.3}Slowest segments}{9}{subsubsection.2.6.3}\protected@file@percent }
-\newlabel{sec:data:stats:slow}{{2.6.3}{9}{Slowest segments}{subsubsection.2.6.3}{}}
-\newlabel{sec:data:stats:slow@cref}{{[subsubsection][3][2,6]2.6.3}{[1][9][]9}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces The 20 road segments with the lowest time-and-session-averaged speed (highlighted in red with centroid dot), superimposed on the full network (light grey). Segments are ranked by ascending mean speed over all 101 sessions and 39 timesteps. Their spatial clustering around a small number of junctions reveals the structural bottlenecks of the network.}}{10}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:slowest_20}{{6}{10}{The 20 road segments with the lowest time-and-session-averaged speed (highlighted in red with centroid dot), superimposed on the full network (light grey). Segments are ranked by ascending mean speed over all 101 sessions and 39 timesteps. Their spatial clustering around a small number of junctions reveals the structural bottlenecks of the network}{figure.caption.16}{}}
-\newlabel{fig:slowest_20@cref}{{[figure][6][]6}{[1][10][]10}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Network simplification}{10}{subsection.2.7}\protected@file@percent }
-\newlabel{sec:data:simplify}{{2.7}{10}{Network simplification}{subsection.2.7}{}}
-\newlabel{sec:data:simplify@cref}{{[subsection][7][2]2.7}{[1][10][]10}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Identifying Congested and Uncongested Regions}{11}{section.3}\protected@file@percent }
-\newlabel{sec:methods}{{3}{11}{Identifying Congested and Uncongested Regions}{section.3}{}}
-\newlabel{sec:methods@cref}{{[section][3][]3}{[1][11][]11}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Overview and Evaluation Framework}{11}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:methods:overview}{{3.1}{11}{Overview and Evaluation Framework}{subsection.3.1}{}}
-\newlabel{sec:methods:overview@cref}{{[subsection][1][3]3.1}{[1][11][]11}{}{}{}}
-\newlabel{eq:cell_state}{{3}{11}{Overview and Evaluation Framework}{equation.3}{}}
-\newlabel{eq:cell_state@cref}{{[equation][3][]3}{[1][11][]11}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{11}{section*.19}\protected@file@percent }
+\newlabel{fig:graph_main}{{1}{3}{Simplified representation of the SimBarca road network. Links are represented as black segments, nodes as red points, and intersections as blue polygons}{figure.caption.2}{}}
+\newlabel{fig:graph_main@cref}{{[figure][1][]1}{[1][2][]3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Temporal structure: sessions and 3-minute aggregation}{3}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:data:temporal}{{2.3}{3}{Temporal structure: sessions and 3-minute aggregation}{subsection.2.3}{}}
+\newlabel{sec:data:temporal@cref}{{[subsection][3][2]2.3}{[1][3][]3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Speed reconstruction}{4}{subsection.2.4}\protected@file@percent }
+\newlabel{sec:data:speed}{{2.4}{4}{Speed reconstruction}{subsection.2.4}{}}
+\newlabel{sec:data:speed@cref}{{[subsection][4][2]2.4}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Aggregated trajectory speed (\texttt  {pred\_speed}).}{4}{section*.3}\protected@file@percent }
+\newlabel{eq:pred_speed}{{2}{4}{Aggregated trajectory speed (\texttt {pred\_speed})}{equation.2}{}}
+\newlabel{eq:pred_speed@cref}{{[equation][2][]2}{[1][4][]4}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Loop-detector speed (\texttt  {ld\_speed}).}{4}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Congestion index and network-wide dynamics.}{4}{section*.5}\protected@file@percent }
+\newlabel{eq:ci}{{3}{4}{Congestion index and network-wide dynamics}{equation.3}{}}
+\newlabel{eq:ci@cref}{{[equation][3][]3}{[1][4][]4}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Network-wide congestion share over time (08:03--09:57; $T = 39$ steps of 3 minutes each, averaged over all sessions). The $y$-axis gives the fraction of road segments with congestion index $\mathrm  {CI} > 0.40$, i.e.\ operating below 60\,\% of their free-flow speed. The dashed line marks the 50\,\% reference. The two-phase pattern --- slow early build-up followed by steeper late-peak acceleration --- is consistent with localised queue formation giving way to network-wide spillback.}}{5}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:congestion_share}{{2}{5}{Network-wide congestion share over time (08:03--09:57; $T = 39$ steps of 3 minutes each, averaged over all sessions). The $y$-axis gives the fraction of road segments with congestion index $\mathrm {CI} > 0.40$, i.e.\ operating below 60\,\% of their free-flow speed. The dashed line marks the 50\,\% reference. The two-phase pattern --- slow early build-up followed by steeper late-peak acceleration --- is consistent with localised queue formation giving way to network-wide spillback}{figure.caption.6}{}}
+\newlabel{fig:congestion_share@cref}{{[figure][2][]2}{[1][5][]5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Missing-data analysis}{5}{subsection.2.5}\protected@file@percent }
+\newlabel{sec:data:nan}{{2.5}{5}{Missing-data analysis}{subsection.2.5}{}}
+\newlabel{sec:data:nan@cref}{{[subsection][5][2]2.5}{[1][5][]5}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.1}Spatial and temporal distribution of NaNs}{5}{subsubsection.2.5.1}\protected@file@percent }
+\newlabel{sec:data:nan:dist}{{2.5.1}{5}{Spatial and temporal distribution of NaNs}{subsubsection.2.5.1}{}}
+\newlabel{sec:data:nan:dist@cref}{{[subsubsection][1][2,5]2.5.1}{[1][5][]5}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Sensor coverage of the SimBArCa network (all 101 sessions, 08:03--09:57). \textbf  {Left}: NaN fraction per segment averaged over sessions and time (dark = more missing; \texttt  {hot\_r} colourmap from 0 to 1). \textbf  {Right}: segments whose time-averaged NaN fraction exceeds 50\,\% of all timesteps, highlighted in crimson against the light-grey network.}}{6}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:data_reliability}{{3}{6}{Sensor coverage of the SimBArCa network (all 101 sessions, 08:03--09:57). \textbf {Left}: NaN fraction per segment averaged over sessions and time (dark = more missing; \texttt {hot\_r} colourmap from 0 to 1). \textbf {Right}: segments whose time-averaged NaN fraction exceeds 50\,\% of all timesteps, highlighted in crimson against the light-grey network}{figure.caption.7}{}}
+\newlabel{fig:data_reliability@cref}{{[figure][3][]3}{[1][6][]6}{}{}{}}
+\newlabel{fig:nan_distribution}{{4a}{7}{Distribution of NaN fractions across all $101 \times 1\,570$ segment--session pairs. The dashed red vertical line marks the 50\,\% visualisation threshold; the dotted orange line is the overall mean NaN rate. Most pairs cluster near zero (well-observed corridors); a right tail captures persistently sparse links}{figure.caption.8}{}}
+\newlabel{fig:nan_distribution@cref}{{[subfigure][1][4]4a}{[1][6][]7}{}{}{}}
+\newlabel{sub@fig:nan_distribution}{{a}{7}{Distribution of NaN fractions across all $101 \times 1\,570$ segment--session pairs. The dashed red vertical line marks the 50\,\% visualisation threshold; the dotted orange line is the overall mean NaN rate. Most pairs cluster near zero (well-observed corridors); a right tail captures persistently sparse links}{figure.caption.8}{}}
+\newlabel{sub@fig:nan_distribution@cref}{{[subfigure][1][4]4a}{[1][6][]7}{}{}{}}
+\newlabel{fig:nan_spatial}{{4b}{7}{Spatial autocorrelation of NaN fractions. Each point is a segment; the $x$-axis is its own NaN fraction and the $y$-axis is the mean NaN fraction of its road-network neighbours. The Pearson $r$ (shown on the regression line) quantifies geographic clustering of missing data}{figure.caption.8}{}}
+\newlabel{fig:nan_spatial@cref}{{[subfigure][2][4]4b}{[1][6][]7}{}{}{}}
+\newlabel{sub@fig:nan_spatial}{{b}{7}{Spatial autocorrelation of NaN fractions. Each point is a segment; the $x$-axis is its own NaN fraction and the $y$-axis is the mean NaN fraction of its road-network neighbours. The Pearson $r$ (shown on the regression line) quantifies geographic clustering of missing data}{figure.caption.8}{}}
+\newlabel{sub@fig:nan_spatial@cref}{{[subfigure][2][4]4b}{[1][6][]7}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Missing-data diagnostics for the SimBArCa speed matrix.}}{7}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:nan_diagnostics}{{4}{7}{Missing-data diagnostics for the SimBArCa speed matrix}{figure.caption.8}{}}
+\newlabel{fig:nan_diagnostics@cref}{{[figure][4][]4}{[1][6][]7}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.5.2}NaN handling policy}{7}{subsubsection.2.5.2}\protected@file@percent }
+\newlabel{sec:data:nan:policy}{{2.5.2}{7}{NaN handling policy}{subsubsection.2.5.2}{}}
+\newlabel{sec:data:nan:policy@cref}{{[subsubsection][2][2,5]2.5.2}{[1][7][]7}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why not zero-fill?}{7}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Case A --- Temporal-median fill ($\leq 30\%$ NaN).}{7}{section*.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Case C --- No-data exclusion ($> 30\%$ NaN).}{8}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Case B --- Spatial neighbour fill (discarded).}{8}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Implementation note.}{8}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Network-level descriptive statistics}{8}{subsection.2.6}\protected@file@percent }
+\newlabel{sec:data:stats}{{2.6}{8}{Network-level descriptive statistics}{subsection.2.6}{}}
+\newlabel{sec:data:stats@cref}{{[subsection][6][2]2.6}{[1][8][]8}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.1}Average speed map}{8}{subsubsection.2.6.1}\protected@file@percent }
+\newlabel{sec:data:stats:avgmap}{{2.6.1}{8}{Average speed map}{subsubsection.2.6.1}{}}
+\newlabel{sec:data:stats:avgmap@cref}{{[subsubsection][1][2,6]2.6.1}{[1][8][]8}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Average speed map of the SimBArCa road network (all 101 sessions, 08:03--09:57). Each segment is coloured by its mean speed across all sessions and timesteps (RdYlGn; green = fast, red = slow). Grey segments have more than 30\,\% missing observations and are excluded from all statistics (Case~C, Section~\ref {sec:data:nan:policy}).}}{9}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:avg_speed_map}{{5}{9}{Average speed map of the SimBArCa road network (all 101 sessions, 08:03--09:57). Each segment is coloured by its mean speed across all sessions and timesteps (RdYlGn; green = fast, red = slow). Grey segments have more than 30\,\% missing observations and are excluded from all statistics (Case~C, Section~\ref {sec:data:nan:policy})}{figure.caption.14}{}}
+\newlabel{fig:avg_speed_map@cref}{{[figure][5][]5}{[1][9][]9}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.2}Network mean speed over time}{9}{subsubsection.2.6.2}\protected@file@percent }
+\newlabel{sec:data:stats:time}{{2.6.2}{9}{Network mean speed over time}{subsubsection.2.6.2}{}}
+\newlabel{sec:data:stats:time@cref}{{[subsubsection][2][2,6]2.6.2}{[1][9][]9}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Network-average speed over time (08:03--09:57; $T = 39$ steps of 3 minutes each). Light blue lines: individual session traces (101 sessions). Thick blue line: cross-session mean with shaded area. The rapid drop, plateau, and slow recovery are the characteristic phases of the simulated morning rush hour.}}{10}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:network_speed_time}{{6}{10}{Network-average speed over time (08:03--09:57; $T = 39$ steps of 3 minutes each). Light blue lines: individual session traces (101 sessions). Thick blue line: cross-session mean with shaded area. The rapid drop, plateau, and slow recovery are the characteristic phases of the simulated morning rush hour}{figure.caption.15}{}}
+\newlabel{fig:network_speed_time@cref}{{[figure][6][]6}{[1][10][]10}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.3}Slowest segments}{10}{subsubsection.2.6.3}\protected@file@percent }
+\newlabel{sec:data:stats:slow}{{2.6.3}{10}{Slowest segments}{subsubsection.2.6.3}{}}
+\newlabel{sec:data:stats:slow@cref}{{[subsubsection][3][2,6]2.6.3}{[1][10][]10}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces The 20 road segments with the lowest time-and-session-averaged speed (highlighted in red with centroid dot), superimposed on the full network (light grey). Segments are ranked by ascending mean speed over all 101 sessions and 39 timesteps. Their spatial clustering around a small number of junctions reveals the structural bottlenecks of the network.}}{11}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:slowest_20}{{7}{11}{The 20 road segments with the lowest time-and-session-averaged speed (highlighted in red with centroid dot), superimposed on the full network (light grey). Segments are ranked by ascending mean speed over all 101 sessions and 39 timesteps. Their spatial clustering around a small number of junctions reveals the structural bottlenecks of the network}{figure.caption.16}{}}
+\newlabel{fig:slowest_20@cref}{{[figure][7][]7}{[1][11][]11}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Network simplification}{11}{subsection.2.7}\protected@file@percent }
+\newlabel{sec:data:simplify}{{2.7}{11}{Network simplification}{subsection.2.7}{}}
+\newlabel{sec:data:simplify@cref}{{[subsection][7][2]2.7}{[1][11][]11}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Identifying Congested and Uncongested Regions}{12}{section.3}\protected@file@percent }
+\newlabel{sec:methods}{{3}{12}{Identifying Congested and Uncongested Regions}{section.3}{}}
+\newlabel{sec:methods@cref}{{[section][3][]3}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Overview and Evaluation Framework}{12}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:methods:overview}{{3.1}{12}{Overview and Evaluation Framework}{subsection.3.1}{}}
+\newlabel{sec:methods:overview@cref}{{[subsection][1][3]3.1}{[1][12][]12}{}{}{}}
+\newlabel{eq:cell_state}{{4}{12}{Overview and Evaluation Framework}{equation.4}{}}
+\newlabel{eq:cell_state@cref}{{[equation][4][]4}{[1][12][]12}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Approach~1 (Section~\ref {sec:methods:merge})---Threshold-based grid clustering.}{12}{section*.19}\protected@file@percent }
 \citation{li2015percolation}
-\@writefile{toc}{\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{12}{section*.20}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Evaluation metrics.}{12}{section*.21}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Approach~1 --- Threshold-Based Grid Clustering}{12}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:methods:merge}{{3.2}{12}{Approach~1 --- Threshold-Based Grid Clustering}{subsection.3.2}{}}
-\newlabel{sec:methods:merge@cref}{{[subsection][2][3]3.2}{[1][12][]12}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Spatial Grid Aggregation}{12}{subsubsection.3.2.1}\protected@file@percent }
-\newlabel{sec:methods:grid}{{3.2.1}{12}{Spatial Grid Aggregation}{subsubsection.3.2.1}{}}
-\newlabel{sec:methods:grid@cref}{{[subsubsection][1][3,2]3.2.1}{[1][12][]12}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{12}{section*.22}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Congestion Threshold Selection}{12}{subsubsection.3.2.2}\protected@file@percent }
-\newlabel{sec:methods:percolation}{{3.2.2}{12}{Congestion Threshold Selection}{subsubsection.3.2.2}{}}
-\newlabel{sec:methods:percolation@cref}{{[subsubsection][2][3,2]3.2.2}{[1][12][]12}{}{}{}}
-\@writefile{toc}{\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{12}{section*.23}\protected@file@percent }
-\newlabel{eq:ratio}{{4}{13}{Percolation-based threshold ($q_c = 0.52$, normalised speed)}{equation.4}{}}
-\newlabel{eq:ratio@cref}{{[equation][4][]4}{[1][13][]13}{}{}{}}
-\newlabel{eq:qc}{{6}{13}{Percolation-based threshold ($q_c = 0.52$, normalised speed)}{equation.6}{}}
-\newlabel{eq:qc@cref}{{[equation][6][]6}{[1][13][]13}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Percolation transition of the Barcelona road network. \textbf  {Blue}: giant SCC size $G(q)$, i.e.\ the number of road segments forming the largest connected functional cluster as the threshold $q$ increases. \textbf  {Red}: second-largest SCC size $S_G(q)$. The dashed vertical line marks $q_c = 0.52$, the value at which $S_G$ is maximised: above this threshold the giant cluster begins to fragment.}}{14}{figure.caption.24}\protected@file@percent }
-\newlabel{fig:percolation_transition}{{7}{14}{Percolation transition of the Barcelona road network. \textbf {Blue}: giant SCC size $G(q)$, i.e.\ the number of road segments forming the largest connected functional cluster as the threshold $q$ increases. \textbf {Red}: second-largest SCC size $S_G(q)$. The dashed vertical line marks $q_c = 0.52$, the value at which $S_G$ is maximised: above this threshold the giant cluster begins to fragment}{figure.caption.24}{}}
-\newlabel{fig:percolation_transition@cref}{{[figure][7][]7}{[1][13][]14}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{14}{subsubsection.3.2.3}\protected@file@percent }
-\newlabel{sec:methods:bottlenecks}{{3.2.3}{14}{Bottleneck Detection}{subsubsection.3.2.3}{}}
-\newlabel{sec:methods:bottlenecks@cref}{{[subsubsection][3][3,2]3.2.3}{[1][14][]14}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Network state at $q_c = 0.52$ (session-and-time-averaged, simplified graph). Colours denote strongly connected components (green = giant SCC; blue, orange, purple, cyan = smaller SCCs). Dark-red segments are congested ($r_{ij} < 0.52$); \textbf  {thick red} segments are bottlenecks ($r_{ij} \in [0.51, 0.53]$); grey segments have insufficient data ($> 30\%$ missing observations).}}{15}{figure.caption.25}\protected@file@percent }
-\newlabel{fig:percolation_bottlenecks}{{8}{15}{Network state at $q_c = 0.52$ (session-and-time-averaged, simplified graph). Colours denote strongly connected components (green = giant SCC; blue, orange, purple, cyan = smaller SCCs). Dark-red segments are congested ($r_{ij} < 0.52$); \textbf {thick red} segments are bottlenecks ($r_{ij} \in [0.51, 0.53]$); grey segments have insufficient data ($> 30\%$ missing observations)}{figure.caption.25}{}}
-\newlabel{fig:percolation_bottlenecks@cref}{{[figure][8][]8}{[1][14][]15}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{15}{subsubsection.3.2.4}\protected@file@percent }
-\newlabel{sec:methods:bfs}{{3.2.4}{15}{BFS Connected-Component Analysis}{subsubsection.3.2.4}{}}
-\newlabel{sec:methods:bfs@cref}{{[subsubsection][4][3,2]3.2.4}{[1][15][]15}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{15}{subsubsection.3.2.5}\protected@file@percent }
-\newlabel{sec:methods:congmaps}{{3.2.5}{15}{Results: Congestion Maps and Temporal Metrics}{subsubsection.3.2.5}{}}
-\newlabel{sec:methods:congmaps@cref}{{[subsubsection][5][3,2]3.2.5}{[1][15][]15}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Approach~1 --- $q_c = 0.52$, normalised speed, mean over all sessions. \textbf  {Row~1}: BFS cluster maps at four representative timesteps. Congested clusters are coloured by per-timestep size rank (cluster~1 = red, cluster~2 = blue, cluster~3 = orange, etc.); functional cells are green; no-data cells are grey. \textbf  {Row~2}: number of grid cells in the top-5 congested clusters over time (ranked by size at each timestep independently). \textbf  {Row~3}: median raw speed (m/s) of segments within each congested cluster over time. \textbf  {Row~4}: size (grid cells, left axis) and median speed (m/s, right axis) of the largest functional connected component over time. Vertical dashed lines indicate the timesteps shown in row~1.}}{16}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:graph_search_norm}{{9}{16}{Approach~1 --- $q_c = 0.52$, normalised speed, mean over all sessions. \textbf {Row~1}: BFS cluster maps at four representative timesteps. Congested clusters are coloured by per-timestep size rank (cluster~1 = red, cluster~2 = blue, cluster~3 = orange, etc.); functional cells are green; no-data cells are grey. \textbf {Row~2}: number of grid cells in the top-5 congested clusters over time (ranked by size at each timestep independently). \textbf {Row~3}: median raw speed (m/s) of segments within each congested cluster over time. \textbf {Row~4}: size (grid cells, left axis) and median speed (m/s, right axis) of the largest functional connected component over time. Vertical dashed lines indicate the timesteps shown in row~1}{figure.caption.26}{}}
-\newlabel{fig:graph_search_norm@cref}{{[figure][9][]9}{[1][15][]16}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Approach~1 --- $q = 2.0$\,m/s, raw speed. Same four-row layout as Figure~\ref {fig:graph_search_norm}. A cell is labelled congested if more than 40\,\% of its segments have raw speed $< 2.0$\,m/s ($= 7.2$\,km/h), targeting only near-standstill traffic.}}{17}{figure.caption.27}\protected@file@percent }
-\newlabel{fig:graph_search_raw}{{10}{17}{Approach~1 --- $q = 2.0$\,m/s, raw speed. Same four-row layout as Figure~\ref {fig:graph_search_norm}. A cell is labelled congested if more than 40\,\% of its segments have raw speed $< 2.0$\,m/s ($= 7.2$\,km/h), targeting only near-standstill traffic}{figure.caption.27}{}}
-\newlabel{fig:graph_search_raw@cref}{{[figure][10][]10}{[1][16][]17}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde  {v}_k$: median raw speed (m/s) of that cluster. $\tilde  {v}_{\mathrm  {bg}}$: median speed of the functional background.}}{18}{table.caption.28}\protected@file@percent }
-\newlabel{tab:merge_metrics}{{1}{18}{Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde {v}_k$: median raw speed (m/s) of that cluster. $\tilde {v}_{\mathrm {bg}}$: median speed of the functional background}{table.caption.28}{}}
-\newlabel{tab:merge_metrics@cref}{{[table][1][]1}{[1][17][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{18}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:methods:kclustering}{{3.3}{18}{Approach~2--- K-means Clustering}{subsection.3.3}{}}
-\newlabel{sec:methods:kclustering@cref}{{[subsection][3][3]3.3}{[1][18][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{18}{subsubsection.3.3.1}\protected@file@percent }
-\newlabel{sec:methods:gridkmeans}{{3.3.1}{18}{Feature Construction and K-means Setup}{subsubsection.3.3.1}{}}
-\newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,3]3.3.1}{[1][18][]18}{}{}{}}
-\newlabel{eq:kmeans_features}{{8}{18}{Feature Construction and K-means Setup}{equation.8}{}}
-\newlabel{eq:kmeans_features@cref}{{[equation][8][]8}{[1][18][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count, Weight Parameters and Spawn points}{18}{subsubsection.3.3.2}\protected@file@percent }
-\newlabel{sec:methods:kselect1}{{3.3.2}{18}{Cluster Count, Weight Parameters and Spawn points}{subsubsection.3.3.2}{}}
-\newlabel{sec:methods:kselect1@cref}{{[subsubsection][2][3,3]3.3.2}{[1][18][]18}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Results}{19}{subsubsection.3.3.3}\protected@file@percent }
-\newlabel{sec:methods:results_km1}{{3.3.3}{19}{Results}{subsubsection.3.3.3}{}}
-\newlabel{sec:methods:results_km1@cref}{{[subsubsection][3][3,3]3.3.3}{[1][19][]19}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces K-means clustering results for $K=5$ and $K=9$. Green links indicate the manually selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations.}}{20}{figure.caption.29}\protected@file@percent }
-\newlabel{fig:kmeans_maps1}{{11}{20}{K-means clustering results for $K=5$ and $K=9$. Green links indicate the manually selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations}{figure.caption.29}{}}
-\newlabel{fig:kmeans_maps1@cref}{{[figure][11][]11}{[1][19][]20}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Evolution of the median speed and cluster sizes over time for the K-Means clustering with $K=5$ and $K=9$.}}{21}{figure.caption.30}\protected@file@percent }
-\newlabel{fig:kmeans_time_evolution}{{12}{21}{Evolution of the median speed and cluster sizes over time for the K-Means clustering with $K=5$ and $K=9$}{figure.caption.30}{}}
-\newlabel{fig:kmeans_time_evolution@cref}{{[figure][12][]12}{[1][20][]21}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{21}{subsection.3.4}\protected@file@percent }
-\newlabel{sec:methods:clustering}{{3.4}{21}{Approach~3--- Grid K-means Clustering}{subsection.3.4}{}}
-\newlabel{sec:methods:clustering@cref}{{[subsection][4][3]3.4}{[1][21][]21}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{21}{subsubsection.3.4.1}\protected@file@percent }
-\newlabel{sec:methods:gridkmeans}{{3.4.1}{21}{Feature Construction and K-means Setup: Grid}{subsubsection.3.4.1}{}}
-\newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,4]3.4.1}{[1][21][]21}{}{}{}}
-\newlabel{eq:kmeans_features}{{9}{21}{Feature Construction and K-means Setup: Grid}{equation.9}{}}
-\newlabel{eq:kmeans_features@cref}{{[equation][9][]9}{[1][21][]21}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{21}{subsubsection.3.4.2}\protected@file@percent }
-\newlabel{sec:methods:kselect}{{3.4.2}{21}{Cluster Count: $K = 5$ vs.\ $K = 9$}{subsubsection.3.4.2}{}}
-\newlabel{sec:methods:kselect@cref}{{[subsubsection][2][3,4]3.4.2}{[1][21][]21}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}Results}{22}{subsubsection.3.4.3}\protected@file@percent }
-\newlabel{sec:methods:results_km}{{3.4.3}{22}{Results}{subsubsection.3.4.3}{}}
-\newlabel{sec:methods:results_km@cref}{{[subsubsection][3][3,4]3.4.3}{[1][22][]22}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar  {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow.}}{22}{figure.caption.31}\protected@file@percent }
-\newlabel{fig:grid_kmeans_maps}{{13}{22}{Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow}{figure.caption.31}{}}
-\newlabel{fig:grid_kmeans_maps@cref}{{[figure][13][]13}{[1][22][]22}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation.}}{22}{figure.caption.32}\protected@file@percent }
-\newlabel{fig:grid_kmeans_speed}{{14}{22}{Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation}{figure.caption.32}{}}
-\newlabel{fig:grid_kmeans_speed@cref}{{[figure][14][]14}{[1][22][]22}{}{}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde  {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed.}}{23}{table.caption.33}\protected@file@percent }
-\newlabel{tab:km_metrics}{{2}{23}{Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed}{table.caption.33}{}}
-\newlabel{tab:km_metrics@cref}{{[table][2][]2}{[1][23][]23}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{23}{subsection.3.5}\protected@file@percent }
-\newlabel{sec:methods:comparison}{{3.5}{23}{Comparative Analysis}{subsection.3.5}{}}
-\newlabel{sec:methods:comparison@cref}{{[subsection][5][3]3.5}{[1][23][]23}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf  {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf  {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state.}}{23}{figure.caption.34}\protected@file@percent }
-\newlabel{fig:compare_methods}{{15}{23}{Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state}{figure.caption.34}{}}
-\newlabel{fig:compare_methods@cref}{{[figure][15][]15}{[1][23][]23}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Approach~2 (Section~\ref {sec:methods:clustering})---Grid K-means clustering.}{13}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Evaluation metrics.}{13}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Approach~1 --- Threshold-Based Grid Clustering}{13}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:methods:merge}{{3.2}{13}{Approach~1 --- Threshold-Based Grid Clustering}{subsection.3.2}{}}
+\newlabel{sec:methods:merge@cref}{{[subsection][2][3]3.2}{[1][13][]13}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.1}Spatial Grid Aggregation}{13}{subsubsection.3.2.1}\protected@file@percent }
+\newlabel{sec:methods:grid}{{3.2.1}{13}{Spatial Grid Aggregation}{subsubsection.3.2.1}{}}
+\newlabel{sec:methods:grid@cref}{{[subsubsection][1][3,2]3.2.1}{[1][13][]13}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Trailing-NaN pre-fill before session averaging.}{13}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.2}Congestion Threshold Selection}{13}{subsubsection.3.2.2}\protected@file@percent }
+\newlabel{sec:methods:percolation}{{3.2.2}{13}{Congestion Threshold Selection}{subsubsection.3.2.2}{}}
+\newlabel{sec:methods:percolation@cref}{{[subsubsection][2][3,2]3.2.2}{[1][13][]13}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Percolation-based threshold ($q_c = 0.52$, normalised speed).}{13}{section*.23}\protected@file@percent }
+\newlabel{eq:ratio}{{5}{14}{Percolation-based threshold ($q_c = 0.52$, normalised speed)}{equation.5}{}}
+\newlabel{eq:ratio@cref}{{[equation][5][]5}{[1][14][]14}{}{}{}}
+\newlabel{eq:qc}{{7}{14}{Percolation-based threshold ($q_c = 0.52$, normalised speed)}{equation.7}{}}
+\newlabel{eq:qc@cref}{{[equation][7][]7}{[1][14][]14}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Percolation transition of the Barcelona road network. \textbf  {Blue}: giant SCC size $G(q)$, i.e.\ the number of road segments forming the largest connected functional cluster as the threshold $q$ increases. \textbf  {Red}: second-largest SCC size $S_G(q)$. The dashed vertical line marks $q_c = 0.52$, the value at which $S_G$ is maximised: above this threshold the giant cluster begins to fragment.}}{15}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:percolation_transition}{{8}{15}{Percolation transition of the Barcelona road network. \textbf {Blue}: giant SCC size $G(q)$, i.e.\ the number of road segments forming the largest connected functional cluster as the threshold $q$ increases. \textbf {Red}: second-largest SCC size $S_G(q)$. The dashed vertical line marks $q_c = 0.52$, the value at which $S_G$ is maximised: above this threshold the giant cluster begins to fragment}{figure.caption.24}{}}
+\newlabel{fig:percolation_transition@cref}{{[figure][8][]8}{[1][14][]15}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Bottleneck Detection}{15}{subsubsection.3.2.3}\protected@file@percent }
+\newlabel{sec:methods:bottlenecks}{{3.2.3}{15}{Bottleneck Detection}{subsubsection.3.2.3}{}}
+\newlabel{sec:methods:bottlenecks@cref}{{[subsubsection][3][3,2]3.2.3}{[1][15][]15}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Network state at $q_c = 0.52$ (session-and-time-averaged, simplified graph). Colours denote strongly connected components (green = giant SCC; blue, orange, purple, cyan = smaller SCCs). Dark-red segments are congested ($r_{ij} < 0.52$); \textbf  {thick red} segments are bottlenecks ($r_{ij} \in [0.51, 0.53]$); grey segments have insufficient data ($> 30\%$ missing observations).}}{16}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:percolation_bottlenecks}{{9}{16}{Network state at $q_c = 0.52$ (session-and-time-averaged, simplified graph). Colours denote strongly connected components (green = giant SCC; blue, orange, purple, cyan = smaller SCCs). Dark-red segments are congested ($r_{ij} < 0.52$); \textbf {thick red} segments are bottlenecks ($r_{ij} \in [0.51, 0.53]$); grey segments have insufficient data ($> 30\%$ missing observations)}{figure.caption.25}{}}
+\newlabel{fig:percolation_bottlenecks@cref}{{[figure][9][]9}{[1][15][]16}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}BFS Connected-Component Analysis}{16}{subsubsection.3.2.4}\protected@file@percent }
+\newlabel{sec:methods:bfs}{{3.2.4}{16}{BFS Connected-Component Analysis}{subsubsection.3.2.4}{}}
+\newlabel{sec:methods:bfs@cref}{{[subsubsection][4][3,2]3.2.4}{[1][16][]16}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.5}Results: Congestion Maps and Temporal Metrics}{16}{subsubsection.3.2.5}\protected@file@percent }
+\newlabel{sec:methods:congmaps}{{3.2.5}{16}{Results: Congestion Maps and Temporal Metrics}{subsubsection.3.2.5}{}}
+\newlabel{sec:methods:congmaps@cref}{{[subsubsection][5][3,2]3.2.5}{[1][16][]16}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Approach~1 --- $q_c = 0.52$, normalised speed, mean over all sessions. \textbf  {Row~1}: BFS cluster maps at four representative timesteps. Congested clusters are coloured by per-timestep size rank (cluster~1 = red, cluster~2 = blue, cluster~3 = orange, etc.); functional cells are green; no-data cells are grey. \textbf  {Row~2}: number of grid cells in the top-5 congested clusters over time (ranked by size at each timestep independently). \textbf  {Row~3}: median raw speed (m/s) of segments within each congested cluster over time. \textbf  {Row~4}: size (grid cells, left axis) and median speed (m/s, right axis) of the largest functional connected component over time. Vertical dashed lines indicate the timesteps shown in row~1.}}{17}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:graph_search_norm}{{10}{17}{Approach~1 --- $q_c = 0.52$, normalised speed, mean over all sessions. \textbf {Row~1}: BFS cluster maps at four representative timesteps. Congested clusters are coloured by per-timestep size rank (cluster~1 = red, cluster~2 = blue, cluster~3 = orange, etc.); functional cells are green; no-data cells are grey. \textbf {Row~2}: number of grid cells in the top-5 congested clusters over time (ranked by size at each timestep independently). \textbf {Row~3}: median raw speed (m/s) of segments within each congested cluster over time. \textbf {Row~4}: size (grid cells, left axis) and median speed (m/s, right axis) of the largest functional connected component over time. Vertical dashed lines indicate the timesteps shown in row~1}{figure.caption.26}{}}
+\newlabel{fig:graph_search_norm@cref}{{[figure][10][]10}{[1][16][]17}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Approach~1 --- $q = 2.0$\,m/s, raw speed. Same four-row layout as Figure~\ref {fig:graph_search_norm}. A cell is labelled congested if more than 40\,\% of its segments have raw speed $< 2.0$\,m/s ($= 7.2$\,km/h), targeting only near-standstill traffic.}}{18}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:graph_search_raw}{{11}{18}{Approach~1 --- $q = 2.0$\,m/s, raw speed. Same four-row layout as Figure~\ref {fig:graph_search_norm}. A cell is labelled congested if more than 40\,\% of its segments have raw speed $< 2.0$\,m/s ($= 7.2$\,km/h), targeting only near-standstill traffic}{figure.caption.27}{}}
+\newlabel{fig:graph_search_raw@cref}{{[figure][11][]11}{[1][17][]18}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde  {v}_k$: median raw speed (m/s) of that cluster. $\tilde  {v}_{\mathrm  {bg}}$: median speed of the functional background.}}{19}{table.caption.28}\protected@file@percent }
+\newlabel{tab:merge_metrics}{{1}{19}{Approach~1 metrics ($q_c = 0.52$, normalised speed, mean over all sessions). $N$: number of congested BFS components. $S_k$: size (grid cells) of cluster $k$ (ranked by size at that timestep). $\tilde {v}_k$: median raw speed (m/s) of that cluster. $\tilde {v}_{\mathrm {bg}}$: median speed of the functional background}{table.caption.28}{}}
+\newlabel{tab:merge_metrics@cref}{{[table][1][]1}{[1][18][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Approach~2--- K-means Clustering}{19}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:methods:kclustering}{{3.3}{19}{Approach~2--- K-means Clustering}{subsection.3.3}{}}
+\newlabel{sec:methods:kclustering@cref}{{[subsection][3][3]3.3}{[1][19][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.1}Feature Construction and K-means Setup}{19}{subsubsection.3.3.1}\protected@file@percent }
+\newlabel{sec:methods:gridkmeans}{{3.3.1}{19}{Feature Construction and K-means Setup}{subsubsection.3.3.1}{}}
+\newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,3]3.3.1}{[1][19][]19}{}{}{}}
+\newlabel{eq:kmeans_features}{{9}{19}{Feature Construction and K-means Setup}{equation.9}{}}
+\newlabel{eq:kmeans_features@cref}{{[equation][9][]9}{[1][19][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.2}Cluster Count, Weight Parameters and Spawn points}{19}{subsubsection.3.3.2}\protected@file@percent }
+\newlabel{sec:methods:kselect1}{{3.3.2}{19}{Cluster Count, Weight Parameters and Spawn points}{subsubsection.3.3.2}{}}
+\newlabel{sec:methods:kselect1@cref}{{[subsubsection][2][3,3]3.3.2}{[1][19][]19}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.3.3}Results}{20}{subsubsection.3.3.3}\protected@file@percent }
+\newlabel{sec:methods:results_km1}{{3.3.3}{20}{Results}{subsubsection.3.3.3}{}}
+\newlabel{sec:methods:results_km1@cref}{{[subsubsection][3][3,3]3.3.3}{[1][20][]20}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces K-means clustering results for $K=5$ and $K=9$. Green links indicate the manually selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations.}}{21}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:kmeans_maps1}{{12}{21}{K-means clustering results for $K=5$ and $K=9$. Green links indicate the manually selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations}{figure.caption.29}{}}
+\newlabel{fig:kmeans_maps1@cref}{{[figure][12][]12}{[1][20][]21}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Evolution of the median speed and cluster sizes over time for the K-Means clustering with $K=5$ and $K=9$.}}{22}{figure.caption.30}\protected@file@percent }
+\newlabel{fig:kmeans_time_evolution}{{13}{22}{Evolution of the median speed and cluster sizes over time for the K-Means clustering with $K=5$ and $K=9$}{figure.caption.30}{}}
+\newlabel{fig:kmeans_time_evolution@cref}{{[figure][13][]13}{[1][21][]22}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Approach~3--- Grid K-means Clustering}{22}{subsection.3.4}\protected@file@percent }
+\newlabel{sec:methods:clustering}{{3.4}{22}{Approach~3--- Grid K-means Clustering}{subsection.3.4}{}}
+\newlabel{sec:methods:clustering@cref}{{[subsection][4][3]3.4}{[1][22][]22}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.1}Feature Construction and K-means Setup: Grid}{22}{subsubsection.3.4.1}\protected@file@percent }
+\newlabel{sec:methods:gridkmeans}{{3.4.1}{22}{Feature Construction and K-means Setup: Grid}{subsubsection.3.4.1}{}}
+\newlabel{sec:methods:gridkmeans@cref}{{[subsubsection][1][3,4]3.4.1}{[1][22][]22}{}{}{}}
+\newlabel{eq:kmeans_features}{{10}{22}{Feature Construction and K-means Setup: Grid}{equation.10}{}}
+\newlabel{eq:kmeans_features@cref}{{[equation][10][]10}{[1][22][]22}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.2}Cluster Count: $K = 5$ vs.\ $K = 9$}{22}{subsubsection.3.4.2}\protected@file@percent }
+\newlabel{sec:methods:kselect}{{3.4.2}{22}{Cluster Count: $K = 5$ vs.\ $K = 9$}{subsubsection.3.4.2}{}}
+\newlabel{sec:methods:kselect@cref}{{[subsubsection][2][3,4]3.4.2}{[1][22][]22}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.4.3}Results}{23}{subsubsection.3.4.3}\protected@file@percent }
+\newlabel{sec:methods:results_km}{{3.4.3}{23}{Results}{subsubsection.3.4.3}{}}
+\newlabel{sec:methods:results_km@cref}{{[subsubsection][3][3,4]3.4.3}{[1][23][]23}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar  {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow.}}{23}{figure.caption.31}\protected@file@percent }
+\newlabel{fig:grid_kmeans_maps}{{14}{23}{Grid K-means partition at $q_c = 0.52$ (time-and-session-averaged normalised speed). Each colour represents one cluster. Clusters are labelled congested (hatched) if their mean $\bar {r}_k < 0.52$; since all time-averaged cluster speeds exceed 0.52, no hatching appears --- the threshold captures only acute per-timestep drops below free-flow}{figure.caption.31}{}}
+\newlabel{fig:grid_kmeans_maps@cref}{{[figure][14][]14}{[1][23][]23}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation.}}{23}{figure.caption.32}\protected@file@percent }
+\newlabel{fig:grid_kmeans_speed}{{15}{23}{Grid K-means ($K = 5$, $q_c = 0.52$): median raw speed (m/s) per cluster over the 15 representative timesteps. Clusters are ordered by mean speed (ascending), so Cluster~1 is the slowest zone. All clusters remain above the percolation threshold ($\approx 4.5$\,m/s in raw speed) on a time-averaged basis, reflecting the moderate level of congestion in the Simbarca simulation}{figure.caption.32}{}}
+\newlabel{fig:grid_kmeans_speed@cref}{{[figure][15][]15}{[1][23][]23}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde  {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed.}}{24}{table.caption.33}\protected@file@percent }
+\newlabel{tab:km_metrics}{{2}{24}{Approach~2 metrics (Grid K-means, preferred $K$, $q_c = 0.52$). $N_c$: number of clusters labelled congested. $S_k$: size (grid cells) and $\tilde {v}_k$: median raw speed (m/s) of cluster $k$, ordered by ascending mean speed}{table.caption.33}{}}
+\newlabel{tab:km_metrics@cref}{{[table][2][]2}{[1][24][]24}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Comparative Analysis}{24}{subsection.3.5}\protected@file@percent }
+\newlabel{sec:methods:comparison}{{3.5}{24}{Comparative Analysis}{subsection.3.5}{}}
+\newlabel{sec:methods:comparison@cref}{{[subsection][5][3]3.5}{[1][24][]24}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf  {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf  {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state.}}{24}{figure.caption.34}\protected@file@percent }
+\newlabel{fig:compare_methods}{{16}{24}{Side-by-side comparison of the two congestion-detection methods at timestep~15 (approximately 08:48). \textbf {Left}: fraction-based grid classification ($20 \times 16$ grid, $q_c = 0.52$; cells coloured red if $> 40\,\%$ of segments have $r < 0.52$, green otherwise). \textbf {Right}: percolation network map on the simplified graph at $q_c = 0.525$ (auto-computed); segments coloured by SCC membership or congestion state}{figure.caption.34}{}}
+\newlabel{fig:compare_methods@cref}{{[figure][16][]16}{[1][24][]24}{}{}{}}
 \bibstyle{plain}
 \bibdata{references}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde  {v}_1$: its median raw speed (m/s).}}{24}{table.caption.35}\protected@file@percent }
-\newlabel{tab:comparison}{{3}{24}{Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde {v}_1$: its median raw speed (m/s)}{table.caption.35}{}}
-\newlabel{tab:comparison@cref}{{[table][3][]3}{[1][24][]24}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Evaluation}{25}{section.4}\protected@file@percent }
-\newlabel{sec:eval}{{4}{25}{Evaluation}{section.4}{}}
-\newlabel{sec:eval@cref}{{[section][4][]4}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Evaluation framework}{25}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:eval:framework}{{4.1}{25}{Evaluation framework}{subsection.4.1}{}}
-\newlabel{sec:eval:framework@cref}{{[subsection][1][4]4.1}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Metrics}{25}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:eval:metrics}{{4.2}{25}{Metrics}{subsection.4.2}{}}
-\newlabel{sec:eval:metrics@cref}{{[subsection][2][4]4.2}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{25}{subsubsection.4.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{25}{subsubsection.4.2.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{25}{subsubsection.4.2.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{25}{subsubsection.4.2.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{25}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:eval:k}{{4.3}{25}{Choosing the number of clusters}{subsection.4.3}{}}
-\newlabel{sec:eval:k@cref}{{[subsection][3][4]4.3}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{25}{subsection.4.4}\protected@file@percent }
-\newlabel{sec:eval:merge}{{4.4}{25}{Results — Merge methods}{subsection.4.4}{}}
-\newlabel{sec:eval:merge@cref}{{[subsection][4][4]4.4}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{25}{subsubsection.4.4.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{25}{subsubsection.4.4.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Results — Clustering}{25}{subsection.4.5}\protected@file@percent }
-\newlabel{sec:eval:clustering}{{4.5}{25}{Results — Clustering}{subsection.4.5}{}}
-\newlabel{sec:eval:clustering@cref}{{[subsection][5][4]4.5}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{25}{subsubsection.4.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{25}{subsubsection.4.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{25}{subsubsection.4.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{25}{subsubsection.4.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{25}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:eval:compare}{{4.6}{25}{Comparison of the two approaches}{subsection.4.6}{}}
-\newlabel{sec:eval:compare@cref}{{[subsection][6][4]4.6}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Limitations}{25}{subsection.4.7}\protected@file@percent }
-\newlabel{sec:eval:limits}{{4.7}{25}{Limitations}{subsection.4.7}{}}
-\newlabel{sec:eval:limits@cref}{{[subsection][7][4]4.7}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{25}{section.5}\protected@file@percent }
-\newlabel{sec:conclusion}{{5}{25}{Conclusion}{section.5}{}}
-\newlabel{sec:conclusion@cref}{{[section][5][]5}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Summary of findings}{25}{subsection.5.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Future work}{25}{subsection.5.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Implementation overview}{25}{appendix.A}\protected@file@percent }
-\newlabel{app:impl}{{A}{25}{Implementation overview}{appendix.A}{}}
-\newlabel{app:impl@cref}{{[section][1][]A}{[1][24][]25}{}{}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {B}Parameter reference}{25}{appendix.B}\protected@file@percent }
-\newlabel{app:params}{{B}{25}{Parameter reference}{appendix.B}{}}
-\newlabel{app:params@cref}{{[section][2][]B}{[1][24][]25}{}{}{}}
-\gdef \@abspage@last{25}
+\bibcite{li2015percolation}{1}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde  {v}_1$: its median raw speed (m/s).}}{25}{table.caption.35}\protected@file@percent }
+\newlabel{tab:comparison}{{3}{25}{Side-by-side comparison of Approach~1 (BFS, $q_c = 0.52$) and Approach~2 (Grid K-means, preferred $K$, $q_c = 0.52$) at seven representative timesteps. $N$: number of congested clusters. $S_1$: size (grid cells) of the largest congested cluster. $\tilde {v}_1$: its median raw speed (m/s)}{table.caption.35}{}}
+\newlabel{tab:comparison@cref}{{[table][3][]3}{[1][25][]25}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Evaluation}{26}{section.4}\protected@file@percent }
+\newlabel{sec:eval}{{4}{26}{Evaluation}{section.4}{}}
+\newlabel{sec:eval@cref}{{[section][4][]4}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Evaluation framework}{26}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:eval:framework}{{4.1}{26}{Evaluation framework}{subsection.4.1}{}}
+\newlabel{sec:eval:framework@cref}{{[subsection][1][4]4.1}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Metrics}{26}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:eval:metrics}{{4.2}{26}{Metrics}{subsection.4.2}{}}
+\newlabel{sec:eval:metrics@cref}{{[subsection][2][4]4.2}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.1}Internal cluster-quality metrics}{26}{subsubsection.4.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.2}Stability metrics}{26}{subsubsection.4.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.3}Spatial-coherence metrics}{26}{subsubsection.4.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.2.4}Congestion-recovery metrics}{26}{subsubsection.4.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Choosing the number of clusters}{26}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:eval:k}{{4.3}{26}{Choosing the number of clusters}{subsection.4.3}{}}
+\newlabel{sec:eval:k@cref}{{[subsection][3][4]4.3}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Results — Merge methods}{26}{subsection.4.4}\protected@file@percent }
+\newlabel{sec:eval:merge}{{4.4}{26}{Results — Merge methods}{subsection.4.4}{}}
+\newlabel{sec:eval:merge@cref}{{[subsection][4][4]4.4}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.1}Threshold and grid aggregation}{26}{subsubsection.4.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.4.2}Percolation transition and bottlenecks}{26}{subsubsection.4.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Results — Clustering}{26}{subsection.4.5}\protected@file@percent }
+\newlabel{sec:eval:clustering}{{4.5}{26}{Results — Clustering}{subsection.4.5}{}}
+\newlabel{sec:eval:clustering@cref}{{[subsection][5][4]4.5}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.1}K-means: speed / distance / time / geometric features}{26}{subsubsection.4.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.2}K-means with bottleneck weighting}{26}{subsubsection.4.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.3}K-means stability across sessions}{26}{subsubsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.4}Ward vs.\ K-means}{26}{subsubsection.4.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Comparison of the two approaches}{26}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:eval:compare}{{4.6}{26}{Comparison of the two approaches}{subsection.4.6}{}}
+\newlabel{sec:eval:compare@cref}{{[subsection][6][4]4.6}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}Limitations}{26}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:eval:limits}{{4.7}{26}{Limitations}{subsection.4.7}{}}
+\newlabel{sec:eval:limits@cref}{{[subsection][7][4]4.7}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{26}{section.5}\protected@file@percent }
+\newlabel{sec:conclusion}{{5}{26}{Conclusion}{section.5}{}}
+\newlabel{sec:conclusion@cref}{{[section][5][]5}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Summary of findings}{26}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Future work}{26}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Implementation overview}{26}{appendix.A}\protected@file@percent }
+\newlabel{app:impl}{{A}{26}{Implementation overview}{appendix.A}{}}
+\newlabel{app:impl@cref}{{[section][1][]A}{[1][25][]26}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {B}Parameter reference}{26}{appendix.B}\protected@file@percent }
+\newlabel{app:params}{{B}{26}{Parameter reference}{appendix.B}{}}
+\newlabel{app:params@cref}{{[section][2][]B}{[1][25][]26}{}{}{}}
+\gdef \@abspage@last{26}

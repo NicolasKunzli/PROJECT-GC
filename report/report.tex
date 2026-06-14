@@ -53,7 +53,7 @@
 \label{sec:data:dataset}
 % Source, format, raw fields (vdist, vtime, sessions), spatial extent.
 The dataset is stored in plk files in which we can retrieve two important data types. The first being \textit{vdist}, which stores the total travelled distance among every vehicles on every single link for every time intervals. The second is \textit{vtime} which stores the total time spent on every links for every time intervals.\\
-There are 101 different files, each of them representing a different simulation called session. They are each in a folder labelled as such: \textit{session\_\#\#\#} where the three last characters are digits representing the session id. The folder \textit{session\_000} contain the simulation with a demand rate of 100\%, the following 20 are with a demand rate of 120\%, the following with 140\%, and so on with \textit{session\_081} - \textit{session\_100} with a demand rate of 180\%.\\
+There are 101 different files, each of them representing a different simulation called session. They are each in a folder labelled as such: \textit{session\_\#\#\#} where the three last characters are digits representing the session id. The folder \textit{session\_000} contain the simulation with a demand rate of 100\%, the following 20 are with a demand rate of 120\%, the following with 140\%, and so on with \textit{session\_081} - \textit{session\_100} with a demand rate of 200\%.\\
 \dots
 
 \subsection{Network representation}
@@ -63,15 +63,27 @@ The network is built around three main components: links, nodes and polygons. Th
 Note that the network is simplified by grouping each individual lane with its neighbouring lanes, regardless of their directions.
 Nodes represent the center of the links and are used for the connectivity matrix. Links that are connecting the same roads are grouped under the same node.\\
 The blue polygons delineate the intersection areas. They are displayed solely for visualization purposes and are not involved in the network computations.
-\begin{figure}[h]
-  \includegraphics{../graph.png}
-  \label{fig:graph_main}
+\begin{figure}[H] 
+  \centering 
+  \includegraphics[width=\linewidth]{../graph.png} 
+  \caption{Simplified representation of the SimBarca road network. Links are represented as black segments, nodes as red points, and intersections as blue polygons.} 
+  \label{fig:graph_main} 
 \end{figure}
+As shown in Figure~\ref{fig:graph_main}, the network is represented as a graph whose nodes correspond to groups of connected links.
 
 \subsection{Temporal structure: sessions and 3-minute aggregation}
 \label{sec:data:temporal}
 % Sessions, 3-min bins, mean-over-sessions construction.
-% TODO
+As introduced in Section \ref{sec:data:dataset}, the dataset contains 101 simulation sessions grouped according to different demand rates. In the remainder of this work, the temporal evolution of traffic variables is analyzed using 3-minute aggregation intervals, allowing direct comparisons across sessions and demand scenarios. Although data were also available at a 5-second resolution, the 3-minute aggregation level was deemed sufficient for the objectives of this project while reducing short-term fluctuations and computational complexity.\\
+Let \(x_{s,t,l}\) denote the value of a traffic variable measured on link \(l\) during time interval \(t\) in session \(s\). The session-averaged value is computed as
+\begin{equation}
+\bar{x}_{t,l} =
+\frac{1}{N_{t,l}}
+\sum_{s=1}^{S}
+x_{s,t,l},
+\end{equation}\\
+where \(S\) is the number of sessions included in the averaging process and \(N_{t,l}\) is the number of valid (non-missing) observations available for link \(l\) and time interval \(t\). Depending on the analysis, \(S\) may correspond either to all 101 sessions or to the subset of sessions associated with a specific demand level. Missing values are ignored during the averaging process. If no valid observation exists for a given pair \((t,l)\), the corresponding average is left undefined (\texttt{NaN}).\\
+For the SimBarca dataset, each demand level above the baseline is represented by 20 independent simulation sessions, while the \(100\%\) demand level is represented by a single session. The resulting session-averaged matrices preserve the original spatial and temporal dimensions of the data while reducing the variability associated with individual simulation runs.
 
 \subsection{Speed reconstruction}
 \label{sec:data:speed}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.4)  13 JUN 2026 20:15
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.4)  14 JUN 2026 23:29
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -409,7 +409,8 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 ) (C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count336
-) (report.aux)
+)
+No file report.aux.
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
@@ -430,7 +431,7 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
- (C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
+(C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count337
 \scratchdimen=\dimen257
@@ -514,156 +515,156 @@ No file report.toc.
 <../graph.png, id=14, 462.528pt x 346.896pt>
 File: ../graph.png Graphic file (type png)
 <use ../graph.png>
-Package pdftex.def Info: ../graph.png  used on input line 67.
-(pdftex.def)             Requested size: 462.52686pt x 346.89514pt.
+Package pdftex.def Info: ../graph.png  used on input line 68.
+(pdftex.def)             Requested size: 455.24411pt x 341.44843pt.
+ [2]
 
-Overfull \hbox (7.28275pt too wide) in paragraph at lines 67--69
-[][]
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 83.
-
-LaTeX Warning: Reference `sec:data:nan' on page 2 undefined on input line 94.
+LaTeX Warning: Reference `fig:graph_main' on page 3 undefined on input line 72.
 
 
-LaTeX Warning: Reference `sec:methods:percolation' on page 2 undefined on input line 101.
-
-[2]
-
-LaTeX Warning: Reference `eq:pred_speed' on page 3 undefined on input line 110.
-
-
-LaTeX Warning: Reference `sec:methods:clustering' on page 3 undefined on input line 112.
-
-
-LaTeX Warning: Reference `sec:methods:percolation' on page 3 undefined on input line 114.
-
-
-LaTeX Warning: Reference `fig:congestion_share' on page 3 undefined on input line 133.
+LaTeX Warning: Reference `sec:data:dataset' on page 3 undefined on input line 77.
 
 [3 <../graph.png>]
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 95.
 
-LaTeX Warning: Reference `sec:data:stats:time' on page 4 undefined on input line 141.
+
+LaTeX Warning: Reference `sec:data:nan' on page 4 undefined on input line 106.
 
 
-LaTeX Warning: Reference `sec:methods:percolation' on page 4 undefined on input line 151.
+LaTeX Warning: Reference `sec:methods:percolation' on page 4 undefined on input line 113.
 
-<../figure/analysis/spacetime/network_congestion_share.png, id=51, 715.11165pt x 281.853pt>
+
+LaTeX Warning: Reference `eq:pred_speed' on page 4 undefined on input line 122.
+
+
+LaTeX Warning: Reference `sec:methods:clustering' on page 4 undefined on input line 124.
+
+
+LaTeX Warning: Reference `sec:methods:percolation' on page 4 undefined on input line 126.
+
+
+LaTeX Warning: Reference `fig:congestion_share' on page 4 undefined on input line 145.
+
+
+LaTeX Warning: Reference `sec:data:stats:time' on page 4 undefined on input line 153.
+
+
+LaTeX Warning: Reference `sec:methods:percolation' on page 4 undefined on input line 163.
+
+[4]
+<../figure/analysis/spacetime/network_congestion_share.png, id=57, 715.11165pt x 281.853pt>
 File: ../figure/analysis/spacetime/network_congestion_share.png Graphic file (type png)
 <use ../figure/analysis/spacetime/network_congestion_share.png>
-Package pdftex.def Info: ../figure/analysis/spacetime/network_congestion_share.png  used on input line 156.
+Package pdftex.def Info: ../figure/analysis/spacetime/network_congestion_share.png  used on input line 168.
 (pdftex.def)             Requested size: 418.82375pt x 165.07472pt.
 
-Overfull \hbox (11.32803pt too wide) in paragraph at lines 173--184
+Overfull \hbox (11.32803pt too wide) in paragraph at lines 185--196
 \T1/cmr/m/n/10.95 A miss-ing value (NaN) in the speed ma-trix arises when the ag-gre-gate ve-hi-cle travel time $[][]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) =
  []
 
 
-LaTeX Warning: Reference `fig:data_reliability' on page 4 undefined on input line 187.
-
-[4 <../figure/analysis/spacetime/network_congestion_share.png>]
-
-LaTeX Warning: Reference `fig:data_reliability' on page 5 undefined on input line 200.
+LaTeX Warning: Reference `fig:data_reliability' on page 5 undefined on input line 199.
 
 
-LaTeX Warning: Reference `fig:nan_distribution' on page 5 undefined on input line 213.
+LaTeX Warning: Reference `fig:data_reliability' on page 5 undefined on input line 212.
+
+[5 <../figure/analysis/spacetime/network_congestion_share.png>]
+
+LaTeX Warning: Reference `fig:nan_distribution' on page 6 undefined on input line 225.
 
 
-LaTeX Warning: Reference `fig:nan_spatial' on page 5 undefined on input line 224.
+LaTeX Warning: Reference `fig:nan_spatial' on page 6 undefined on input line 236.
 
-<../figure/analysis/data_reliability_map.png, id=62, 1148.3703pt x 499.3857pt>
+<../figure/analysis/data_reliability_map.png, id=67, 1148.3703pt x 499.3857pt>
 File: ../figure/analysis/data_reliability_map.png Graphic file (type png)
 <use ../figure/analysis/data_reliability_map.png>
-Package pdftex.def Info: ../figure/analysis/data_reliability_map.png  used on input line 232.
+Package pdftex.def Info: ../figure/analysis/data_reliability_map.png  used on input line 244.
 (pdftex.def)             Requested size: 455.24411pt x 197.96765pt.
-<../figure/analysis/nan_distribution.png, id=63, 515.1245pt x 295.9055pt>
+<../figure/analysis/nan_distribution.png, id=68, 515.1245pt x 295.9055pt>
 File: ../figure/analysis/nan_distribution.png Graphic file (type png)
 <use ../figure/analysis/nan_distribution.png>
-Package pdftex.def Info: ../figure/analysis/nan_distribution.png  used on input line 245.
+Package pdftex.def Info: ../figure/analysis/nan_distribution.png  used on input line 257.
 (pdftex.def)             Requested size: 264.0424pt x 151.68188pt.
-<../figure/analysis/nan_spatial_clustering.png, id=64, 330.836pt x 338.063pt>
+<../figure/analysis/nan_spatial_clustering.png, id=69, 330.836pt x 338.063pt>
 File: ../figure/analysis/nan_spatial_clustering.png Graphic file (type png)
 <use ../figure/analysis/nan_spatial_clustering.png>
-Package pdftex.def Info: ../figure/analysis/nan_spatial_clustering.png  used on input line 255.
+Package pdftex.def Info: ../figure/analysis/nan_spatial_clustering.png  used on input line 267.
 (pdftex.def)             Requested size: 172.99498pt x 176.77386pt.
-[5 <../figure/analysis/data_reliability_map.png>] [6 <../figure/analysis/nan_distribution.png> <../figure/analysis/nan_spatial_clustering.png>]
+[6 <../figure/analysis/data_reliability_map.png>] [7 <../figure/analysis/nan_distribution.png> <../figure/analysis/nan_spatial_clustering.png>]
 
-LaTeX Warning: Reference `fig:avg_speed_map' on page 7 undefined on input line 356.
+LaTeX Warning: Reference `fig:avg_speed_map' on page 8 undefined on input line 368.
 
-[7]
+[8]
 
-LaTeX Warning: Reference `sec:data:stats:time' on page 8 undefined on input line 387.
+LaTeX Warning: Reference `sec:data:stats:time' on page 9 undefined on input line 399.
 
-<../figure/analysis/avg_speed_map.png, id=95, 422.0568pt x 281.56392pt>
+<../figure/analysis/avg_speed_map.png, id=100, 422.0568pt x 281.56392pt>
 File: ../figure/analysis/avg_speed_map.png Graphic file (type png)
 <use ../figure/analysis/avg_speed_map.png>
-Package pdftex.def Info: ../figure/analysis/avg_speed_map.png  used on input line 391.
+Package pdftex.def Info: ../figure/analysis/avg_speed_map.png  used on input line 403.
 (pdftex.def)             Requested size: 400.61703pt x 267.27367pt.
 
-LaTeX Warning: Reference `sec:data:nan:policy' on page 8 undefined on input line 396.
+LaTeX Warning: Reference `sec:data:nan:policy' on page 9 undefined on input line 408.
 
 
-LaTeX Warning: Reference `sec:data:nan:policy' on page 8 undefined on input line 396.
+LaTeX Warning: Reference `sec:data:nan:policy' on page 9 undefined on input line 408.
 
 
-LaTeX Warning: Reference `fig:network_speed_time' on page 8 undefined on input line 403.
+LaTeX Warning: Reference `fig:network_speed_time' on page 9 undefined on input line 415.
 
-[8 <../figure/analysis/avg_speed_map.png>]
+[9 <../figure/analysis/avg_speed_map.png>]
 
-LaTeX Warning: Reference `sec:methods' on page 9 undefined on input line 437.
+LaTeX Warning: Reference `sec:methods' on page 10 undefined on input line 449.
 
-<../figure/analysis/network_speed_vs_time.png, id=104, 602.0091pt x 296.66835pt>
+<../figure/analysis/network_speed_vs_time.png, id=109, 602.0091pt x 296.66835pt>
 File: ../figure/analysis/network_speed_vs_time.png Graphic file (type png)
 <use ../figure/analysis/network_speed_vs_time.png>
-Package pdftex.def Info: ../figure/analysis/network_speed_vs_time.png  used on input line 441.
+Package pdftex.def Info: ../figure/analysis/network_speed_vs_time.png  used on input line 453.
 (pdftex.def)             Requested size: 418.82375pt x 206.3944pt.
 
-LaTeX Warning: Reference `fig:slowest_20' on page 9 undefined on input line 453.
+LaTeX Warning: Reference `fig:slowest_20' on page 10 undefined on input line 465.
 
 
-LaTeX Warning: Reference `sec:methods:bottlenecks' on page 9 undefined on input line 473.
+LaTeX Warning: Reference `sec:methods:bottlenecks' on page 10 undefined on input line 485.
 
-[9 <../figure/analysis/network_speed_vs_time.png>]
-<../figure/analysis/slowest_20_segments.png, id=114, 445.76135pt x 289.36908pt>
+[10 <../figure/analysis/network_speed_vs_time.png>]
+<../figure/analysis/slowest_20_segments.png, id=119, 445.76135pt x 289.36908pt>
 File: ../figure/analysis/slowest_20_segments.png Graphic file (type png)
 <use ../figure/analysis/slowest_20_segments.png>
-Package pdftex.def Info: ../figure/analysis/slowest_20_segments.png  used on input line 481.
+Package pdftex.def Info: ../figure/analysis/slowest_20_segments.png  used on input line 493.
 (pdftex.def)             Requested size: 400.61703pt x 260.06769pt.
- [10 <../figure/analysis/slowest_20_segments.png>]
+ [11 <../figure/analysis/slowest_20_segments.png>]
 
-LaTeX Warning: Reference `sec:methods:bottlenecks' on page 11 undefined on input line 543.
-
-
-LaTeX Warning: Reference `sec:data:stats:avgmap' on page 11 undefined on input line 545.
+LaTeX Warning: Reference `sec:methods:bottlenecks' on page 12 undefined on input line 555.
 
 
-LaTeX Warning: Reference `sec:methods:merge' on page 11 undefined on input line 584.
+LaTeX Warning: Reference `sec:data:stats:avgmap' on page 12 undefined on input line 557.
 
 
-LaTeX Warning: Reference `sec:methods:clustering' on page 11 undefined on input line 594.
-
-[11]
-
-LaTeX Warning: Reference `sec:data:nan' on page 12 undefined on input line 628.
+LaTeX Warning: Reference `sec:methods:merge' on page 12 undefined on input line 596.
 
 
-LaTeX Warning: Reference `sec:methods:bfs' on page 12 undefined on input line 633.
+LaTeX Warning: Reference `sec:methods:clustering' on page 12 undefined on input line 606.
+
+[12]
+
+LaTeX Warning: Reference `sec:data:nan' on page 13 undefined on input line 640.
 
 
-LaTeX Warning: Reference `sec:methods:percolation' on page 12 undefined on input line 636.
+LaTeX Warning: Reference `sec:methods:bfs' on page 13 undefined on input line 645.
 
 
-LaTeX Warning: Reference `eq:cell_state' on page 12 undefined on input line 637.
+LaTeX Warning: Reference `sec:methods:percolation' on page 13 undefined on input line 648.
 
 
-LaTeX Warning: Reference `sec:methods:gridkmeans' on page 12 undefined on input line 639.
+LaTeX Warning: Reference `eq:cell_state' on page 13 undefined on input line 649.
 
-c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex:663: Undefined control sequence.
-l.663 \citeauthor
+
+LaTeX Warning: Reference `sec:methods:gridkmeans' on page 13 undefined on input line 651.
+
+c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex:675: Undefined control sequence.
+l.675 \citeauthor
                  {li2015percolation}~\cite{li2015percolation}.
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -672,166 +673,166 @@ spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
 
 
-LaTeX Warning: Citation `li2015percolation' on page 12 undefined on input line 663.
+LaTeX Warning: Citation `li2015percolation' on page 13 undefined on input line 675.
 
-[12]
-
-LaTeX Warning: Reference `fig:percolation_transition' on page 13 undefined on input line 737.
-
-<../figure/percolation_transition.png, id=150, 462.528pt x 346.896pt>
-File: ../figure/percolation_transition.png Graphic file (type png)
-<use ../figure/percolation_transition.png>
-Package pdftex.def Info: ../figure/percolation_transition.png  used on input line 741.
-(pdftex.def)             Requested size: 327.7763pt x 245.84265pt.
 [13]
 
-LaTeX Warning: Reference `sec:methods:congmaps' on page 14 undefined on input line 771.
+LaTeX Warning: Reference `fig:percolation_transition' on page 14 undefined on input line 749.
+
+<../figure/percolation_transition.png, id=156, 462.528pt x 346.896pt>
+File: ../figure/percolation_transition.png Graphic file (type png)
+<use ../figure/percolation_transition.png>
+Package pdftex.def Info: ../figure/percolation_transition.png  used on input line 753.
+(pdftex.def)             Requested size: 327.7763pt x 245.84265pt.
+[14]
+
+LaTeX Warning: Reference `sec:methods:congmaps' on page 15 undefined on input line 783.
 
 
-LaTeX Warning: Reference `fig:percolation_bottlenecks' on page 14 undefined on input line 781.
+LaTeX Warning: Reference `fig:percolation_bottlenecks' on page 15 undefined on input line 793.
 
-<../figure/percolation_bottlenecks.png, id=159, 434.77632pt x 293.12712pt>
+<../figure/percolation_bottlenecks.png, id=164, 434.77632pt x 293.12712pt>
 File: ../figure/percolation_bottlenecks.png Graphic file (type png)
 <use ../figure/percolation_bottlenecks.png>
-Package pdftex.def Info: ../figure/percolation_bottlenecks.png  used on input line 786.
+Package pdftex.def Info: ../figure/percolation_bottlenecks.png  used on input line 798.
 (pdftex.def)             Requested size: 400.61703pt x 270.10959pt.
-[14 <../figure/percolation_transition.png>]
+[15 <../figure/percolation_transition.png>]
 
-LaTeX Warning: Reference `fig:graph_search_norm' on page 15 undefined on input line 818.
+LaTeX Warning: Reference `fig:graph_search_norm' on page 16 undefined on input line 830.
 
-<../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png, id=168, 1083.68864pt x 1117.65555pt>
+<../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png, id=173, 1083.68864pt x 1117.65555pt>
 File: ../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png Graphic file (type png)
 <use ../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png>
-Package pdftex.def Info: ../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png  used on input line 828.
+Package pdftex.def Info: ../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png  used on input line 840.
 (pdftex.def)             Requested size: 455.24411pt x 469.51447pt.
-[15 <../figure/percolation_bottlenecks.png>]
+[16 <../figure/percolation_bottlenecks.png>]
 
-LaTeX Warning: Reference `fig:graph_search_raw' on page 16 undefined on input line 844.
+LaTeX Warning: Reference `fig:graph_search_raw' on page 17 undefined on input line 856.
 
-<../figure/graph_search/raw_q2/merged_graph_search_analysis.png, id=177, 1088.02486pt x 1117.65555pt>
+<../figure/graph_search/raw_q2/merged_graph_search_analysis.png, id=182, 1088.02486pt x 1117.65555pt>
 File: ../figure/graph_search/raw_q2/merged_graph_search_analysis.png Graphic file (type png)
 <use ../figure/graph_search/raw_q2/merged_graph_search_analysis.png>
-Package pdftex.def Info: ../figure/graph_search/raw_q2/merged_graph_search_analysis.png  used on input line 851.
+Package pdftex.def Info: ../figure/graph_search/raw_q2/merged_graph_search_analysis.png  used on input line 863.
 (pdftex.def)             Requested size: 455.24411pt x 467.63852pt.
 
-LaTeX Warning: Reference `fig:graph_search_norm' on page 16 undefined on input line 855.
+LaTeX Warning: Reference `fig:graph_search_norm' on page 17 undefined on input line 867.
 
 
-LaTeX Warning: Reference `fig:graph_search_norm' on page 16 undefined on input line 855.
+LaTeX Warning: Reference `fig:graph_search_norm' on page 17 undefined on input line 867.
 
-[16 <../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png>]
+[17 <../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png>]
 
-LaTeX Warning: Reference `tab:merge_metrics' on page 17 undefined on input line 859.
+LaTeX Warning: Reference `tab:merge_metrics' on page 18 undefined on input line 871.
 
 
-Overfull \hbox (1.27385pt too wide) in paragraph at lines 859--863
+Overfull \hbox (1.27385pt too wide) in paragraph at lines 871--875
 []\T1/cmr/m/n/10.95 Table [] re-ports the three eval-u-a-tion met-rics for Ap-proach 1 at the 15 rep-re-sen-ta-tive timesteps
  []
 
-[17 <../figure/graph_search/raw_q2/merged_graph_search_analysis.png>] [18]
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png, id=201, 571.22208pt x 296.01791pt>
+[18 <../figure/graph_search/raw_q2/merged_graph_search_analysis.png>] [19]
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png, id=207, 571.22208pt x 296.01791pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png  used on input line 952.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png  used on input line 964.
 (pdftex.def)             Requested size: 455.24411pt x 235.91579pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png, id=202, 571.22208pt x 296.01791pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png, id=208, 571.22208pt x 296.01791pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png  used on input line 960.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png  used on input line 972.
 (pdftex.def)             Requested size: 455.24411pt x 235.91579pt.
- [19]
+ [20]
 
-LaTeX Warning: Reference `fig:kmeans_maps1' on page 20 undefined on input line 968.
+LaTeX Warning: Reference `fig:kmeans_maps1' on page 21 undefined on input line 980.
 
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png, id=209, 501.5538pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png, id=214, 501.5538pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png  used on input line 975.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png  used on input line 987.
 (pdftex.def)             Requested size: 218.51521pt x 143.26001pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png, id=210, 501.5538pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png, id=215, 501.5538pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png  used on input line 981.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png  used on input line 993.
 (pdftex.def)             Requested size: 218.51521pt x 143.26001pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png, id=211, 543.4704pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png, id=216, 543.4704pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png  used on input line 989.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png  used on input line 1001.
 (pdftex.def)             Requested size: 218.51521pt x 132.21144pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png, id=212, 543.4704pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png, id=217, 543.4704pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png  used on input line 995.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png  used on input line 1007.
 (pdftex.def)             Requested size: 218.51521pt x 132.21144pt.
-[20 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png>]
+[21 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png>]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1036.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1036.
+(hyperref)                removing `math shift' on input line 1048.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1036.
+(hyperref)                removing `math shift' on input line 1048.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1036.
-
-[21 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>]
-
-LaTeX Warning: Reference `sec:methods:results_km' on page 22 undefined on input line 1051.
+(hyperref)                removing `math shift' on input line 1048.
 
 
-LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 22 undefined on input line 1056.
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1048.
 
-<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png, id=233, 414.8298pt x 270.57887pt>
+[22 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>]
+
+LaTeX Warning: Reference `sec:methods:results_km' on page 23 undefined on input line 1063.
+
+
+LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 23 undefined on input line 1068.
+
+<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png, id=238, 414.8298pt x 270.57887pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png  used on input line 1062.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png  used on input line 1074.
 (pdftex.def)             Requested size: 218.51521pt x 142.5267pt.
-<../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png, id=234, 414.8298pt x 270.57887pt>
+<../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png, id=239, 414.8298pt x 270.57887pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png  used on input line 1067.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png  used on input line 1079.
 (pdftex.def)             Requested size: 218.51521pt x 142.5267pt.
 
-LaTeX Warning: Reference `fig:grid_kmeans_speed' on page 22 undefined on input line 1078.
+LaTeX Warning: Reference `fig:grid_kmeans_speed' on page 23 undefined on input line 1090.
 
-<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png, id=235, 715.473pt x 281.853pt>
+<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png, id=240, 715.473pt x 281.853pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png  used on input line 1083.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png  used on input line 1095.
 (pdftex.def)             Requested size: 455.24411pt x 179.33592pt.
 
-LaTeX Warning: Reference `tab:km_metrics' on page 22 undefined on input line 1093.
+LaTeX Warning: Reference `tab:km_metrics' on page 23 undefined on input line 1105.
 
 
-Overfull \hbox (1.27385pt too wide) in paragraph at lines 1093--1096
+Overfull \hbox (1.27385pt too wide) in paragraph at lines 1105--1108
 []\T1/cmr/m/n/10.95 Table [] re-ports the three eval-u-a-tion met-rics for Ap-proach 2 at the 15 rep-re-sen-ta-tive timesteps
  []
 
-[22 <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>]
+[23 <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>]
 
-LaTeX Warning: Reference `fig:compare_methods' on page 23 undefined on input line 1135.
+LaTeX Warning: Reference `fig:compare_methods' on page 24 undefined on input line 1147.
 
-<../figure/congestion_maps/compare_methods_t15.png, id=246, 798.43896pt x 336.20004pt>
+<../figure/congestion_maps/compare_methods_t15.png, id=251, 798.43896pt x 336.20004pt>
 File: ../figure/congestion_maps/compare_methods_t15.png Graphic file (type png)
 <use ../figure/congestion_maps/compare_methods_t15.png>
-Package pdftex.def Info: ../figure/congestion_maps/compare_methods_t15.png  used on input line 1143.
+Package pdftex.def Info: ../figure/congestion_maps/compare_methods_t15.png  used on input line 1155.
 (pdftex.def)             Requested size: 455.24411pt x 191.69756pt.
 
-LaTeX Warning: Reference `tab:comparison' on page 23 undefined on input line 1155.
+LaTeX Warning: Reference `tab:comparison' on page 24 undefined on input line 1167.
 
 
-LaTeX Warning: Reference `fig:graph_search_norm' on page 23 undefined on input line 1160.
+LaTeX Warning: Reference `fig:graph_search_norm' on page 24 undefined on input line 1172.
 
 
-LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 23 undefined on input line 1160.
+LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 24 undefined on input line 1172.
 
-[23 <../figure/congestion_maps/compare_methods_t15.png>] (report.bbl) [24] [25] (report.aux)
+[24 <../figure/congestion_maps/compare_methods_t15.png>] (report.bbl [25]) [26] (report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -853,17 +854,17 @@ Package rerunfilecheck Info: Checksums for `report.out':
 (rerunfilecheck)             After:  E83A3B1EEDB3952624921E830254E490;11074.
  ) 
 Here is how much of TeX's memory you used:
- 19689 strings out of 467871
- 402646 string characters out of 5417409
- 775019 words of memory out of 5000000
- 48226 multiletter control sequences out of 15000+600000
+ 19693 strings out of 467871
+ 402695 string characters out of 5417409
+ 775028 words of memory out of 5000000
+ 48228 multiletter control sequences out of 15000+600000
  647911 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,1211b,1144s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,1211b,1161s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1000.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-Output written on report.pdf (25 pages, 6278526 bytes).
+Output written on report.pdf (26 pages, 6283527 bytes).
 PDF statistics:
- 817 PDF objects out of 1000 (max. 8388607)
- 140 named destinations out of 1000 (max. 500000)
+ 826 PDF objects out of 1000 (max. 8388607)
+ 144 named destinations out of 1000 (max. 500000)
  111 words of extra memory for PDF output out of 10000 (max. 10000000)
 

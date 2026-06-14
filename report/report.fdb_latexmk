@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex report"] 0 "report.aux" "report.bbl" "report" 0 -1
+["bibtex report"] 1781472377.50257 "report.aux" "report.bbl" "report" 1781472558.94978 0
   "./references.bib" 1780595329 510 22f963c6259837f35fdfabc1e60e0863 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/plain.bst" 1291864736 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "report.aux" 1781374558 36408 3ce31c8c26941167f7eb97e1e5eab6cf "pdflatex"
+  "report.aux" 1781472558 36802 f9d7adbe87a319b64ea63af1d4d8c3c0 "pdflatex"
   (generated)
   "report.bbl"
   "report.blg"
   (rewritten before read)
-["pdflatex"] 1781374553.50506 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781374559.46375 2
+["pdflatex"] 1781472552.90947 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781472558.95051 2
   "../figure/analysis/avg_speed_map.png" 1772917357 307041 38a112189290f5e58a837e29926d349c ""
   "../figure/analysis/data_reliability_map.png" 1772917364 492301 61ad816a07aa6658e3b9394bec2a232e ""
   "../figure/analysis/nan_distribution.png" 1772917365 86803 a5d856b4a476fd50b4594e65804b4a38 ""
@@ -165,12 +165,12 @@
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/translations/translations.sty" 1644048522 44247 2188b95d0ee74e31eca4d316263c58a7 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
-  "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" 1781374552 68257 fe8e0e8be8455bf5a9efb927682bfab2 ""
-  "report.aux" 1781374558 36408 3ce31c8c26941167f7eb97e1e5eab6cf "pdflatex"
-  "report.bbl" 1781374168 0 d41d8cd98f00b204e9800998ecf8427e "bibtex report"
-  "report.out" 1781374558 11074 e83a3b1eedb3952624921e830254e490 "pdflatex"
-  "report.tex" 1781374552 68257 fe8e0e8be8455bf5a9efb927682bfab2 ""
-  "report.toc" 1781374558 6612 2ee6b0edb504be9879c8c0646a63583d "pdflatex"
+  "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" 1781472546 70284 f0552241997433f09c8585dc0f1e5963 ""
+  "report.aux" 1781472558 36802 f9d7adbe87a319b64ea63af1d4d8c3c0 "pdflatex"
+  "report.bbl" 1781472377 385 275a3f713d68cc3587be4f8e3a0775d7 "bibtex report"
+  "report.out" 1781472558 11074 e83a3b1eedb3952624921e830254e490 "pdflatex"
+  "report.tex" 1781472546 70284 f0552241997433f09c8585dc0f1e5963 ""
+  "report.toc" 1781472558 6613 6e25094182f6feddb67c98a65065d16e "pdflatex"
   (generated)
   "report.aux"
   "report.log"
