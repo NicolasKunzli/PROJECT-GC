@@ -106,3 +106,63 @@ def numerical_sort(file):
     """
     numbers = re.findall(r"\d+", file)
     return int(numbers[0]) if numbers else -1
+
+
+
+def graph_base(
+    node_color="#0F766E",
+    node_size=12,
+    node_alpha=0.4,
+    link_color="#374151",
+    link_width=1.0,
+    poly_face="#F4A261",
+    poly_edge="#E76F51",
+    poly_alpha=0.75,
+):
+    """Render the styled baseline network map used for visual inspection."""
+
+    fig, ax = plt.subplots(figsize=(10, 8), dpi=250)
+
+    # Intersection polygons
+    for _, data in DL.intersection_polygon.items():
+        poly = np.asarray(data["polygon"])
+
+        ax.fill(
+            poly[:, 0],
+            poly[:, 1],
+            facecolor=poly_face,
+            edgecolor=poly_edge,
+            linewidth=0.8,
+            alpha=poly_alpha,
+            zorder=1,
+        )
+
+    # Links
+    for _, row in links.iterrows():
+        x, y = sublink(row)
+        ax.plot(
+            x,
+            y,
+            color=link_color,
+            linewidth=link_width,
+            zorder=2,
+        )
+
+    # Nodes
+    ax.scatter(
+        DL.node_coordinates[:, 0],
+        DL.node_coordinates[:, 1],
+        s=node_size,
+        c=node_color,
+        alpha=node_alpha,
+        zorder=3,
+    )
+
+    ax.set_aspect("equal")
+    ax.set_title("Network", fontsize=10)
+    ax.set_xlabel("X [m]", fontsize=10)
+    ax.set_ylabel("Y [m]", fontsize=10)
+    ax.tick_params(axis="both", labelsize=8)
+
+    fig.savefig("graph.png", bbox_inches="tight")
+    plt.close(fig)

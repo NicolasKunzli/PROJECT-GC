@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex report"] 0 "report.aux" "report.bbl" "report" 1781798154.33928 -1
+["bibtex report"] 0 "report.aux" "report.bbl" "report" 0 -1
   "./references.bib" 1780595329 510 22f963c6259837f35fdfabc1e60e0863 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/bibtex/bst/bibtex/plain.bst" 1291864736 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "report.aux" 1781798153 35960 d49619971cb7a57c8bc3720a218b8a17 "pdflatex"
+  "report.aux" 1781808175 35960 95cd9decd139c6da3dbd1a4450b4e6e3 "pdflatex"
   (generated)
   "report.bbl"
   "report.blg"
   (rewritten before read)
-["pdflatex"] 1781798148.50874 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781798154.33994 2
+["pdflatex"] 1781808170.50578 "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" "report.pdf" "report" 1781808176.42623 2
   "../figure/analysis/avg_speed_map.png" 1772917357 307041 38a112189290f5e58a837e29926d349c ""
   "../figure/analysis/data_reliability_map.png" 1772917364 492301 61ad816a07aa6658e3b9394bec2a232e ""
   "../figure/analysis/nan_distribution.png" 1772917365 86803 a5d856b4a476fd50b4594e65804b4a38 ""
@@ -27,9 +27,9 @@
   "../figure/congestion_maps/compare_methods_t15.png" 1781797756 774758 d01ee9996d441216aebf922d26a6c487 ""
   "../figure/graph_search/norm_q0.52/merged_graph_search_analysis.png" 1781365799 1156206 3cb33f4792bd069ff0b94c7c5a91a144 ""
   "../figure/graph_search/raw_q2/merged_graph_search_analysis.png" 1781365819 859716 6ae386b4599e74b7d558ac88805e24f7 ""
-  "../figure/percolation_bottlenecks.png" 1781797726 307113 89a01a4b10a93d8cb47e6e0458d5c8f8 ""
-  "../figure/percolation_transition.png" 1781797725 92493 23ec81ce4d52b544b7c418b5e1470ccc ""
-  "../graph.png" 1772834358 353292 ed4ef1437df78028f2c7f4148a822cda ""
+  "../figure/percolation_bottlenecks.png" 1781807816 307113 89a01a4b10a93d8cb47e6e0458d5c8f8 ""
+  "../figure/percolation_transition.png" 1781808143 92493 23ec81ce4d52b544b7c418b5e1470ccc ""
+  "../graph.png" 1781808142 808085 46ce886c1dee19f26ee8f5b98b07e407 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1781193197 80909 eab91d9745dd2edfd62a31d53cd5fe15 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1000.pk" 1777909626 25420 964b09039395245b6070421f475dee00 ""
   "C:/Users/Nicolas/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1095.pk" 1777909621 28976 05d9266cdfde0b07e46906575ed9f535 ""
@@ -165,11 +165,11 @@
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/url/url.sty" 1388490452 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
   "C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "c:/Users/Nicolas/Documents/GitHub/PROJECT-GC/report/report.tex" 1781798141 74111 5f117c2672ec84ccf1b6129b19dceebf ""
-  "report.aux" 1781798153 35960 d49619971cb7a57c8bc3720a218b8a17 "pdflatex"
-  "report.bbl" 1781792254 0 d41d8cd98f00b204e9800998ecf8427e "bibtex report"
-  "report.out" 1781798153 10085 c676ad83a6d5ac7f721edc4c4debe387 "pdflatex"
+  "report.aux" 1781808175 35960 95cd9decd139c6da3dbd1a4450b4e6e3 "pdflatex"
+  "report.bbl" 1781808159 0 d41d8cd98f00b204e9800998ecf8427e "bibtex report"
+  "report.out" 1781808175 10085 c676ad83a6d5ac7f721edc4c4debe387 "pdflatex"
   "report.tex" 1781798141 74111 5f117c2672ec84ccf1b6129b19dceebf ""
-  "report.toc" 1781798153 6473 c9f10e2c3db24b557e65444e20e516b8 "pdflatex"
+  "report.toc" 1781808175 6473 c9f10e2c3db24b557e65444e20e516b8 "pdflatex"
   (generated)
   "report.aux"
   "report.log"

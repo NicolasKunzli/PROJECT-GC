@@ -21,7 +21,7 @@ import numpy as np
 
 from config import DL, links
 
-from network.draw     import graph
+from network.draw     import graph, graph_base
 from network.simplify import simplified_map
 
 from clustering.features import thresholds
@@ -51,6 +51,18 @@ if __name__ == "__main__":
 
     # ── Baseline map ──────────────────────────────────────────────────────────
     # graph()
+    graph_base(
+    node_color="teal", 
+    node_size=6,
+    node_alpha=0.4,
+
+    link_color="black",
+    link_width=1,
+
+    poly_face="#D97706",  
+    poly_edge="#9A3412",  
+    poly_alpha=0.65,
+    )
 
     # ── GIF parameters ────────────────────────────────────────────────────────
     fps = 0.5
