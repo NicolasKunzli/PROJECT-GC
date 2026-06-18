@@ -42,7 +42,11 @@ from clustering.features import build_cluster_features
 from processing.speed import mean_over_sessions, fill_speed_nans
 from utils import closest_link
 
-
+from percolation.core import (
+    build_directed_adjacency,
+    compute_normalized_speed,
+    find_critical_threshold,
+)
 
 def kmeans_clustering(
     n_clusters,
@@ -59,7 +63,9 @@ def kmeans_clustering(
     session_min=0,
     session_max=100,
     spatial_centroids=False,
-    colors=None
+    colors=None,
+    qc=0.52,
+    vc=6
 ):
     """
     Cluster road links with KMeans and save a colour-coded network map.
@@ -141,7 +147,52 @@ def kmeans_clustering(
             n_init="auto",
         )
 
-    labels    = kmeans.fit_predict(X)
+    labels = kmeans.fit_predict(X)
+
+    # ── Percolation-based congestion metric per cluster ───────────────────────
+    r = compute_normalized_speed()
+
+    if timeframe is None:
+        r_sel = mean_over_sessions(
+            r,
+            min=session_min,
+            max=session_max + 1
+        )
+    else:
+        r_sel = mean_over_sessions(
+            r[:, timeframe:timeframe + 1, :],
+            min=session_min,
+            max=session_max + 1
+        )
+
+    r_mean, r_nodata_mask = fill_speed_nans(r_sel)
+
+    cluster_mean_r = []
+    cluster_median_r = []
+    cluster_congested_share = []
+    cluster_is_congested = []
+
+    for k in range(n_clusters):
+        cluster_idx = np.where(labels == k)[0]
+        valid_idx = cluster_idx[~r_nodata_mask[cluster_idx]]
+
+        if len(valid_idx) == 0:
+            mean_r_k = np.nan
+            median_r_k = np.nan
+            share_cong_k = np.nan
+            is_congested_k = False
+        else:
+            r_k = r_mean[:, valid_idx]
+            mean_r_k = np.nanmean(r_k)
+            median_r_k = np.nanmedian(r_k)
+            share_cong_k = np.nanmean(r_k < qc)
+            is_congested_k = median_r_k < qc
+
+        cluster_mean_r.append(mean_r_k)
+        cluster_median_r.append(median_r_k)
+        cluster_congested_share.append(share_cong_k)
+        cluster_is_congested.append(is_congested_k)
+    
     centroids = kmeans.cluster_centers_
 
     # Find the link closest to each centroid (the cluster "spawn point")
@@ -222,10 +273,12 @@ def kmeans_clustering(
 
     polyg(ax, color="black", alpha=0.6, zorder=-1)
 
+
     # ── Legend: cluster index + mean speed ────────────────────────────────────
     cluster_mean_speeds = []
     cluster_speed_stds = []
-
+    cluster_median_speeds = []
+    
     for k in range(n_clusters):
         cluster_idx = np.where(labels == k)[0]
         if timeframe is None:
@@ -240,6 +293,7 @@ def kmeans_clustering(
                 :,
                 cluster_idx
             ]
+            speed_k = speed[session_min:session_max + 1, :, cluster_idx]
         else:
             vdist_k = vdist[
                 session_min:session_max + 1,
@@ -252,10 +306,12 @@ def kmeans_clustering(
                 timeframe,
                 cluster_idx
             ]
-
+            speed_k = speed[session_min:session_max + 1, timeframe, cluster_idx]
+            
         total_dist = np.nansum(vdist_k)
         total_time = np.nansum(vtime_k)
-
+        cluster_median_speeds.append(np.nanmedian(speed_k))
+        
         mean_cluster_speed = (
             total_dist / total_time
             if total_time > 0 else np.nan
@@ -281,8 +337,8 @@ def kmeans_clustering(
             lw=3,
             label=(
                 f"Cluster {k} | "
-                f"{cluster_mean_speeds[k]:.2f} ± "
-                f"{cluster_speed_stds[k]:.2f} m/s"
+                f"median={cluster_median_speeds[k]:.2f} m/s | "
+                f"{'congested' if cluster_median_speeds[k] < vc else 'functional'}"
             )
         )
         for k in range(n_clusters)
@@ -394,6 +450,7 @@ def plot_cluster_speed(
     folder,
     colors=None,
     ylabel="Mean speed (m/s)",
+    vc=6
 ):
     """
     Plot already computed cluster speeds on a graph with time on the x-axis and speed on the y-axis.
@@ -437,6 +494,15 @@ def plot_cluster_speed(
     plt.ylabel(ylabel)
     plt.title(name)
     
+    if vc is not None:
+        plt.axhline(
+            vc,
+            linestyle="--",
+            linewidth=1.2,
+            color="red",
+            label=f"Percolation threshold ({vc:.2f} m/s)"
+        )
+
     plt.legend(
         fontsize=6,
         loc="center left",
@@ -461,7 +527,8 @@ def run_kmeans_graph(
     timeframe,
     cluster_colors,
     session_min=0,
-    session_max=100
+    session_max=100,
+    qc=0.52,
 ):
     """
     Helper function combining the kmeans_clustering function and the plot_cluster_speed function.
@@ -482,6 +549,33 @@ def run_kmeans_graph(
     cluster_size_time = []
     folder = None
 
+
+    # ── Percolation threshold converted to m/s ─────────────────────────
+    r = compute_normalized_speed()
+
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
+
+    speed = np.divide(
+        vdist,
+        vtime,
+        out=np.full(vdist.shape, np.nan),
+        where=vtime != 0
+    )
+
+    # vmax = speed / r
+    vmax = np.divide(
+        speed,
+        r,
+        out=np.full(speed.shape, np.nan),
+        where=r > 0
+    )
+
+    vc = qc * np.nanpercentile(vmax, 95)
+
+    
+    print(f"Equivalent percolation threshold: {vc:.2f} m/s")
+
     for t in timeframe:
         
         # Clusters mean
@@ -496,7 +590,9 @@ def run_kmeans_graph(
             session_min=session_min,
             session_max=session_max,
             colors=cluster_colors,
-            show_weights=True
+            show_weights=True,
+            qc=qc,
+            vc=vc
         )
 
         # Clusters median and max
@@ -571,13 +667,15 @@ def run_kmeans_graph(
 
     os.makedirs(graph_folder, exist_ok=True)
 
+
     plot_cluster_speed(
         timesteps=timeframe,
         values=mean_speed_time,
         name=f"{name}_mean_s{session_min}-{session_max}",
         folder=graph_folder,
         colors=cluster_colors,
-        ylabel="Mean speed (m/s)"
+        ylabel="Mean speed (m/s)",
+        vc=vc
     )
 
     plot_cluster_speed(
@@ -586,7 +684,8 @@ def run_kmeans_graph(
         name=f"{name}_median_s{session_min}-{session_max}",
         folder=graph_folder,
         colors=cluster_colors,
-        ylabel="Median speed (m/s)"
+        ylabel="Median speed (m/s)",
+        vc=vc
     )
 
     # plot_cluster_speed(
@@ -604,6 +703,7 @@ def run_kmeans_graph(
         name=f"{name}_clusters_count_s{session_min}-{session_max}",
         folder=graph_folder,
         colors=cluster_colors,
-        ylabel="Number of links"
+        ylabel="Number of links",
+        vc=None
     )
     return mean_speed_time, median_speed_time, max_speed_time, cluster_size_time

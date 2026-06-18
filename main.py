@@ -88,7 +88,8 @@ if __name__ == "__main__":
 
     # # ── Percolation analysis ──────────────────────────────────────────────────
     qc, bottlenecks = percolation_analysis(session=0)
-    # congestion_map(qc, session=0)
+    print(qc)
+    congestion_map(qc, session=0)
     grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
     spawns_grid_k5 = grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
     spawns_grid_k9 = grid_clust_kmeans(20, 16, k=9, qc=qc)  # 9 K-means clusters on (x, y, speed)
@@ -106,28 +107,28 @@ if __name__ == "__main__":
         grid_qc=0.52,
     )
 
-    # # ── Graph-search grid clustering  ─────────────────────────────────────────
-    # # Run 1: normalised speed, q = 0.52  (same threshold as percolation)
-    run_graph_search_analysis(
-        qc=0.52,
-        xdiv=20,
-        ydiv=16,
-        key_timesteps=[5, 17, 29, 31],
-        use_all_sessions=True,
-        use_normalized=True,
-        folder="figure/graph_search/norm_q0.52",
-    )
+    # # # ── Graph-search grid clustering  ─────────────────────────────────────────
+    # # # Run 1: normalised speed, q = 0.52  (same threshold as percolation)
+    # run_graph_search_analysis(
+    #     qc=0.52,
+    #     xdiv=20,
+    #     ydiv=16,
+    #     key_timesteps=[5, 17, 29, 31],
+    #     use_all_sessions=True,
+    #     use_normalized=True,
+    #     folder="figure/graph_search/norm_q0.52",
+    # )
 
-    # # Run 2: raw speed, q = 2 m/s  ("changed flow" — stricter congestion definition)
-    run_graph_search_analysis(
-        qc=2.0,
-        xdiv=20,
-        ydiv=16,
-        key_timesteps=[5, 17, 29, 31],
-        use_all_sessions=True,
-        use_normalized=False,
-        folder="figure/graph_search/raw_q2",
-    )
+    # # # Run 2: raw speed, q = 2 m/s  ("changed flow" — stricter congestion definition)
+    # run_graph_search_analysis(
+    #     qc=2.0,
+    #     xdiv=20,
+    #     ydiv=16,
+    #     key_timesteps=[5, 17, 29, 31],
+    #     use_all_sessions=True,
+    #     use_normalized=False,
+    #     folder="figure/graph_search/raw_q2",
+    # )
 
     # ── Spawn-point selection ─────────────────────────────────────────────────
     # Pre-compute network bounding-box fractile coordinates
@@ -358,7 +359,8 @@ if True:
         init_links=spawns_grid_k5,
         timeframe=None,
         session_min=s_min,
-        session_max=s_max
+        session_max=s_max,
+        qc=qc
     )     
     
     # 9 clusters, spawns from grid clust, total average
@@ -370,7 +372,8 @@ if True:
         init_links=spawns_grid_k9,
         timeframe=None,
         session_min=s_min,
-        session_max=s_max
+        session_max=s_max,
+        qc=qc
     )  
     
     s_min = 1
@@ -384,7 +387,8 @@ if True:
         timeframe=timesteps,
         cluster_colors=cluster_colors[len(spawns_grid_k5)],
         session_min=s_min,
-        session_max=s_max
+        session_max=s_max,
+        qc=qc
     ) 
     
     # 9 clusters, spawns from grid clust
@@ -395,63 +399,64 @@ if True:
         timeframe=timesteps,
         cluster_colors=cluster_colors[len(spawns_grid_k9)],
         session_min=s_min,
-        session_max=s_max
+        session_max=s_max,
+        qc=qc
     ) 
     
-    # 7 No lower right
-    run_kmeans_graph(
-        n_clusters=len(bottlenecks_no_lr),
-        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
-        init_links=bottlenecks_no_lr,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
-        session_min=s_min,
-        session_max=s_max
-    )
+    # # 7 No lower right
+    # run_kmeans_graph(
+    #     n_clusters=len(bottlenecks_no_lr),
+    #     name="kmeans_speed_clusters_bottlenecks_sessions/7-no_lr",
+    #     init_links=bottlenecks_no_lr,
+    #     timeframe=timesteps,
+    #     cluster_colors=cluster_colors[len(bottlenecks_no_lr)],
+    #     session_min=s_min,
+    #     session_max=s_max
+    # )
     
-    # 7 Clusters no middle left
-    mean_speed_time = run_kmeans_graph(
-        n_clusters=len(bottlenecks1[:-1]),
-        name="kmeans_speed_clusters_bottlenecks_sessions/7-no_ml",
-        init_links=bottlenecks1[:-1],
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
-        session_min=s_min,
-        session_max=s_max
-    )
+    # # 7 Clusters no middle left
+    # mean_speed_time = run_kmeans_graph(
+    #     n_clusters=len(bottlenecks1[:-1]),
+    #     name="kmeans_speed_clusters_bottlenecks_sessions/7-no_ml",
+    #     init_links=bottlenecks1[:-1],
+    #     timeframe=timesteps,
+    #     cluster_colors=cluster_colors[len(bottlenecks1[:-1])],
+    #     session_min=s_min,
+    #     session_max=s_max
+    # )
     
-    # 8 bottlenecks1
-    run_kmeans_graph(
-        n_clusters=len(bottlenecks1),
-        name="kmeans_speed_clusters_bottlenecks_sessions/8",
-        init_links=bottlenecks1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(bottlenecks1)],
-        session_min=s_min,
-        session_max=s_max
-    )
+    # # 8 bottlenecks1
+    # run_kmeans_graph(
+    #     n_clusters=len(bottlenecks1),
+    #     name="kmeans_speed_clusters_bottlenecks_sessions/8",
+    #     init_links=bottlenecks1,
+    #     timeframe=timesteps,
+    #     cluster_colors=cluster_colors[len(bottlenecks1)],
+    #     session_min=s_min,
+    #     session_max=s_max
+    # )
 
-    # 9 mixed2, middle left
-    run_kmeans_graph(
-        n_clusters=len(mixed2),
-        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
-        init_links=mixed2,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed2)],
-        session_min=s_min,
-        session_max=s_max
-    )    
+    # # 9 mixed2, middle left
+    # run_kmeans_graph(
+    #     n_clusters=len(mixed2),
+    #     name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-left",
+    #     init_links=mixed2,
+    #     timeframe=timesteps,
+    #     cluster_colors=cluster_colors[len(mixed2)],
+    #     session_min=s_min,
+    #     session_max=s_max
+    # )    
 
-    # 9 mixed1, middle up
-    run_kmeans_graph(
-        n_clusters=len(mixed1),
-        name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
-        init_links=mixed1,
-        timeframe=timesteps,
-        cluster_colors=cluster_colors[len(mixed1)],
-        session_min=s_min,
-        session_max=s_max
-    )
+    # # 9 mixed1, middle up
+    # run_kmeans_graph(
+    #     n_clusters=len(mixed1),
+    #     name="kmeans_speed_clusters_bottlenecks_sessions/9-middle-up",
+    #     init_links=mixed1,
+    #     timeframe=timesteps,
+    #     cluster_colors=cluster_colors[len(mixed1)],
+    #     session_min=s_min,
+    #     session_max=s_max
+    # )
    
 
     

@@ -21,7 +21,7 @@
 % ── Title ─────────────────────────────────────────────────────────────────
 \title{Identifying Congested and Uncongested Regions \\
        in the Barcelona Road Network}
-\author{Arthus Duval}
+\author{Arthus Duval, Nicolas Künzli}
 \date{\today}
 
 \begin{document}
@@ -570,63 +570,53 @@ does not alter the underlying analysis.
 \subsection{Overview and Evaluation Framework}
 \label{sec:methods:overview}
 
-Two methodologically distinct approaches are used to partition the road network
-into congested and uncongested regions during the morning peak hour
-(08:03--09:57, $T = 39$ timesteps of three minutes each).
+Three complementary approaches are used to identify congested and
+uncongested regions in the Barcelona road network during the morning peak
+period (08:03--09:57, $T = 39$ timesteps of three minutes each).
 
-Both approaches share a common spatial substrate and the same normalised-speed
-input.  The network is projected onto a $20 \times 16$ rectangular grid covering
-the 4.4\,km $\times$ 4.0\,km bounding box, yielding 320 cells of approximately
-$250\,\text{m} \times 250\,\text{m}$ each.  The state of cell $c$ at timestep
-$t$ is the mean normalised speed of its road segments:
-\begin{equation}
-  \bar{r}_c(t) \;=\; \frac{1}{|C_c|} \sum_{ij \in C_c} r_{ij}(t),
-  \qquad
-  r_{ij}(t) \;=\; \frac{v_{ij}(t)}{v_{\max,ij}},
-  \label{eq:cell_state}
-\end{equation}
-where $C_c$ is the set of road segments whose midpoint centroid falls in cell
-$c$, and $v_{\max,ij}$ is the 95th percentile of segment $ij$'s speed across all
-101 simulation sessions and all 39 analysis-window timesteps---a robust proxy for
-free-flow conditions.  Cells with more than 30\% missing observations are
-excluded and rendered in grey on all maps.
+Although the three methods rely on different clustering strategies, they all
+aim to partition the network into regions exhibiting distinct traffic states.
+The comparison is performed on a common set of speed measurements and
+evaluation metrics.
 
-\paragraph{Approach~1 (Section~\ref{sec:methods:merge})---Threshold-based grid
-clustering.}
-A global threshold $q_c$ is applied at the \emph{segment} level: segment $ij$
-is labelled congested if $r_{ij}(t) < q_c$.  A grid cell is then classified as
-\emph{congested} if more than 40\,\% of its valid road segments are congested,
-and \emph{functional} otherwise.  A breadth-first search (BFS) on the resulting
-binary grid groups contiguous congested cells into \emph{connected components}.
-At each timestep this produces $N(t)$ spatially contiguous congested clusters
-plus one functional background cluster, for a total of $N(t)+1$ clusters.
+\paragraph{Approach~1 (Section~\ref{sec:methods:merge}) --- Threshold-based
+connected-component detection.}
+A global congestion threshold $q_c$ is applied to the road network.
+Road segments whose normalised speed falls below the threshold are classified
+as congested. The resulting binary congestion map is projected onto a spatial
+grid and Breadth-First Search (BFS) is used to identify connected congested
+regions.
 
-\paragraph{Approach~2 (Section~\ref{sec:methods:clustering})---Grid K-means
-clustering.}
-K-means partitions the grid cells into $K$ fixed clusters jointly encoding
-spatial position and average normalised speed.  Each cluster is then labelled
-congested or functional by comparing its mean speed to $q_c$.  The number of
-clusters is a fixed hyperparameter, unlike Approach~1 where $N(t)$ varies with
-time.
+\paragraph{Approach~2 (Section~\ref{sec:methods:kclustering}) --- Link-based
+K-means clustering.}
+Road segments are clustered directly using feature vectors combining spatial
+coordinates and temporal speed characteristics. This approach groups links
+with similar traffic behaviour while preserving geographical coherence through
+spatial weighting and manually selected centroid spawn points.
 
-\paragraph{Evaluation metrics.}
-Both approaches are evaluated on three metrics tracked at 15 representative
-timesteps $\mathcal{T} = \{0, 3, 5, 7, 9, 13, 17, 19, 21, 23, 25, 29, 33, 36,
-38\}$, corresponding to 08:03 through 09:57 with denser sampling at the onset of
-congestion:
-\begin{enumerate}
-  \item \textbf{Number of congested clusters} $N(t)$: for Approach~1 the number
-    of BFS connected components; for Approach~2 the number of K-means clusters
-    with mean speed below $q_c$.
-  \item \textbf{Cluster size} $S_k(t)$: the number of grid cells in cluster $k$
-    at timestep $t$.
-  \item \textbf{Median speed} $\tilde{v}_k(t)$: the median raw speed (m/s) of
-    all road segments in cluster $k$ at timestep $t$, reflecting the internal
-    severity of congestion.
-\end{enumerate}
-For Approach~1 the top five congested components (ranked by size at each
-timestep) and the largest functional connected component are tracked
-individually.  For Approach~2 all $K$ clusters are tracked.
+\paragraph{Approach~3 (Section~\ref{sec:methods:clustering}) --- Grid
+K-means clustering.}
+The road network is first projected onto a $20 \times 16$ spatial grid
+covering the study area. Each grid cell is represented by its average
+normalised speed and spatial coordinates. K-means is then used to partition
+the grid into a fixed number of spatially coherent traffic regions.
+
+\paragraph{Evaluation Metrics.}
+The three approaches are compared using a common set of quantitative metrics.
+For each identified region $k$ and timestep $t$, we evaluate:
+
+\begin{itemize}
+    \item the median speed $\tilde{v}_k(t)$, which measures the internal
+    traffic state and homogeneity of the region;
+    \item the cluster size $S_k(t)$, defined as the number of links or grid
+    cells belonging to the region;
+    \item the number of congested regions $N_c(t)$, which characterises the
+    spatial fragmentation of congestion across the network.
+\end{itemize}
+
+Together, these metrics provide a complementary assessment of traffic
+conditions, spatial extent, and congestion structure, allowing a direct
+comparison between the three approaches.
 
 % ──────────────────────────────────────────────────────────────────────────
 \subsection{Approach~1 --- Threshold-Based Grid Clustering}
@@ -953,7 +943,14 @@ The spawn points work as follows: each cluster is assigned a link that serves as
 \subsubsection{Results}
 \label{sec:methods:results_km1}
 
-For the sake of simplicity, we first analyze the results averaged over all available timeframes. Then, to better understand the influence of time on the clustering behavior, we examine the results at several well-spaced timeframes.\\
+For the sake of simplicity, we first analyse the results obtained by averaging
+over all available sessions. This provides a global view of the clustering
+behaviour and facilitates comparisons between methods.\\
+To further investigate the influence of temporal variability, the analysis is
+then repeated on selected subsets of sessions. In particular, results are
+presented for all 101 sessions and for sessions 1--20 only, the latter
+providing a more homogeneous subset and allowing the stability of the
+identified clusters to be assessed under reduced variability.\\
 Missing speed observations (NaN values) are handled using a tiered preprocessing strategy before clustering. For links with at most 30\% missing observations, NaN values are replaced by the median speed of the corresponding link over time. Links with more than 30\% missing observations are flagged as no-data links. Since the K-Means algorithm cannot operate on missing values, any remaining NaN entries are replaced by the global mean of the dataset before clustering. Consequently, these links are still assigned to clusters, although their temporal profiles become more neutral and therefore exert less influence on the clustering process. To indicate their lower data reliability, they are displayed in black in the network visualizations.
 
 \begin{figure}[H]
@@ -1208,65 +1205,152 @@ Figures~\ref{fig:graph_search_norm} and~\ref{fig:grid_kmeans_maps}.
 \label{sec:eval:framework}
 % What we are measuring: spatial coherence, temporal stability, separability,
 % interpretability.
-% TODO
+
+
+The three approaches are evaluated according to their ability to identify
+meaningful congested and uncongested regions within the road network. The
+comparison focuses on four complementary aspects: traffic-state homogeneity,
+spatial coherence, temporal consistency, and interpretability.
+
+Quantitative metrics are introduced in
+Section~\ref{sec:eval:metrics} and are computed for a set of representative
+timesteps spanning the morning peak period. These metrics are used to assess
+how well each method captures the spatial organisation and temporal evolution
+of congestion.
+
+The evaluation is performed on the subset of timesteps
+
+\[
+\mathcal{T}
+=
+\{0,3,5,7,9,13,17,19,21,23,25,29,33,36,38\},
+\]
+
+which covers the entire simulation window while providing finer temporal
+resolution during the congestion build-up phase.
+
+In addition to the quantitative analysis, visual interpretability is
+considered. A desirable partition should generate spatially coherent regions
+that can be associated with major traffic corridors, recurrent bottlenecks,
+or urban districts.
+
+Together, these elements provide a common framework for comparing the three
+approaches and identifying their respective strengths and limitations.
 
 \subsection{Metrics}
 \label{sec:eval:metrics}
 
-\subsubsection{Internal cluster-quality metrics}
-% Silhouette, Davies--Bouldin, inertia.
-% TODO
+The three approaches are evaluated using a common set of metrics designed to
+assess complementary aspects of the identified regions. Traffic-state metrics
+measure the homogeneity and separation of traffic conditions within clusters,
+spatial metrics characterise the extent and fragmentation of congestion across
+the network, and temporal metrics evaluate how these regions evolve throughout
+the morning peak period.
 
-\subsubsection{Stability metrics}
-% Cross-session stability, sensitivity to $k$, sensitivity to weights.
-% TODO
 
-\subsubsection{Spatial-coherence metrics}
-% Compactness, fragmentation, neighbour agreement.
-% TODO
+\subsubsection{Traffic-State Metrics}
 
-\subsubsection{Congestion-recovery metrics}
-% Agreement with threshold/percolation labels.
-% TODO
+The primary objective of the three approaches is to identify regions
+characterised by distinct traffic conditions. For each cluster $k$ at
+timestep $t$, the traffic state is evaluated through the median speed
 
-\subsection{Choosing the number of clusters}
-\label{sec:eval:k}
-% evaluate\_k figures: $k=4..8$, conclusion.
-% TODO
+\begin{equation}
+\tilde{v}_k(t)
+=
+\mathrm{median}
+\left\{
+v_{ij}(t)
+:
+ij \in C_k(t)
+\right\},
+\end{equation}
 
-\subsection{Results — Merge methods}
-\label{sec:eval:merge}
+where $C_k(t)$ denotes the set of links (or grid cells) belonging to cluster
+$k$. The median is preferred to the mean because it is less sensitive to
+outliers and short-lived speed fluctuations.
 
-\subsubsection{Threshold and grid aggregation}
-% TODO
+The separation between the speed distributions of different clusters provides
+an indication of the ability of a method to distinguish congested and
+uncongested traffic states. Clusters exhibiting relatively homogeneous median
+speeds are considered more representative of coherent traffic conditions.
 
-\subsubsection{Percolation transition and bottlenecks}
-% TODO
+\subsubsection{Spatial Metrics}
 
-\subsection{Results — Clustering}
-\label{sec:eval:clustering}
+The spatial organisation of congestion is evaluated through the size and
+distribution of the identified regions. The size of cluster $k$ is defined as
 
-\subsubsection{K-means: speed / distance / time / geometric features}
-% TODO
+\begin{equation}
+S_k(t) = |C_k(t)|.
+\end{equation}
 
-\subsubsection{K-means with bottleneck weighting}
-% TODO
+For the BFS-based approach, cluster size corresponds to the number of
+congested grid cells belonging to the same connected component. For the
+K-means approaches, it corresponds to the number of links or grid cells
+assigned to a given cluster.
 
-\subsubsection{K-means stability across sessions}
-% TODO
+In addition, the number of congested regions $N_c(t)$ is used to characterise
+the spatial fragmentation of congestion. Large values of $N_c(t)$ indicate
+multiple independent congestion zones, whereas small values correspond to
+more concentrated congestion patterns.
 
-\subsubsection{Ward vs.\ K-means}
-% TODO
+\subsubsection{Temporal Metrics}
 
-\subsection{Comparison of the two approaches}
+Congestion is inherently dynamic, making the temporal evolution of the
+identified regions an important aspect of the evaluation. Rather than
+introducing new indicators, the temporal analysis relies on the evolution of
+the traffic-state and spatial metrics defined above.
+
+The metrics are therefore computed for a subset of representative timesteps
+covering the entire morning peak period. The evolution of cluster median
+speeds $\tilde{v}_k(t)$ provides insight into the formation and dissipation of
+congestion, while changes in cluster sizes $S_k(t)$ reveal the spatial growth,
+contraction, merging, or fragmentation of congested regions over time.
+
+Temporal metrics should thus be interpreted as the dynamic counterpart of the
+traffic-state and spatial metrics. A method is considered temporally
+consistent if it captures these transitions without producing abrupt or
+implausible changes in the spatial partition of the network.
+
+\subsection{Comparison of the Three Approaches}
 \label{sec:eval:compare}
-% Where they agree, where they disagree, complementarity.
-% TODO
+
+\subsubsection{Traffic-State Homogeneity}
+% Compare median speeds and speed distributions.
+% Ability to separate congested and uncongested traffic states.
+
+\subsubsection{Spatial Coherence}
+% Compare region shapes and geographical continuity.
+% Localised vs large-scale congestion structures.
+
+\subsubsection{Temporal Behaviour}
+% Compare evolution of regions during the morning peak.
+% Emergence, growth and fragmentation of congestion.
+
+\subsubsection{Interpretability}
+% Visual comparison of the three approaches.
+% Relation with known corridors, bottlenecks and urban districts.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
-% NaN coverage, session imbalance, parameter sensitivity.
-% TODO
+
+\subsubsection{Missing Data}
+% NaN coverage and exclusion threshold.
+% Impact on clustering and percolation.
+
+\subsubsection{Demand and Session Structure}
+% Single session at 100% demand.
+% Unequal number of simulations per demand level.
+
+\subsubsection{Parameter Sensitivity}
+% Choice of qc.
+% Choice of K.
+% Grid resolution.
+% Spatial and dynamic feature weights.
+
+\subsubsection{Methodological Limitations}
+% Threshold dependence for BFS.
+% Fixed partitions for K-means.
+% Dependence on spatial aggregation.
 
 % ══════════════════════════════════════════════════════════════════════════
 \section{Conclusion}
