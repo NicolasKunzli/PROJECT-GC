@@ -77,9 +77,17 @@ if __name__ == "__main__":
         "vdist_3min_over_vtime_3min",
     ]
     # gradient_gif(param, param_name, fps)
+    vdist = DL._vdist_3min.astype(float)
+    vtime = DL._vtime_3min.astype(float)
 
-    # ── Threshold: low-speed and short links ──────────────────────────────────
-    th = thresholds(max_speed=2, max_length=np.inf)
+    speed = np.divide(
+        vdist,
+        vtime,
+        out=np.full(vdist.shape, np.nan),
+        where=vtime != 0
+    )
+
+    print(np.nanmax(speed[0:100]))
 
     # ── Ward (agglomerative) — feature-driven, connectivity-constrained ───────
     n_clus = 8
@@ -100,8 +108,9 @@ if __name__ == "__main__":
 
     # # ── Percolation analysis ──────────────────────────────────────────────────
     qc, bottlenecks = percolation_analysis(session=0)
+    qc = 0.52
     print(qc)
-    congestion_map(qc, session=0)
+    #congestion_map(qc, session=0)
     grid_clust(20, 16, qc=qc)  # grid coloured by percolation threshold
     spawns_grid_k5 = grid_clust_kmeans(20, 16, k=5, qc=qc)  # 5 K-means clusters on (x, y, speed)
     spawns_grid_k9 = grid_clust_kmeans(20, 16, k=9, qc=qc)  # 9 K-means clusters on (x, y, speed)
@@ -110,14 +119,14 @@ if __name__ == "__main__":
     # # ── Compare methods: simplified graph + q=0.52 threshold ──────────────────
     # # Left panel : grid aggregation on simplified network, r < 0.52 → congested
     # # Right panel: percolation on simplified network, r < q_c (auto-computed)
-    compare_congestion_methods(
-        session=0,
-        timestep=15,
-        xdiv=20,
-        ydiv=16,
-        qc=0.525,
-        grid_qc=0.52,
-    )
+    # compare_congestion_methods(
+    #     session=0,
+    #     timestep=15,
+    #     xdiv=20,
+    #     ydiv=16,
+    #     qc=0.525,
+    #     grid_qc=0.52,
+    # )
 
     # # # ── Graph-search grid clustering  ─────────────────────────────────────────
     # # # Run 1: normalised speed, q = 0.52  (same threshold as percolation)
@@ -372,6 +381,7 @@ if True:
         timeframe=None,
         session_min=s_min,
         session_max=s_max,
+        colors=cluster_colors[len(spawns_grid_k5)],
         qc=qc
     )     
     
@@ -385,6 +395,7 @@ if True:
         timeframe=None,
         session_min=s_min,
         session_max=s_max,
+        colors=cluster_colors[len(spawns_grid_k9)],
         qc=qc
     )  
     

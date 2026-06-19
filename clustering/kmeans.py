@@ -571,9 +571,8 @@ def run_kmeans_graph(
         where=r > 0
     )
 
-    vc = qc * np.nanpercentile(vmax, 95)
+    vc = qc * np.nanpercentile(vmax, 100)
 
-    
     print(f"Equivalent percolation threshold: {vc:.2f} m/s")
 
     for t in timeframe:

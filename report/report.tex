@@ -974,6 +974,27 @@ Missing speed observations (NaN values) are handled using a tiered preprocessing
 \label{fig:kmeans_maps1}
 \end{figure}
 
+\begin{figure}[H]
+\centering
+
+  \begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png}
+  \caption{$K = 5$}
+  \end{subfigure}
+
+  \vspace{0.5cm}
+
+  \begin{subfigure}{\textwidth}
+  \centering
+  \includegraphics[width=\textwidth]{clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png}
+  \caption{$K = 9$}
+  \end{subfigure}
+
+  \caption{K-means clustering results for $K=5$ and $K=9$. The clustering uses the same spawn-point initialization as the average-session analysis and is evaluated over multiple timesteps distributed across the full observation period. Timestep 21 is shown here as a representative example. Green links indicate the selected spawn points used for centroid initialization, while black links correspond to road segments with more than 30\% missing speed observations.}
+\label{fig:kmeans_maps2}
+\end{figure}
+
 The followwing graphs show the comparative metrics used to analysze the different clustering configuration for the maps of Figure~\ref{fig:kmeans_maps1}.
 
 \begin{figure}[H]
@@ -1318,17 +1339,45 @@ implausible changes in the spatial partition of the network.
 % Compare median speeds and speed distributions.
 % Ability to separate congested and uncongested traffic states.
 
+The clusters obtained through the threshold-based grid clustering exhibit substantial variability in their median speeds. The only relatively homogeneous cluster is the red cluster, whose median speed remains within a narrower range of approximately 3--5\,m/s and which consistently remains the largest cluster throughout the analysis. Its larger spatial extent likely contributes to the stability of its aggregate speed statistics. The remaining clusters display greater fluctuations, although all median speeds remain confined to a relatively narrow interval between 2 and 6\,m/s.
+
+The K-means approach provides more information about uncongested regions, whereas the first approach offers only limited insight into these areas. For $K=5$, only Cluster~3 remains consistently above the threshold, maintaining the highest median speed throughout the analysis. The remaining four clusters can be divided into two categories: Clusters~1 and~2, which exhibit very low median speeds, and Clusters~0 and~4, which display moderately low median speeds.
+For $K=9$, this subdivision becomes less distinct, as the median-speed curves are more evenly distributed. Clusters~4 and~7 exhibit the highest median speeds throughout the analysis.
+
+As expected, the grid K-means method produces trends similar to those observed with the link-based K-means approach. In both cases, a single cluster remains clearly dominant in terms of median speed, while the remaining clusters correspond to lower-speed traffic states. Although the traffic-state patterns identified by the three approaches are broadly consistent, the corresponding spatial regions do not fully coincide. Similar speed profiles may therefore be associated with different geographical partitions of the network. These differences become more apparent when examining the spatial organisation of the clusters.
+
 \subsubsection{Spatial Coherence}
 % Compare region shapes and geographical continuity.
 % Localised vs large-scale congestion structures.
+While the three approaches identify broadly similar traffic states, they differ in the way these states are distributed across the network. The threshold-based approach produces spatially contiguous congestion regions by construction, whereas the K-means approaches partition the network according to traffic characteristics. As a result, clusters with comparable speed profiles do not necessarily correspond to the same geographical areas.
+
+The regions identified by the first approach are generally elongated and corridor-shaped, rather than forming compact spatial clusters. Furthermore, some grid cells belonging to the same cluster are connected only diagonally, which can result in parts of a cluster being spatially disconnected from its main body. As mentioned previously, the largest cluster covers a substantial portion of the network and acts as a heterogeneous background region, while the smaller clusters correspond to more localized congestion patterns.
+
+The K-means approach partially mitigates this issue, as spatial proximity can be incorporated through the spatial-weight parameter. As a result, the resulting clusters tend to form more coherent and geographically continuous regions. However, this issue becomes more pronounced as $K$ increases, leading to a trade-off: further increasing the spatial-weight parameter may improve spatial coherence, but can reduce the algorithm's ability to distinguish between different traffic-speed regimes. This is the reason why only Sessions~1--20 were considered, as this subset improves the spatial stability of the clusters without requiring an increase in the spatial-weight parameter. Looking at the cluster sizes, we observe that for $K=5$, Cluster~3, which exhibits the highest median speed, is also the smallest cluster. A similar pattern is observed for $K=9$, where the two clusters with the highest median speeds are likewise the two smallest clusters. Additionally, Cluster~4 occupies approximately the same region as Cluster~3 in the $K=5$ configuration. Focusing on these uncongested regions, we observe that the peripheral areas of the network tend to exhibit higher speeds. This observation is consistent with real-world traffic patterns, as major activity centres and points of interest are typically concentrated near the city centre, resulting in higher traffic demand and lower average speeds. This observation is consistent with the fact that the two slowest clusters of $K=9$ are predominantly concentrated in the central part of the network, with a similar pattern observed for $K=5$.
+
+For the grid K-means approach, we observe that the spatial discretisation of the network introduces the same connectivity issues as those observed in the first approach. 
 
 \subsubsection{Temporal Behaviour}
 % Compare evolution of regions during the morning peak.
 % Emergence, growth and fragmentation of congestion.
 
+The three approaches differ substantially in the way they represent the temporal evolution of congestion. The threshold-based grid clustering is the most reactive method, as congested regions are recomputed independently at each timestep. As a result, it captures the emergence and fragmentation of congestion over time. During the early part of the observation period, the identified congested components remain small and scattered. Later in the morning peak, the largest component grows sharply, indicating the spatial expansion of congestion across the network. However, the median speeds of the congested components remain highly variable and do not follow a clear ordering, partly because clusters are ranked by size at each timestep rather than tracked as fixed spatial entities.
+
+The link-based K-means approach provides a more stable temporal description of the network. For $K=5$, the main traffic states remain relatively well separated over time: the fastest cluster consistently remains above the other clusters, while the lower-speed clusters remain grouped below the threshold. The cluster sizes also remain relatively stable for most of the observation period, suggesting that the main spatial partition does not change drastically over time. However, some abrupt increases or decreases can still be observed in the median-speed curves, indicating that local traffic conditions may change sharply at specific timesteps.
+For $K=9$, the temporal behaviour becomes more detailed but also less stable. The higher number of clusters allows finer traffic states to be distinguished, but the corresponding median-speed curves and cluster sizes show stronger fluctuations. In particular, sudden drops and rises appear more frequently, reflecting the increased sensitivity of smaller clusters to local variations in traffic speed. The final timesteps show an unusual increase in several speed curves; this behaviour is expected, as the end of the simulation corresponds to the dissipation of congestion and a progressive return toward free-flow conditions.
+
+The grid K-means approach provides the most stable temporal comparison, since the spatial regions are fixed by the grid-based clustering. As a consequence, cluster sizes remain constant over time, and the temporal evolution is observed mainly through changes in median speed. The fastest cluster remains clearly separated from the other clusters throughout the analysis, while the remaining clusters correspond to lower-speed traffic states. This makes the grid K-means approach useful for comparing persistent regional traffic patterns, although it smooths out some of the local and short-term congestion dynamics captured by the threshold-based approach.
+
+
 \subsubsection{Interpretability}
 % Visual comparison of the three approaches.
 % Relation with known corridors, bottlenecks and urban districts.
+From an interpretability perspective, the three approaches provide complementary views of the congestion structure. The threshold-based approach is the most direct to interpret, since it explicitly identifies congested and functional grid cells at each timestep. It is therefore well suited to visualising the emergence and spatial growth of congestion. However, its interpretation remains mainly focused on congested areas, and it provides limited information about the structure of uncongested regions.
+
+The link-based K-means approach offers a more complete partition of the road network. Since each cluster is directly associated with road links, the resulting regions can be interpreted in relation to the geometry of the network and to the selected spawn points. For $K=5$, the partition remains relatively simple and readable, with a small number of large regions. For $K=9$, the method provides a finer spatial decomposition, but the interpretation becomes more complex because several clusters correspond to smaller and more fragmented regions.
+
+The grid K-means approach is easier to interpret at a macroscopic level, as it produces large spatial regions that summarize the dominant traffic states over the network. This makes it useful for comparing broad congested and uncongested areas. However, because the partition is constrained by the grid structure, the resulting regions do not always follow the road-network geometry. As a consequence, the method improves global readability but may lose part of the local detail captured by the link-based K-means approach.
+
 
 \subsection{Limitations}
 \label{sec:eval:limits}

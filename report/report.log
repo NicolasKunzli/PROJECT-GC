@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.4)  18 JUN 2026 20:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.5.4)  19 JUN 2026 10:56
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -409,7 +409,8 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 ) (C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count336
-) (report.aux)
+)
+No file report.aux.
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
@@ -430,7 +431,7 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 27.
 LaTeX Font Info:    ... okay on input line 27.
- (C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
+(C:\Users\Nicolas\AppData\Local\Programs\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count337
 \scratchdimen=\dimen257
@@ -742,102 +743,113 @@ File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clu
 Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png  used on input line 969.
 (pdftex.def)             Requested size: 455.24411pt x 225.64444pt.
  [20]
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png, id=210, 597.23927pt x 296.01791pt>
+File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png Graphic file (type png)
+<use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png>
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png  used on input line 982.
+(pdftex.def)             Requested size: 455.24411pt x 225.64444pt.
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png, id=211, 597.23927pt x 296.01791pt>
+File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png Graphic file (type png)
+<use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png>
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png  used on input line 990.
+(pdftex.def)             Requested size: 455.24411pt x 225.64444pt.
+ [21 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png>]
 
-LaTeX Warning: Reference `fig:kmeans_maps1' on page 21 undefined on input line 977.
+LaTeX Warning: Reference `fig:kmeans_maps1' on page 22 undefined on input line 998.
 
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png, id=210, 566.5968pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png, id=219, 566.5968pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png  used on input line 984.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png  used on input line 1005.
 (pdftex.def)             Requested size: 218.51521pt x 126.8126pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png, id=211, 566.5968pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png, id=220, 566.5968pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png  used on input line 990.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png  used on input line 1011.
 (pdftex.def)             Requested size: 218.51521pt x 126.8126pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png, id=212, 543.4704pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png, id=221, 543.4704pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png  used on input line 998.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png  used on input line 1019.
 (pdftex.def)             Requested size: 218.51521pt x 132.21144pt.
-<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png, id=213, 543.4704pt x 328.8285pt>
+<../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png, id=222, 543.4704pt x 328.8285pt>
 File: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png Graphic file (type png)
 <use ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>
-Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png  used on input line 1004.
+Package pdftex.def Info: ../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png  used on input line 1025.
 (pdftex.def)             Requested size: 218.51521pt x 132.21144pt.
-[21 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn_average/5_tNone_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn_average/9_tNone_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832.png>]
+[22 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/s1-20/5_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_976_633_116_663_278_spa2.0_dyn1.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/s1-20/9_t21_s1-20_kmeans_speed_clusters_bottlenecks_sessions_1289_895_633_1529_665_269_210_281_832_spa2.0_dyn1.png>]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1045.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1045.
+(hyperref)                removing `math shift' on input line 1066.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1045.
+(hyperref)                removing `math shift' on input line 1066.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 1045.
-
-[22 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>]
-
-LaTeX Warning: Reference `sec:methods:results_km' on page 23 undefined on input line 1060.
+(hyperref)                removing `math shift' on input line 1066.
 
 
-LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 23 undefined on input line 1065.
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 1066.
 
-<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png, id=234, 414.8298pt x 270.57887pt>
+[23 <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_median_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/5_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_5_grid_clust_spawn_clusters_count_s1-20.png> <../figure/clustering/kmeans_speed_clusters_bottlenecks_sessions/9_grid_clust_spawn/graphs-s1-20/kmeans_speed_clusters_bottlenecks_sessions_9_grid_clust_spawn_clusters_count_s1-20.png>]
+
+LaTeX Warning: Reference `sec:methods:results_km' on page 24 undefined on input line 1081.
+
+
+LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 24 undefined on input line 1086.
+
+<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png, id=243, 414.8298pt x 270.57887pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png  used on input line 1071.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png  used on input line 1092.
 (pdftex.def)             Requested size: 218.51521pt x 142.5267pt.
-<../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png, id=235, 414.8298pt x 270.57887pt>
+<../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png, id=244, 414.8298pt x 270.57887pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png  used on input line 1076.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png  used on input line 1097.
 (pdftex.def)             Requested size: 218.51521pt x 142.5267pt.
 
-LaTeX Warning: Reference `fig:grid_kmeans_speed' on page 23 undefined on input line 1087.
+LaTeX Warning: Reference `fig:grid_kmeans_speed' on page 24 undefined on input line 1108.
 
-<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png, id=236, 715.473pt x 281.853pt>
+<../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png, id=245, 715.473pt x 281.853pt>
 File: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png Graphic file (type png)
 <use ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>
-Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png  used on input line 1092.
+Package pdftex.def Info: ../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png  used on input line 1113.
 (pdftex.def)             Requested size: 455.24411pt x 179.33592pt.
 
-LaTeX Warning: Reference `tab:km_metrics' on page 23 undefined on input line 1102.
+LaTeX Warning: Reference `tab:km_metrics' on page 24 undefined on input line 1123.
 
 
-Overfull \hbox (1.27385pt too wide) in paragraph at lines 1102--1105
+Overfull \hbox (1.27385pt too wide) in paragraph at lines 1123--1126
 []\T1/cmr/m/n/10.95 Table [] re-ports the three eval-u-a-tion met-rics for Ap-proach 2 at the 15 rep-re-sen-ta-tive timesteps
  []
 
-[23 <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>]
+[24 <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans9_qc0.520.png> <../figure/clustering/grid_clusters/grid_kmeans5_qc0.520_median.png>]
 
-LaTeX Warning: Reference `fig:compare_methods' on page 24 undefined on input line 1144.
+LaTeX Warning: Reference `fig:compare_methods' on page 25 undefined on input line 1165.
 
-<../figure/congestion_maps/compare_methods_t15.png, id=247, 798.43896pt x 336.20004pt>
+<../figure/congestion_maps/compare_methods_t15.png, id=256, 798.43896pt x 336.20004pt>
 File: ../figure/congestion_maps/compare_methods_t15.png Graphic file (type png)
 <use ../figure/congestion_maps/compare_methods_t15.png>
-Package pdftex.def Info: ../figure/congestion_maps/compare_methods_t15.png  used on input line 1152.
+Package pdftex.def Info: ../figure/congestion_maps/compare_methods_t15.png  used on input line 1173.
 (pdftex.def)             Requested size: 455.24411pt x 191.69756pt.
 
-LaTeX Warning: Reference `tab:comparison' on page 24 undefined on input line 1164.
+LaTeX Warning: Reference `tab:comparison' on page 25 undefined on input line 1185.
 
 
-LaTeX Warning: Reference `fig:graph_search_norm' on page 24 undefined on input line 1169.
+LaTeX Warning: Reference `fig:graph_search_norm' on page 25 undefined on input line 1190.
 
 
-LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 24 undefined on input line 1169.
+LaTeX Warning: Reference `fig:grid_kmeans_maps' on page 25 undefined on input line 1190.
 
-[24 <../figure/congestion_maps/compare_methods_t15.png>]
+[25 <../figure/congestion_maps/compare_methods_t15.png>]
 
-LaTeX Warning: Reference `sec:eval:metrics' on page 25 undefined on input line 1216.
+LaTeX Warning: Reference `sec:eval:metrics' on page 26 undefined on input line 1237.
 
-[25] (report.bbl) [26] [27] (report.aux)
+[26] [27] [28] (report.bbl) [29] [30] (report.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2025-12-24>
@@ -859,17 +871,17 @@ Package rerunfilecheck Info: Checksums for `report.out':
 (rerunfilecheck)             After:  C676AD83A6D5AC7F721EDC4C4DEBE387;10085.
  ) 
 Here is how much of TeX's memory you used:
- 19684 strings out of 467871
- 402578 string characters out of 5417409
- 775036 words of memory out of 5000000
- 48221 multiletter control sequences out of 15000+600000
+ 19705 strings out of 467871
+ 406026 string characters out of 5417409
+ 775045 words of memory out of 5000000
+ 48240 multiletter control sequences out of 15000+600000
  647911 words of font info for 94 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,1211b,1144s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,1680b,1144s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecti1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1095.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1000.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\Nicolas\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1728.pk><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi8.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr8.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Nicolas/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
-Output written on report.pdf (27 pages, 6678471 bytes).
+Output written on report.pdf (30 pages, 7408033 bytes).
 PDF statistics:
- 824 PDF objects out of 1000 (max. 8388607)
- 140 named destinations out of 1000 (max. 500000)
- 111 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 841 PDF objects out of 1000 (max. 8388607)
+ 144 named destinations out of 1000 (max. 500000)
+ 121 words of extra memory for PDF output out of 10000 (max. 10000000)
 
